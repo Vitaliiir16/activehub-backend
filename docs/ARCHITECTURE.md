@@ -1,10 +1,10 @@
 # Architecture proposal
 
-Status: proposed product architecture. Business modules, classes and GoF patterns are not implemented. Stage 00 now includes rendered [Use Case, whole-system class and pattern collaboration diagrams](MODELING.md), with editable sources. Infrastructure delivery is tracked separately in PROGRESS.md; diagrams do not imply implemented business behavior.
+Status: accounts/access and welcome delivery are implemented; the remaining product architecture is proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
 
 ## Shape of the system
 
-Implemented foundation: `src/app/api/health/route.ts` checks readiness through `src/infrastructure/database.ts`; `scripts/init-db.ts` coordinates checked SQL migrations and required seeds under a PostgreSQL advisory lock. `scripts/worker.ts` only manages lifecycle and database heartbeat. `compose.yaml` wires PostgreSQL, initialization, API, worker, Mailpit and the sibling frontend. The frontend uses `src/api/client.ts` and generated types. Application/domain services, job/outbox execution and every GoF collaboration below remain proposed.
+Implemented: thin routes in src/app/api call src/modules/accounts/service.ts; security.ts checks sessions/CSRF/origins, validation.ts defines strict role DTOs, profiles.ts owns profile/reference mapping, and images.ts handles decoded owned files. PostgreSQL transactions hold account locks across validation and writes; status changes revoke sessions with a database trigger. Migrations/required seeds run under the initialization advisory lock. scripts/worker.ts dispatches only welcome outbox records through the WelcomeMail port and MailpitWelcomeMail Adapter in src/infrastructure/welcome-mail.ts, with row claims, retries and graceful shutdown. The frontend uses generated types, src/api/client.ts, SessionProvider and role-specific routes/forms. compose.yaml wires these processes to PostgreSQL, shared uploads and Mailpit. Other application services, financial/domain policies and background jobs remain proposed.
 
 Use a modular monolith for the Next.js REST backend and a separate React TypeScript frontend. PostgreSQL is the transactional authority. Shared file storage holds uploads. A separate worker process uses the same backend build and persisted database state. This keeps cross-feature booking compensation within a database transaction without introducing distributed-service overhead.
 
@@ -30,7 +30,7 @@ Arrows through adapters describe proposed wiring, not a deployed topology. Domai
 | Domain | State transitions, eligibility, pricing and invariants | `src/modules/<module>/domain/` |
 | Infrastructure | PostgreSQL repositories/migrations, uploads, email and simulator adapters | `src/modules/<module>/infrastructure/` |
 | Composition/worker | Wire dependencies; claim and execute persisted jobs | `src/composition/`, `src/worker/` |
-| Frontend | Role routes, forms, query state, typed API integration and presentation | Separate frontend `src/`; `src/api` and welcome screen exist, role modules remain planned |
+| Frontend | Role routes, forms, query state, typed API integration and presentation | src/api, src/session.tsx, src/pages and role routes in src/App.tsx exist for accounts; later modules remain planned |
 
 ## Modules and ownership
 
@@ -90,5 +90,7 @@ Avoid Singleton for settings: a unique database row plus injected configuration 
 - Pure Fabrication / Indirection: transaction coordinator, repositories and outbox services provide cohesive technical duties without polluting domain entities.
 
 ## Documentation during implementation
+
+Implemented GoF: Adapter, specifically WelcomeMail/MailpitWelcomeMail in src/infrastructure/welcome-mail.ts. Its comment and README index name the roles and search command. Registration records notification and email intent transactionally; delivery consumes persisted records without invoking pricing/loyalty observers. An outbox alone is not claimed as a GoF Observer. The initial card metadata stored with user profiles does not implement loyalty behavior. SOLID/GRASP already visible here include cohesive transport/security/profile/mail responsibilities, server-owned identity as Information Expert, thin route controllers and a narrow mail port that separates registration from SMTP details. The other pattern choices above remain proposed.
 
 Add only brief English comments at actual pattern implementations naming the pattern, its roles and reason. Optional file headers may identify ActiveHub and describe the file's purpose; avoid repetitive commentary. Update README with a table of implemented pattern, purpose, actual source path/symbol and a reproducible search such as `rg -n 'Strategy|State|Adapter' src` only when those symbols exist. The final class diagram must show real collaborations and be compared to the code. Frontend patterns need their own justification; they need not mirror backend patterns.

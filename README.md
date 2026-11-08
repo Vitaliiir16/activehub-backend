@@ -1,66 +1,73 @@
 # ActiveHub backend
 
-ActiveHub is a sports and active-leisure marketplace. This repository provides the Next.js REST scaffold, PostgreSQL bootstrap, required reference data and local container infrastructure. The only implemented HTTP endpoint is `GET /api/health`. Accounts, catalog, bookings, payments and background business jobs are planned.
+ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Catalogs, bookings, payments, subscriptions, loyalty behavior and other communications are planned.
 
-## Run locally
+## Start
 
-Install Node.js 24 and Docker Desktop with its Linux engine running. Clone [activehub-frontend](https://github.com/Vitaliiir16/activehub-frontend) beside this repository, using the directory names `activehub-backend` and `activehub-frontend`. From this directory:
+Use Node.js 24 and Docker Desktop with its Linux engine running. Clone [activehub-frontend](https://github.com/Vitaliiir16/activehub-frontend) beside this directory, keeping both repository names. From this directory:
 
-```powershell
+~~~powershell
 node scripts/create-local-env.mjs
 docker compose up --build --wait
-```
+~~~
 
-The first command creates `.env` with random local passwords and refuses to overwrite an existing file. Review it privately to choose the initial administrator email and name. Alternatively copy `.env.example` to `.env` and replace both password placeholders. Never commit this file. After initial configuration, `docker compose up --build --wait` is the complete startup command.
+Environment generation is needed once and refuses to overwrite an existing file. Review the generated .env privately for the initial administrator email/password/name. Alternatively copy .env.example and replace password placeholders. Existing bootstrap credentials are preserved on restart; changing environment values does not reset them.
 
-Open the frontend at <http://localhost:8080>, API readiness at <http://localhost:3000/api/health>, and Mailpit at <http://localhost:8025>. The administrator is seeded, but sign-in is not implemented. There are no demo accounts or events yet. All UI text and seeds are English; future money uses UAH and displayed dates use Europe/Kyiv.
+Open the frontend at http://localhost:8080, readiness at http://localhost:3000/api/health, and Mailpit at http://localhost:8025. Register a user or organizer, or sign in using the configured administrator. There are no demo accounts/events. UI, validation and seed labels are English. UAH and Europe/Kyiv remain the product conventions.
 
-Compose waits for PostgreSQL, runs migrations and seeds to completion, then starts the API and worker. The frontend waits for API readiness. The worker also waits for Mailpit and currently only checks connectivity and maintains a heartbeat; it sends no email and runs no product jobs. SIGTERM closes its database connections. It restarts after unexpected failure. Mailpit captures local mail without outbound SMTP configuration.
+Compose waits for PostgreSQL, runs checked migrations and idempotent required seeds, then starts API/worker and frontend. Named volumes retain database records, profile images and captured mail. Repeat the same startup command to apply new migrations without deleting data. Stop with docker compose stop; docker compose down retains volumes. Do not remove volumes to reset configuration. PostgreSQL 18 stores data at /var/lib/postgresql.
 
-Named volumes preserve PostgreSQL data, uploads and mail. PostgreSQL 18 uses `/var/lib/postgresql`. `docker compose stop` stops services; repeat startup to resume. `docker compose down` removes this project's containers while retaining volumes. Do not use `down --volumes` or pruning against data you need.
+## Account security
+
+Passwords use the existing salted scrypt configuration. Opaque session and CSRF context cookies are HTTP-only, SameSite=Lax and scoped to /. Session tokens are stored as digests, expire after seven days by default and are revoked on logout/block/deletion. Password changes verify the current password and rotate the current session while revoking other sessions.
+
+Every unsafe account operation requires a context/session-bound CSRF token and an exact configured Origin. The frontend fetches tokens and serializes mutations. All HTTPS origins enable Secure cookies; HTTP cookies are allowed only for localhost development. DTOs reject role/owner/status injection. Profiles derive their owner from the session. Inactive dictionary values remain visible on the owner's existing profile but cannot become new selections. Owned images are decoded, resized and stripped of metadata before WebP storage; arbitrary uploads and foreign reads are denied.
+
+Only ADMIN can create another administrator or update another administrator's status. Self-block and last-active-administrator removal are protected by serialized checks. Administrator deletion, dedicated listing and general management remain planned. Registration welcome records and email outbox entries are transactional. The separate worker currently delivers only welcome email to Mailpit, persists retries, skips completed records and shuts down cleanly. SMTP acceptance followed by a process crash before database commit can produce a duplicate external email; external exactly-once delivery is not claimed.
 
 ## Configuration
 
 | Variable | Purpose |
 |---|---|
-| `COMPOSE_PROJECT_NAME` | Container and volume namespace; default activehub |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Bootstrap database credentials; changing them does not rewrite an existing volume |
-| `INITIAL_ADMIN_EMAIL`, `INITIAL_ADMIN_PASSWORD`, `INITIAL_ADMIN_NAME` | Required bootstrap administrator; repeated initialization preserves existing credentials/profile |
-| `API_PORT`, `FRONTEND_PORT`, `MAILPIT_PORT` | Localhost ports; defaults 3000, 8080 and 8025 |
-| `DATABASE_URL` or standard `PG*` variables | Database connection for commands outside Compose |
-| `API_PROXY_TARGET` | Frontend Vite development proxy target, configured in the frontend |
+| COMPOSE_PROJECT_NAME | Container/volume namespace; default activehub |
+| POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD | Database bootstrap; changes do not rewrite an existing volume |
+| INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD / INITIAL_ADMIN_NAME | Required first-administrator configuration; never published or reset on reseed |
+| API_PORT / FRONTEND_PORT / MAILPIT_PORT | Localhost ports; defaults 3000 / 8080 / 8025 |
+| APP_ORIGINS | Exact comma-separated browser origins; Compose defaults to localhost and 127.0.0.1 at FRONTEND_PORT |
+| SESSION_TTL_SECONDS | Default 604800; supported range 60-2592000 |
+| DATABASE_URL or PG* | Database connection for local commands outside Compose |
+| UPLOAD_DIR | Shared image directory; /app/uploads in Compose; set an absolute writable directory for local Next.js development |
+| SMTP_HOST / SMTP_PORT | Development mail capture; mailpit:1025 in Compose |
 
-The initial password requires 8-256 characters, a letter and a digit. It is stored as a salted scrypt hash. Once a system-created administrator exists, changing bootstrap configuration does not create another administrator or reset credentials. Required seeds insert missing dictionaries and loyalty defaults, preserving subsequent edits. Migrations run transactionally under an advisory lock and reject changes to applied SQL; add a new migration instead. Demo seeds are deferred with the business modules; `SEED_DEMO=true` is explicitly rejected.
+When using Vite development, configure APP_ORIGINS to include the exact http://localhost:5173 or http://127.0.0.1:5173 origin in addition to any Compose frontend origin. No wildcard CORS is enabled. Secrets never belong in frontend environment variables.
 
-## Development and checks
+## Checks
 
-Use `npm.cmd` and `npx.cmd` in PowerShell (`npm` and `npx` in other shells):
-
-```powershell
+~~~powershell
 npm.cmd ci
 npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd test
 npm.cmd run contract:check
 npm.cmd run build
-docker compose run --rm --no-deps migrate node --import tsx scripts/verify-db.ts
-```
+~~~
 
-The database check needs the running Compose database. It verifies seed identities/defaults, password hashing, repeat initialization and preservation of edits; test mutations are rolled back. `npm.cmd run test:health` checks a running API (`API_BASE_URL` defaults to `http://127.0.0.1:3000`). `npm.cmd run test:smoke` starts a built server on port 3100 and needs real database variables in the shell. `npm.cmd run dev` starts Next.js on port 3000 with the same requirement. Compose deliberately does not publish the database port; use container commands.
+PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
 
-Exact dependencies and image digests are pinned. Node 24, Next.js 16, TypeScript 5.9 and PostgreSQL 18 are the baseline. TypeScript stays within the lint tool's supported range. Targeted ESLint dependency overrides replace affected development-only minimatch versions; both dependency audits were clean at verification time.
+GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap checks and the real production-server account suite. Frontend CI checks out its pinned backend revision and runs the full Compose/browser flows without mocks. Dependency versions and image digests are pinned; npm audits reported zero vulnerabilities at verification time.
 
 ## Documentation
 
-- [Requirements](docs/REQUIREMENTS.md), [matrix](docs/REQUIREMENTS_MATRIX.md) and [delivery plan](docs/DELIVERY_PLAN.md)
-- [Current evidence](docs/PROGRESS.md) and [open decisions](docs/ASSUMPTIONS.md)
-- [System models](docs/MODELING.md) and [architecture](docs/ARCHITECTURE.md)
-- [OpenAPI](docs/openapi.yaml), [API conventions](docs/API_CONVENTIONS.md) and [change history](docs/API_CHANGELOG.md)
+- [Requirements](docs/REQUIREMENTS.md), [matrix](docs/REQUIREMENTS_MATRIX.md), [delivery plan](docs/DELIVERY_PLAN.md) and [progress](docs/PROGRESS.md)
+- [OpenAPI](docs/openapi.yaml), [conventions](docs/API_CONVENTIONS.md), [changelog](docs/API_CHANGELOG.md) and [account acceptance](docs/ACCOUNTS_ACCEPTANCE.md)
+- [Architecture](docs/ARCHITECTURE.md), [models](docs/MODELING.md) and [open decisions](docs/ASSUMPTIONS.md)
 
-`npm.cmd run test:contract` validates the real health response against OpenAPI. Set `API_BASE_URL` for another port and `EXPECTED_HEALTH_STATUS=503` when deliberately testing an unavailable database. GitHub Actions runs the backend checks with PostgreSQL; frontend CI checks the paired stack at its pinned backend revision.
+OpenAPI 0.2.0 marks 21 operations implemented and 89 planned. Q-01 through Q-05 remain open. Initial profile card metadata is persisted, but no accrual, redemption, pricing or card-transition behavior exists. No business scheduling/reminders, optional recovery or demo data is implemented. This delivery stops after stage 04.
 
-Q-01 through Q-05 remain open. Infrastructure does not approve those proposals. Current checks cover scaffolding and bootstrap only; there is no business integration coverage.
+## Implemented design patterns
 
-## Design patterns
+| Pattern | Purpose | Source and search |
+|---|---|---|
+| Adapter | Map the welcome-mail port to local SMTP while keeping delivery details outside account registration | [welcome-mail.ts](src/infrastructure/welcome-mail.ts): WelcomeMail, MailpitWelcomeMail; search: `rg -n WelcomeMail src` |
 
-No GoF pattern is implemented yet. [ARCHITECTURE.md](docs/ARCHITECTURE.md) explains proposed patterns and interactions. As modules are added, this index will identify each implemented pattern, purpose, source symbol and search command. Implementations will carry a concise English pattern comment.
+Other GoF collaborations in the architecture and UML remain proposed. The profile/session functions are not presented as invented pattern implementations.

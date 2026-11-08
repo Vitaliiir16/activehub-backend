@@ -4,6 +4,20 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 04 accounts and access
+
+| Requirements | Delivered subset | Actual evidence | Still planned |
+|---|---|---|---|
+| M-010, M-018 through M-021, BR-01, BR-20 | USER/ORGANIZER two-step registration, automatic sign-in, unique global email, sessions/logout/passwords, blocked/deleted revocation, no ADMIN signup | scripts/verify-accounts.ts against PostgreSQL and real HTTP: concurrent cross-role duplicate, generic credential failures, strict role/owner fields, CSRF/origin, hashed tokens, expiry/logout/block/delete and password/session rotation; eight browser tests | Access rules for later business routes |
+| M-013/M-014, M-033, account subset of M-045 | Role-specific own profiles, unique email, city/directions/preferences, photos/logos and email settings | Real profile/image/settings round-trips and reload; inactive-selection retention/new-selection denial; foreign image ID/read denied; decoded image type/size checks | Dictionary management, recommendations/targeting, plans/chat and later organizer features |
+| M-055, M-056, BR-10 | Seeded ADMIN login, ADMIN-only creation form/API and block/unblock with self/last-active protection | Real seeded/new ADMIN browser flow; USER denial; self-block denial; concurrent mutual-block requests serialize and preserve an active administrator | Administrator deletion/general management and optional dedicated list |
+| N-01, welcome subset of M-020/M-083/M-096 | Atomic welcome in-app/outbox, owner-only read one/all, worker SMTP delivery/retry | Unique event/outbox rows, concurrent row claims, completed replay without another attempt; real Mailpit receipt; SMTP outage/recovery and restart without duplicate in the checked scenario; graceful worker exit and log-secret audit | Every other communication trigger/job; SMTP crash-window exactly-once delivery is not guaranteed |
+| M-004/M-098/M-099/M-105 | Real Adapter index, account role routes, English responsive forms/states and truthful placeholders | Source comment and README search index; updated models; eight Chromium desktop/mobile cases and screenshot review; lint/types/build and hosted CI recorded in PROGRESS.md | Other patterns, screens, business behavior and final acceptance |
+
+Stage 04 is complete for accounts/access. Q-01 through Q-05 remain open. No booking/payment/subscription/loyalty behavior or optional recovery was implemented. Validation and access evidence applies to the account endpoints only; the complete mandatory inventory below remains the final acceptance scope.
+
+### Foundation evidence (historical stage 00-03 snapshot)
+
 | Requirements | Delivered subset | Evidence | Still planned |
 |---|---|---|---|
 | M-001 through M-004, M-100 | Stage 00 domain and whole-system modeling | [MODELING.md](MODELING.md), three PlantUML sources and locally rendered SVGs; PlantUML 1.2026.9 successful compilation; use-case ID inventory reviewed | All business behavior, actual GoF implementation and final source-to-model reconciliation |
@@ -14,7 +28,7 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 | M-005, M-009, M-099 | Typed real health client, English loading/ready/error/retry welcome screen | OpenAPI lint (109 operations, only health implemented), generated snapshot/hash checks, live 200/503 schema checks, two Chromium desktop/mobile tests and screenshot review | All business endpoints/security enforcement, full role screens, currency/time calculations and business E2E |
 | M-105 | Runnable READMEs, feature commits and CI workflows | [PROGRESS.md](PROGRESS.md) records local evidence, pinned revision pair and hosted run status | Final product acceptance and implemented GoF source index |
 
-Stages 00-03 are foundation delivery only. M-102 demo data remains planned for stage 13; demo mode is explicitly rejected until the required business schema exists. Q-01 through Q-05 remain open. Every business invariant, notification case and functional validation row below still requires its own implementation evidence.
+The foundation table records the earlier snapshot; stage 04 evidence above supersedes its account/welcome subsets. M-102 demo data remains planned for stage 13, and demo mode is explicitly rejected until its business schema exists. Uncovered invariants, notification cases and validations still require their own implementation evidence.
 
 ## Mandatory scope
 

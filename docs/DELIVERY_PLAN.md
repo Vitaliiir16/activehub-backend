@@ -1,6 +1,6 @@
 # Delivery plan
 
-Stages 00-03 have delivered the system models, runnable scaffolds, required infrastructure and contract foundation. Evidence and exact revisions are recorded in PROGRESS.md. The stage table describes acceptance scope; it does not imply that later business modules exist. The current run stops after stage 03. Demo records remain deferred until their business entities exist.
+Stages 00-04 have delivered models, scaffolds, infrastructure, contract foundation and accounts/access. Evidence and revision boundaries are recorded in PROGRESS.md. The current run stops after stage 04. Catalogs, bookings, payments, subscriptions and loyalty behavior remain planned. Demo records remain deferred until their entities exist.
 
 ## Stages and acceptance
 
@@ -33,7 +33,7 @@ The dependency table is not permission to call unfinished integration complete. 
 5. Run both applications at the pinned pair, capture checks and add reciprocal PR links. Update `PROGRESS.md` and frontend `BACKEND_CONTRACT.md` with actual compatibility evidence.
 6. For incompatible changes, expand backend compatibility first, migrate the consumer second, retire old behavior in a later reviewed change. Do not rely on moving branch names as proof of compatibility.
 
-The current health client and real-stack checks establish foundation compatibility only. Planned OpenAPI operations are not available endpoints. The frontend must not invent behavior to unblock later modules.
+The account client and real-stack checks establish stage 04 compatibility. Planned OpenAPI operations remain unavailable. The frontend must not invent behavior to unblock later modules.
 
 ## Delivery workflow
 
@@ -45,7 +45,7 @@ Before marking a stage complete, review the whole diff separately from writing i
 
 ## Verification policy
 
-Current checks include lint/typecheck/build in both repositories, bootstrap/password tests, real PostgreSQL initialization/restart checks, OpenAPI lint and live health-schema validation, generated frontend types, and desktop/mobile health connection tests. Documentation checks include source archive hash, English text, requirement inventories, relative links, whitespace and staged-secret review. See PROGRESS.md for exact outcomes and limitations.
+Current checks include lint/typecheck/build in both repositories, bootstrap/password tests, real PostgreSQL/API account acceptance, initialization/restart checks, OpenAPI lint and health-schema validation, generated types and eight desktop/mobile account tests with Mailpit. Welcome SMTP outage/recovery and worker shutdown have been checked locally. Documentation checks include source/archive hash, English text, inventories, links, whitespace and staged-secret review. See PROGRESS.md for exact outcomes and limitations.
 
 Later modules must extend the existing checks with domain/PostgreSQL integration and meaningful component tests. Planned integrated checks: E2E for three roles; last-seat/hall and duplicate-user races; repeated payment/refund/worker actions; concurrent visits/points/quota; changed-time/address full refund; session revocation; data isolation and no admin chat access; last-active-admin race; business restart durability; Europe/Kyiv calendar/DST and exact deadline boundaries. Run appropriate checks on each change; broaden only when warranted.
 
