@@ -27,6 +27,7 @@ try {
   if (!ready) throw new Error(`Server did not become ready: ${output}`);
   process.env.API_BASE_URL = baseUrl;
   await import("./check-health");
+  await import("./check-health-contract.mjs");
 } finally {
   if (child.exitCode === null) {
     const exited = once(child, "exit");
