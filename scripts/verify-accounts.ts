@@ -3,10 +3,8 @@ import { randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import sharp from "sharp";
 import { createPool } from "../src/infrastructure/database";
-import {
-  dispatchWelcome,
-  MailpitWelcomeMail,
-} from "../src/infrastructure/welcome-mail";
+import { dispatchNextEmail } from "../src/infrastructure/email-outbox";
+import { SmtpMailTransport } from "../src/infrastructure/mail";
 import { welcome } from "../src/modules/accounts/service";
 import { verifyPassword } from "./lib/password";
 
@@ -531,16 +529,16 @@ try {
     ),
     1,
   );
-  const mail = new MailpitWelcomeMail();
+  const mail = new SmtpMailTransport();
   for (let i = 0; i < 30; i++) {
     const processed = await Promise.all([
-      dispatchWelcome(pool, mail),
-      dispatchWelcome(pool, mail),
+      dispatchNextEmail(pool, mail),
+      dispatchNextEmail(pool, mail),
     ]);
-    if (processed.every((value) => !value)) break;
+    if (processed.every((value) => value === "IDLE")) break;
   }
   for (let i = 0; i < 10; i++) {
-    await dispatchWelcome(pool, mail);
+    await dispatchNextEmail(pool, mail);
     const state = (
       await pool.query(
         "SELECT e.state FROM email_outbox e JOIN notifications n ON n.id=e.notification_id WHERE n.account_id=$1",
@@ -570,7 +568,7 @@ try {
     ).length,
     1,
   );
-  await dispatchWelcome(pool, mail);
+  await dispatchNextEmail(pool, mail);
   assert.equal(
     (
       await pool.query("SELECT attempts FROM email_outbox WHERE id=$1", [
