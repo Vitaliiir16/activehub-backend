@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { PoolClient } from "pg";
 import { hashPassword, verifyPassword } from "../../../scripts/lib/password";
-import { database } from "../../infrastructure/database";
 import { HttpError, invalid, jsonBody, transaction } from "./http";
 import {
   actor,
@@ -310,8 +309,8 @@ export async function changePassword(request: Request) {
         current.role,
         request,
       );
-    session.headers.delete("Content-Type");
-    return new Response(null, { status: 204, headers: session.headers });
+      session.headers.delete("Content-Type");
+      return new Response(null, { status: 204, headers: session.headers });
     },
     undefined,
     true,
@@ -353,27 +352,45 @@ export async function listDictionary(
   request: Request,
   table: "cities" | "directions",
 ) {
-  const query = pageInput.parse(
-    Object.fromEntries(new URL(request.url).searchParams),
-  );
-  const count = Number(
-    (await database().query(`SELECT count(*) FROM ${table} WHERE is_active`))
-      .rows[0].count,
-  );
-  const items = (
-    await database().query(
-      `SELECT id,name,is_active AS "isActive" FROM ${table} WHERE is_active ORDER BY created_at ${query.sort === "newest" ? "DESC" : "ASC"},id LIMIT $1 OFFSET $2`,
-      [query.pageSize, (query.page - 1) * query.pageSize],
-    )
-  ).rows;
-  return Response.json({
-    items,
-    meta: {
-      page: query.page,
-      pageSize: query.pageSize,
-      totalItems: count,
-      totalPages: Math.ceil(count / query.pageSize),
-    },
+  const query = pageInput
+    .extend({ includeSelected: z.enum(["true", "false"]).optional() })
+    .parse(Object.fromEntries(new URL(request.url).searchParams));
+  return transaction(async (client) => {
+    const current =
+      query.includeSelected === "true"
+        ? await actor(request, client)
+        : undefined;
+    const owned =
+      table === "cities"
+        ? "id IN (SELECT city_id FROM user_profiles WHERE account_id=$1 UNION SELECT city_id FROM organizer_profiles WHERE account_id=$1)"
+        : "id IN (SELECT direction_id FROM profile_directions WHERE account_id=$1)";
+    const predicate = `is_active OR ${owned}`;
+    const count = Number(
+      (
+        await client.query(`SELECT count(*) FROM ${table} WHERE ${predicate}`, [
+          current?.id ?? null,
+        ])
+      ).rows[0].count,
+    );
+    const items = (
+      await client.query(
+        `SELECT id,name,is_active AS "isActive" FROM ${table} WHERE ${predicate} ORDER BY created_at ${query.sort === "newest" ? "DESC" : "ASC"},id LIMIT $2 OFFSET $3`,
+        [
+          current?.id ?? null,
+          query.pageSize,
+          (query.page - 1) * query.pageSize,
+        ],
+      )
+    ).rows;
+    return Response.json({
+      items,
+      meta: {
+        page: query.page,
+        pageSize: query.pageSize,
+        totalItems: count,
+        totalPages: Math.ceil(count / query.pageSize),
+      },
+    });
   });
 }
 export async function createAdministrator(request: Request) {
