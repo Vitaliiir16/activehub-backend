@@ -38,7 +38,7 @@ The full original specification was read. All seven distinct optional [S] capabi
 
 Archive SHA-256 equality was verified. Automated checks passed across all 12 publishable files: English authored text, no local-only terminology, no token/private-key signatures, no trailing whitespace and all relative Markdown targets present. Matrix inventories passed: 105 mandatory scope rows, 23 business invariants, 20 mandatory notification cases, 14 validation rules and seven optional capabilities, with unique IDs. Both staged diffs passed `git diff --cached --check`. Ignore probes confirmed environment files, dependencies, builds, coverage and local secrets are excluded while `.env.example` is allowed. The source archive and local instructions are excluded through repository-local rules and absent from the staged filenames.
 
-A separate same-session full staged-diff review compared the requirements, matrix, architecture, decisions and READMEs to the source. It corrected the U13/U14 profile/preferences versus notification-settings labels and removed an unnecessary age-label interpretation. This was not an independent review. Publication verification remains pending until push completes.
+A separate same-session full staged-diff review compared the requirements, matrix, architecture, decisions and READMEs to the source. It corrected the U13/U14 profile/preferences versus notification-settings labels and removed an unnecessary age-label interpretation. This was not an independent review. Initial publication succeeded; remote main hashes matched local hashes in both repositories and both worktrees were clean after push.
 
 Application lint, typecheck, build, domain tests, PostgreSQL integration and E2E: **not run** because applications, scripts and infrastructure do not yet exist. No independent review session or CI run has occurred.
 
@@ -47,8 +47,9 @@ Application lint, typecheck, build, domain tests, PostgreSQL integration and E2E
 | Snapshot boundary | Backend revision | Frontend revision | Meaning |
 |---|---|---|---|
 | Initial inspection | None (unborn branch) | None (unborn branch) | Empty local and remote repositories |
+| Published main baseline | `492eff2f77f974b97573591251054b6df5f209de` | `89201bc3855288a19aeaf8f03b5f51a8a26c7f96` | Documentation-only pair; both push operations succeeded and remote refs matched |
 
-Initial meaningful documentation commits are to be published on `main` without an artificial empty base. Publication and final verification records will then use setup branches and reviewable pull requests. No merge is authorized. This file cannot include its own final commit SHA; final hashes belong in the handoff or a subsequent snapshot. No tested application pair exists.
+Initial meaningful documentation commits were published on `main` without an artificial empty base. Backend baseline: [492eff2](https://github.com/Vitaliiir16/activehub-backend/commit/492eff2f77f974b97573591251054b6df5f209de). Frontend baseline: [89201bc](https://github.com/Vitaliiir16/activehub-frontend/commit/89201bc3855288a19aeaf8f03b5f51a8a26c7f96). Both repositories now have a `setup/documentation-handoff` branch for this verification record and pinned frontend references. The exact pair above describes the published main baselines, not this file's eventual commit. Final setup hashes and PR links belong in the handoff or a subsequent snapshot; no tested application pair exists. No merge is authorized.
 
 ## Blockers and owner decisions
 
@@ -56,6 +57,6 @@ No environment or repository-preparation blocker remains. Business-rule question
 
 ## Next actions
 
-1. Finish documentation/reference/exclusion checks and the separate diff review; commit/publish the initial meaningful main baselines.
-2. Record actual publication revisions and checks on setup branches, push them and open related PRs for owner review.
-3. Stop after preparation. On the next authorized implementation run, finish stage 00 Use Case/class modeling, then stage 01 scaffolds and stage 02 infrastructure with real check scripts and environment examples. Keep the fixed stack and all mandatory scope.
+1. Owner review and merge of the setup publication-record PRs; the initial documentation is already available on main. Q-01 through Q-05 remain open and are not implied approved by publication.
+2. Stop after preparation. On the next authorized implementation run, finish stage 00 Use Case/class modeling, then stage 01 scaffolds and stage 02 infrastructure with real check scripts and environment examples. Keep the fixed stack and all mandatory scope.
+3. Before further changes inspect the final setup branch heads/PR status in both repositories and the delivery handoff, then reconcile this snapshot with any subsequent owner work.
