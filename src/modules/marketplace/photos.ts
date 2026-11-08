@@ -1,3 +1,4 @@
+import { limits } from "../../infrastructure/limits";
 import { randomUUID } from "node:crypto";
 import { mkdir, writeFile, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -20,9 +21,9 @@ export function uploadEventPhoto(request: Request, id: string) {
           [id],
         )
       ).rows;
-      if (photos.length >= 8)
-        invalid("file", "An event may have at most eight photos");
-      const bytes = await boundedBody(request, 5 * 1024 * 1024 + 65536);
+      if (photos.length >= limits().photos)
+        invalid("file", `An event may have at most ${limits().photos} photos`);
+      const bytes = await boundedBody(request, limits().uploadBytes + 65536);
       let form: FormData;
       try {
         form = await new Response(new Uint8Array(bytes), {
@@ -38,7 +39,7 @@ export function uploadEventPhoto(request: Request, id: string) {
         [...form.keys()].length !== 1 ||
         !(file instanceof File) ||
         file.size === 0 ||
-        file.size > 5 * 1024 * 1024 ||
+        file.size > limits().uploadBytes ||
         !["image/jpeg", "image/png", "image/webp"].includes(file.type)
       )
         invalid("file", "Choose one JPEG, PNG or WebP image up to 5 MiB");

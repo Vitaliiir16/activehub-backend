@@ -26,9 +26,10 @@ export async function organizerDashboard(client: PoolClient, organizerId: string
            WHERE e.organizer_id=$1 AND s.starts_at>now() AND b.status='PENDING') AS pending_requests,
         (SELECT count(*) FROM messages m JOIN conversations c ON c.id=m.conversation_id
            WHERE c.organizer_id=$1 AND m.sender_id<>$1 AND m.read_at IS NULL) AS unread_messages,
-        (SELECT coalesce(sum(p.amount_minor),0) FROM payments p JOIN bookings b ON b.id=p.booking_id
-           JOIN event_sessions s ON s.id=b.session_id JOIN events e ON e.id=s.event_id
-           WHERE e.organizer_id=$1 AND p.status IN ('SUCCEEDED','REFUNDED') AND ${inKyivRange("p.created_at", "$2", "$3")}) AS month_paid,
+        (SELECT coalesce(sum(p.amount_minor),0) FROM payments p LEFT JOIN bookings b ON b.id=p.booking_id
+           LEFT JOIN event_sessions s ON s.id=b.session_id LEFT JOIN events e ON e.id=s.event_id
+           LEFT JOIN subscription_plans plan ON plan.id=p.plan_id
+           WHERE coalesce(e.organizer_id,plan.organizer_id)=$1 AND p.status IN ('SUCCEEDED','REFUNDED') AND ${inKyivRange("p.created_at", "$2", "$3")}) AS month_paid,
         (SELECT coalesce(sum(r.amount_minor),0) FROM refunds r JOIN payments p ON p.id=r.payment_id JOIN bookings b ON b.id=p.booking_id
            JOIN event_sessions s ON s.id=b.session_id JOIN events e ON e.id=s.event_id
            WHERE e.organizer_id=$1 AND ${inKyivRange("r.created_at", "$2", "$3")}) AS month_refunded`,

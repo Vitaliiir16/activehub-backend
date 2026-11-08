@@ -1,3 +1,4 @@
+import { limits } from "../../infrastructure/limits";
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -11,7 +12,7 @@ export async function uploadImage(request: Request) {
   return protectedAction(
     request,
     async (client, current) => {
-      const bytes = await boundedBody(request, 5 * 1024 * 1024 + 65536);
+      const bytes = await boundedBody(request, limits().uploadBytes + 65536);
       let form: FormData;
       try {
         form = await new Response(new Uint8Array(bytes), {
@@ -31,7 +32,7 @@ export async function uploadImage(request: Request) {
         [...form.keys()].length !== 1 ||
         !(file instanceof File) ||
         !file.size ||
-        file.size > 5 * 1024 * 1024
+        file.size > limits().uploadBytes
       )
         invalid("file", "Choose one image up to 5 MiB");
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))

@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { hashPassword } from "./password";
+import { demoConfiguration, seedDemo } from "./demo";
 
 export const cities = ["Kyiv", "Lviv", "Kharkiv", "Odesa", "Dnipro", "Zaporizhzhia", "Vinnytsia", "Ivano-Frankivsk", "Ternopil", "Chernivtsi", "Poltava", "Cherkasy", "Zhytomyr", "Lutsk", "Uzhhorod"];
 export const directions = ["Football", "Basketball", "Volleyball", "Tennis", "Table tennis", "Yoga", "Pilates", "Fitness", "CrossFit", "Swimming", "Running", "Martial arts", "Dance", "Cycling", "Climbing", "Active leisure"];
@@ -12,8 +13,7 @@ export function seedConfiguration(env: Record<string, string | undefined> = proc
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) throw new Error("INITIAL_ADMIN_EMAIL must be a valid email");
   if (!password || password.length < 8 || password.length > 256 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) throw new Error("INITIAL_ADMIN_PASSWORD must contain 8-256 characters, a letter and a digit");
   if (!displayName || displayName.length < 2 || displayName.length > 100) throw new Error("INITIAL_ADMIN_NAME must contain 2-100 characters");
-  if (env.SEED_DEMO === "true") throw new Error("Demo data is planned for later delivery; SEED_DEMO must be false");
-  return { email, password, displayName };
+  return { email, password, displayName, demo: demoConfiguration(env) };
 }
 
 export async function seed(client: PoolClient, config: ReturnType<typeof seedConfiguration>) {
@@ -47,4 +47,5 @@ export async function seed(client: PoolClient, config: ReturnType<typeof seedCon
     await client.query("INSERT INTO admin_profiles (account_id, display_name) VALUES ($1, $2)", [account.rows[0].id, config.displayName]);
   }
   await client.query("INSERT INTO notification_settings (account_id) SELECT id FROM accounts ON CONFLICT DO NOTHING");
+  if(config.demo) await seedDemo(client,config.demo);
 }

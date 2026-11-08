@@ -1,5 +1,19 @@
 # Delivery progress
 
+## Stage 13 - final acceptance
+
+Runtime boundary: backend b009f71a347b14a0bbff66637760e4baf09e8412, frontend c9e6d0fac6f2402f581f2fa0d21fe6a8c911c873. Mandatory implementation is present with bounded evidence in [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md); the [matrix](REQUIREMENTS_MATRIX.md) identifies what was checked versus not fully reverified. Optional stage 14 remains excluded.
+
+Resolved gaps: safe explicit demonstration cohort, full readiness migration set, non-consuming server quote and price-before-confirmation UI, owner future availability, dashboard request/session/activity lists, event overview/bookings/reset and clear validation feedback, bounded operational limits, accurate current diagrams/source pattern index and reproducible README. Q-05 is confirmed optional for the separate administrator list. Owner-approved organizer revenue now includes subscription sales.
+
+Passed: both static/build gates, canonical/generated contract, fresh Compose, required seed/checksum verification, marketplace/loyalty PostgreSQL suites, three-role and subscription/quote/chat/Mailpit/foreign-access smoke, subscription-revenue isolation/replay, one desktop marketplace browser flow, sampled desktop/mobile layouts, focused management/error views and data/upload-preserving restart/reseed. No full local CI replay or independent review was performed; exact limits and earlier corrected harness expectations are in FINAL_ACCEPTANCE.
+
+Final published heads/linked PRs belong in the local handoff and PR bodies; this document cannot contain its own final SHA. Stop after stage 13. Next action is owner review/merge and demonstration, not stage 14 implementation.
+
+Publication follow-up: backend PR #10 / frontend PR #10 are linked and remain open for owner merge. Backend hosted run 42524894253 passed at 58789b3951ceecfc7f380a75acd61dbcec07928a. Initial frontend CI found duplicate inline/summary validation and an outdated price-label assertion; c9e6d0fac6f2402f581f2fa0d21fe6a8c911c873 fixes both. Focused account/loyalty browser cases and event-manager validation passed; final frontend static/build gates passed. The frontend PR records its new hosted run rather than reusing the failed run.
+
+## Earlier delivery evidence (historical)
+
 ## Stage 12 - current delivery
 
 Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #8 (stage 11) were verified merged: backend main c55e9b5, frontend main 7734395. Both repositories branched feature/12-statistics from those heads. No merge, history rewrite or force push was performed.
@@ -19,7 +33,7 @@ Not run locally: a mobile browser pass of the statistics screens, a live mail pr
 
 ### Revision boundary
 
-Input revisions: backend c55e9b5, frontend 7734395. Backend commits: c102671 (contract 0.8.0), 4fba079 (runtime), 588405d (suite and CI), then documentation. Frontend pins backend 588405d; frontend commits follow on feature/12-statistics. Pull requests into main are created by the agent and merged by the owner. Stop after stage 12; next is stage 13 acceptance, after a new instruction.
+Input revisions: backend c55e9b5, frontend 7734395. Backend commits: c102671 (contract 0.8.0), 4fba079 (runtime), 588405d (suite and CI), then documentation. Frontend pins backend 588405d; frontend commits follow on feature/12-statistics. Pull requests into main are created by the maintainer and merged by the owner. Stop after stage 12; next is stage 13 acceptance, after a new instruction.
 
 ## Stage 11 - current delivery
 
@@ -41,7 +55,7 @@ Not run locally: mobile browser workflow, photo removal through an upload fixtur
 
 Input revisions: backend f4e73b0, frontend 12eb745. Backend commits: 71720a7 (contract), 60ef943 (accounts, cascades, searches), d55d432 (dictionaries and subscription searches, pinned by the frontend manifest), d1d953b (suite and CI), then documentation. Frontend commits: 3b6db67 (contract pin and client), 77e5cf0 (screens), dc4b856 (browser test), then documentation. The tested pair is backend d1d953b runtime with frontend dc4b856; documentation commits follow and change no runtime.
 
-Startup: `docker compose up --build --wait` from the backend applies migration 010 and keeps volumes. Pull requests into main are created by the agent and merged by the owner. Stop after stage 11; next is stage 12 statistics, after a new instruction.
+Startup: `docker compose up --build --wait` from the backend applies migration 010 and keeps volumes. Pull requests into main are created by the maintainer and merged by the owner. Stop after stage 11; next is stage 12 statistics, after a new instruction.
 
 ## Stage 10 (historical)
 
@@ -64,7 +78,7 @@ Not run locally: mobile chat layout and screenshots, DST-edge reminders in real 
 
 Input revisions: backend 6055732, frontend 3baae5c. Backend commits: 9dfe7f2 (contract), 9f760e6 (triggers and reminders), 45c7dc1 (email), ed1c6d5 (chat, pinned by the frontend manifest), ce81771 (suite and CI), then documentation. Frontend commits: 85ae787 (contract pin and client), 96c2219 (chat), 4391c6b (notification center), 75a8925 (browser test), then documentation. The tested pair is backend ce81771 runtime with frontend 75a8925; documentation commits follow and change no runtime.
 
-Startup: `docker compose up --build --wait` from the backend applies migration 009 and keeps volumes. Email setup: README Email section. Pull requests into main are created by the agent and merged by the owner. Stop after stage 10; next is stage 11 administration, after a new instruction.
+Startup: `docker compose up --build --wait` from the backend applies migration 009 and keeps volumes. Email setup: README Email section. Pull requests into main are created by the maintainer and merged by the owner. Stop after stage 10; next is stage 11 administration, after a new instruction.
 
 ## Stage 09 (historical)
 

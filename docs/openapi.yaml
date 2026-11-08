@@ -1,12 +1,12 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.8.0
+  version: 0.9.0
   description: Accounts, catalog, bookings, simulated payments, subscriptions, loyalty, communications (chat,
-    reminders, email), administration (accounts, events, bookings, subscriptions, dictionaries), statistics and
-    recommendations are implemented through stage 12; each operation declares its actual implementation status.
-    Approved decisions are listed in x-decisions (Q-01 clamped reversal, Q-02 session month, Q-03 inclusive cutoff,
-    Q-04 corporate card until expiry). Q-05 remains open.
+    reminders, email), administration (accounts, events, bookings, subscriptions, dictionaries), statistics
+    and recommendations are implemented through stage 12; each operation declares its actual implementation
+    status. Approved decisions are listed in x-decisions (Q-01 clamped reversal, Q-02 session month, Q-03
+    inclusive cutoff, Q-04 corporate card until expiry). Q-05 remains open.
   license:
     name: Private project; no license granted
 servers:
@@ -1455,7 +1455,11 @@ paths:
       tags:
         - Organizer
       summary: Read own dashboard
-      description: "Own dashboard counters: total, active, paused and completed events (completed means not cancelled and without a future session), future scheduled sessions, active future bookings (PENDING, AWAITING_PAYMENT, CONFIRMED), new PENDING requests, net current-month revenue in Europe/Kyiv (successful payments minus refunds of own bookings), unread messages from members and a 30-day daily booking chart. Other organizers data is never included."
+      description: "Own dashboard counters: total, active, paused and completed events (completed means not
+        cancelled and without a future session), future scheduled sessions, active future bookings (PENDING,
+        AWAITING_PAYMENT, CONFIRMED), new PENDING requests, net current-month revenue in Europe/Kyiv
+        (successful payments minus refunds of own bookings), unread messages from members and a 30-day daily
+        booking chart. Other organizers data is never included."
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -2726,9 +2730,9 @@ paths:
       summary: Reserve a session
       description: "Stage 06 card/free reservations. Lock event then session, enforce active-user uniqueness and
         exclusive hall use. Q-03: startsAt - captured serverNow >= configured cutoff. Price snapshot order:
-        effective promotion price, card free access (Q-02: session month in Europe/Kyiv, one visit per
-        place), card discount (half-up to minor units), nonnegative due. Subscription payment skips the
-        card steps. Points are awarded once on CONFIRMED and reversed once on cancellation."
+        effective promotion price, card free access (Q-02: session month in Europe/Kyiv, one visit per place),
+        card discount (half-up to minor units), nonnegative due. Subscription payment skips the card steps.
+        Points are awarded once on CONFIRMED and reversed once on cancellation."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3774,7 +3778,10 @@ paths:
       tags:
         - Member
       summary: Read own card, points and usage
-      description: "Own card with configured benefits, balance, lifetime points, points to Premium, current Europe/Kyiv month free-visit usage, created booking count and completed attendance count. Reading applies automatic card rules (Q-04: Corporate lasts until the last corporate subscription expires) unless an administrator locked the card."
+      description: "Own card with configured benefits, balance, lifetime points, points to Premium, current
+        Europe/Kyiv month free-visit usage, created booking count and completed attendance count. Reading
+        applies automatic card rules (Q-04: Corporate lasts until the last corporate subscription expires)
+        unless an administrator locked the card."
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -3820,7 +3827,8 @@ paths:
       tags:
         - Member
       summary: Read own points ledger
-      description: "Own points ledger. Every balance change has a reason; REVERSAL records the amount actually deducted (Q-01: never below zero) and its note keeps the original award."
+      description: "Own points ledger. Every balance change has a reason; REVERSAL records the amount actually
+        deducted (Q-01: never below zero) and its note keeps the original award."
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -3899,7 +3907,8 @@ paths:
       tags:
         - Member
       summary: List own conversations
-      description: "Own conversations ordered by last message, with the counterpart name, a message preview, unread counts and the total unread count for the header. Administrators are denied."
+      description: Own conversations ordered by last message, with the counterpart name, a message preview, unread
+        counts and the total unread count for the header. Administrators are denied.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -3967,7 +3976,9 @@ paths:
       tags:
         - Member
       summary: Find or start a permitted conversation
-      description: "Find or start the single conversation of a user-organizer pair. A user supplies organizerId or eventId; an organizer supplies bookingId (or userId) of a past or present booking on its events. Returns 201 for a new conversation and 200 for an existing one. The other account must be active."
+      description: Find or start the single conversation of a user-organizer pair. A user supplies organizerId or
+        eventId; an organizer supplies bookingId (or userId) of a past or present booking on its events.
+        Returns 201 for a new conversation and 200 for an existing one. The other account must be active.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4037,7 +4048,9 @@ paths:
       tags:
         - Member
       summary: Read conversation messages
-      description: "Messages of a conversation the caller takes part in. Use afterId to poll for messages newer than a known message (ascending); page and sort read history. readAt shows when the other participant read a message."
+      description: Messages of a conversation the caller takes part in. Use afterId to poll for messages newer than
+        a known message (ascending); page and sort read history. readAt shows when the other participant read
+        a message.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -4117,7 +4130,9 @@ paths:
       tags:
         - Member
       summary: Send a text message
-      description: "Send a 1-2000 character text message, optionally with an event card. Both participants must be active. The recipient receives an in-app MESSAGES notification; email follows the recipient's MESSAGES preference (off by default). Sending is limited to 30 messages per minute."
+      description: Send a 1-2000 character text message, optionally with an event card. Both participants must be
+        active. The recipient receives an in-app MESSAGES notification; email follows the recipient's MESSAGES
+        preference (off by default). Sending is limited to 30 messages per minute.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4181,7 +4196,9 @@ paths:
       tags:
         - Member
       summary: Mark messages through a known message read
-      description: "Mark the other participant's messages through a known message as read. Also marks that conversation's message notifications read once nothing unread remains. Returns the total unread message count for the header."
+      description: Mark the other participant's messages through a known message as read. Also marks that
+        conversation's message notifications read once nothing unread remains. Returns the total unread
+        message count for the header.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4519,7 +4536,11 @@ paths:
       tags:
         - Administration
       summary: Read platform statistics
-      description: "Platform statistics for a period: 7d, 30d (default) and 90d end today in Europe/Kyiv; custom needs dateFrom and dateTo, at most one year. Totals count records created in the period; netRevenueMinor is successful card payments minus refunds in the period; bookingConversion is the exact ratio of bookings that were ever CONFIRMED to all bookings created (four decimals, zero when there are no bookings). Breakdowns are grouped as listed; days without records are included as zero."
+      description: "Platform statistics for a period: 7d, 30d (default) and 90d end today in Europe/Kyiv; custom
+        needs dateFrom and dateTo, at most one year. Totals count records created in the period;
+        netRevenueMinor is successful card payments minus refunds in the period; bookingConversion is the
+        exact ratio of bookings that were ever CONFIRMED to all bookings created (four decimals, zero when
+        there are no bookings). Breakdowns are grouped as listed; days without records are included as zero."
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -4584,7 +4605,8 @@ paths:
       tags:
         - Administration
       summary: Read one organizer dashboard statistics
-      description: "Dashboard of one organizer account, read as an administrator with the same definitions as the organizer dashboard. Only ORGANIZER accounts are found."
+      description: Dashboard of one organizer account, read as an administrator with the same definitions as the
+        organizer dashboard. Only ORGANIZER accounts are found.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -4633,7 +4655,8 @@ paths:
       tags:
         - Administration
       summary: Search users
-      description: "Search users by exact ID, name, email or phone fragment, city, status and registration date range (Europe/Kyiv days). Deleted users stay searchable."
+      description: Search users by exact ID, name, email or phone fragment, city, status and registration date range
+        (Europe/Kyiv days). Deleted users stay searchable.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -4738,7 +4761,8 @@ paths:
       tags:
         - Administration
       summary: Read users detail
-      description: "User account with the full profile, loyalty card and points. Bookings and subscriptions are reached with the userId filters of the booking and subscription searches."
+      description: User account with the full profile, loyalty card and points. Bookings and subscriptions are
+        reached with the userId filters of the booking and subscription searches.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -4786,7 +4810,8 @@ paths:
       tags:
         - Administration
       summary: Edit users contacts
-      description: "Edit a user's contacts: email, name, phone, city and gender. Passwords, photos and preferences cannot be changed here. Deleted users cannot be edited."
+      description: "Edit a user's contacts: email, name, phone, city and gender. Passwords, photos and preferences
+        cannot be changed here. Deleted users cannot be edited."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4841,7 +4866,9 @@ paths:
       tags:
         - Administration
       summary: Soft-delete users and compensate bookings
-      description: "Soft-delete a user. Active bookings are cancelled with refunds and visit/points compensation, and organizers are notified; sessions end. Payments, bookings, points and chats remain as history. Repeating the request has no further effect."
+      description: Soft-delete a user. Active bookings are cancelled with refunds and visit/points compensation, and
+        organizers are notified; sessions end. Payments, bookings, points and chats remain as history.
+        Repeating the request has no further effect.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4903,7 +4930,8 @@ paths:
       tags:
         - Administration
       summary: Block or unblock users
-      description: "Block or unblock a user with a reason. Blocking ends all sessions and prevents sign-in and new bookings; existing bookings are kept. Deleted users cannot change status."
+      description: Block or unblock a user with a reason. Blocking ends all sessions and prevents sign-in and new
+        bookings; existing bookings are kept. Deleted users cannot change status.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4959,7 +4987,8 @@ paths:
       tags:
         - Administration
       summary: Search organizers
-      description: "Search organizers by exact ID, name fragment, type, city, direction and status. Deleted organizers stay searchable."
+      description: Search organizers by exact ID, name fragment, type, city, direction and status. Deleted
+        organizers stay searchable.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -5068,7 +5097,8 @@ paths:
       tags:
         - Administration
       summary: Read organizers detail
-      description: "Organizer account with the full profile. Events, bookings and plans are reached with the organizerId filters of the event, booking and plan searches."
+      description: Organizer account with the full profile. Events, bookings and plans are reached with the
+        organizerId filters of the event, booking and plan searches.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -5116,7 +5146,8 @@ paths:
       tags:
         - Administration
       summary: Edit organizers contacts
-      description: "Edit an organizer's contacts and listing: email, name, type, phone, city, description and directions. The organizer is notified in-app and by email. Deleted organizers cannot be edited."
+      description: "Edit an organizer's contacts and listing: email, name, type, phone, city, description and
+        directions. The organizer is notified in-app and by email. Deleted organizers cannot be edited."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5171,7 +5202,9 @@ paths:
       tags:
         - Administration
       summary: Soft-delete organizers and compensate bookings
-      description: "Soft-delete an organizer. Events with future sessions or active bookings are cancelled with refunds and notifications, plans are archived and sessions end. History remains. Repeating the request has no further effect."
+      description: Soft-delete an organizer. Events with future sessions or active bookings are cancelled with
+        refunds and notifications, plans are archived and sessions end. History remains. Repeating the request
+        has no further effect.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5233,7 +5266,9 @@ paths:
       tags:
         - Administration
       summary: Block or unblock organizers
-      description: "Block or unblock an organizer with a reason. Blocking hides its events and organizer page, stops new bookings and ends its sessions; existing bookings continue. The organizer is notified in-app and by email."
+      description: Block or unblock an organizer with a reason. Blocking hides its events and organizer page, stops
+        new bookings and ends its sessions; existing bookings continue. The organizer is notified in-app and
+        by email.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5289,7 +5324,9 @@ paths:
       tags:
         - Administration
       summary: Set or unlock a user card
-      description: "Set a USER card level with a reason, recorded in assignment history. A locked card is never changed automatically. An unlocked card follows automatic rules immediately, so an unlocked Corporate card requires an unexpired corporate subscription."
+      description: Set a USER card level with a reason, recorded in assignment history. A locked card is never
+        changed automatically. An unlocked card follows automatic rules immediately, so an unlocked Corporate
+        card requires an unexpired corporate subscription.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5347,7 +5384,8 @@ paths:
       tags:
         - Administration
       summary: Adjust points with a reason
-      description: "Add or deduct points with a reason as an ADMIN_ADJUST ledger entry. The balance cannot become negative. Adjustments change the spendable balance only, not lifetime points."
+      description: Add or deduct points with a reason as an ADMIN_ADJUST ledger entry. The balance cannot become
+        negative. Adjustments change the spendable balance only, not lifetime points.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5411,7 +5449,9 @@ paths:
       tags:
         - Administration
       summary: Search all events
-      description: "Search events of every organizer and status by ID, title, organizer, city, direction, kind, status and session date range. Unlike the public search it also returns paused, blocked, cancelled and deleted events and events without upcoming sessions."
+      description: Search events of every organizer and status by ID, title, organizer, city, direction, kind,
+        status and session date range. Unlike the public search it also returns paused, blocked, cancelled and
+        deleted events and events without upcoming sessions.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6006,7 +6046,7 @@ paths:
       tags:
         - Administration
       summary: Search all bookings
-      description: "Search all bookings by ID, status, user, organizer, event ID or title fragment and session period."
+      description: Search all bookings by ID, status, user, organizer, event ID or title fragment and session period.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6247,7 +6287,7 @@ paths:
       tags:
         - Administration
       summary: Search user subscriptions
-      description: "Search purchased subscriptions by user, organizer and effective status."
+      description: Search purchased subscriptions by user, organizer and effective status.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6335,7 +6375,7 @@ paths:
       tags:
         - Administration
       summary: Search plans
-      description: "Search subscription plans of every organizer by organizer and status."
+      description: Search subscription plans of every organizer by organizer and status.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6416,7 +6456,7 @@ paths:
       tags:
         - Administration
       summary: Archive a plan
-      description: "Archive a plan. Existing purchases keep working; new purchases stop."
+      description: Archive a plan. Existing purchases keep working; new purchases stop.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6472,7 +6512,7 @@ paths:
       tags:
         - Administration
       summary: List active and inactive cities
-      description: "List active and inactive cities."
+      description: List active and inactive cities.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6543,7 +6583,7 @@ paths:
       tags:
         - Administration
       summary: Add cities
-      description: "Add a city. Names are unique ignoring case. isActive defaults to true."
+      description: Add a city. Names are unique ignoring case. isActive defaults to true.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6592,7 +6632,8 @@ paths:
       tags:
         - Administration
       summary: Rename or deactivate cities
-      description: "Rename or activate/deactivate a city; send only the fields to change. Existing references keep working, new selections require an active city, and the last active city cannot be deactivated."
+      description: Rename or activate/deactivate a city; send only the fields to change. Existing references keep
+        working, new selections require an active city, and the last active city cannot be deactivated.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6648,7 +6689,7 @@ paths:
       tags:
         - Administration
       summary: List active and inactive directions
-      description: "List active and inactive directions."
+      description: List active and inactive directions.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6719,7 +6760,7 @@ paths:
       tags:
         - Administration
       summary: Add directions
-      description: "Add a direction. Names are unique ignoring case. isActive defaults to true."
+      description: Add a direction. Names are unique ignoring case. isActive defaults to true.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6768,7 +6809,9 @@ paths:
       tags:
         - Administration
       summary: Rename or deactivate directions
-      description: "Rename or activate/deactivate a direction; send only the fields to change. Existing references keep working, new selections require an active direction, and the last active direction cannot be deactivated."
+      description: Rename or activate/deactivate a direction; send only the fields to change. Existing references
+        keep working, new selections require an active direction, and the last active direction cannot be
+        deactivated.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6824,7 +6867,7 @@ paths:
       tags:
         - Administration
       summary: Read three loyalty levels
-      description: "Read the three configured loyalty levels in STANDARD, PREMIUM, CORPORATE order."
+      description: Read the three configured loyalty levels in STANDARD, PREMIUM, CORPORATE order.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6866,7 +6909,9 @@ paths:
       tags:
         - Administration
       summary: Configure a loyalty level
-      description: "Replace one level configuration. Only Premium has a points threshold; free directions require a monthly free-visit quota. Changes apply to later bookings; existing price and award snapshots are unchanged."
+      description: Replace one level configuration. Only Premium has a points threshold; free directions require a
+        monthly free-visit quota. Changes apply to later bookings; existing price and award snapshots are
+        unchanged.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6925,7 +6970,8 @@ paths:
       tags:
         - Administration
       summary: Read loyalty rules
-      description: "Read the single loyalty rules record. Redemption settings are stored for the optional redemption feature, which is not implemented."
+      description: Read the single loyalty rules record. Redemption settings are stored for the optional redemption
+        feature, which is not implemented.
       security:
         - sessionCookie: []
       x-implementation-status: implemented
@@ -6966,7 +7012,8 @@ paths:
       tags:
         - Administration
       summary: Configure loyalty rules
-      description: "Replace loyalty rules. Changes apply to later awards; recorded awards and reversals keep their original amounts."
+      description: Replace loyalty rules. Changes apply to later awards; recorded awards and reversals keep their
+        original amounts.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -7304,6 +7351,62 @@ paths:
           $ref: "#/components/responses/Error403"
         "404":
           $ref: "#/components/responses/Error404"
+  /api/bookings/quote:
+    post:
+      operationId: previewBooking
+      tags:
+        - Member
+      summary: Preview server booking pricing without reserving places
+      description: Shows current ordered benefits and amount before confirmation. It does not reserve seats, visits
+        or quota; final pricing is fixed atomically on creation.
+      security:
+        - sessionCookie: []
+          csrfToken: []
+      x-implementation-status: implemented
+      x-roles:
+        - USER
+      x-ownership: Own user resources only; foreign identifiers return 404.
+      x-decisions:
+        - Q-02
+      parameters: []
+      responses:
+        "200":
+          description: Successful response.
+          headers:
+            X-Request-ID:
+              description: Correlation ID, generated by the server.
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookingQuote"
+        "400":
+          $ref: "#/components/responses/Error400"
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+        "409":
+          $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
+        "422":
+          $ref: "#/components/responses/Error422"
+        "429":
+          $ref: "#/components/responses/Error429"
+        "503":
+          $ref: "#/components/responses/Error503"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingCreate"
+      x-delivery-stage: "06"
 components:
   securitySchemes:
     sessionCookie:
@@ -9258,8 +9361,8 @@ components:
           type: boolean
         loyaltyEmail:
           type: boolean
-          description: Loyalty emails. Points emails are off by default; card upgrade emails are sent until this
-            setting is changed once.
+          description: Loyalty emails. Points emails are off by default; card upgrade emails are sent until this setting
+            is changed once.
         messagesEmail:
           type: boolean
           description: Chat message emails, off by default. In-app notifications are always created.
@@ -9545,6 +9648,8 @@ components:
           maximum: 2147483647
         currentMonthNetRevenueMinor:
           type: integer
+          description: Organizer booking and subscription card payments created in the current Europe/Kyiv month, minus
+            booking refunds created in that month. Stage 13 owner-approved definition.
         unreadMessages:
           type: integer
           minimum: 0
@@ -9946,6 +10051,35 @@ components:
           type: string
           minLength: 2
           maxLength: 100
+    BookingQuote:
+      type: object
+      additionalProperties: false
+      required:
+        - seats
+        - subscriptionId
+        - basePriceMinor
+        - discountBreakdown
+        - amountDueMinor
+      properties:
+        seats:
+          type: integer
+          minimum: 1
+          maximum: 10
+        subscriptionId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        basePriceMinor:
+          type: integer
+          minimum: 0
+        discountBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/Discount"
+        amountDueMinor:
+          type: integer
+          minimum: 0
   responses:
     Error503:
       description: Database or required migration is unavailable.

@@ -3,12 +3,15 @@ import test from "node:test";
 import { hashPassword, verifyPassword } from "../scripts/lib/password";
 import { seedConfiguration } from "../scripts/lib/seed";
 
-test("bootstrap rejects missing credentials and does not accept demo mode", () => {
+test("bootstrap rejects missing credentials and requires explicit demo credentials", () => {
   assert.throws(() => seedConfiguration({}), /INITIAL_ADMIN_EMAIL/);
   const valid = { INITIAL_ADMIN_EMAIL: "Admin@example.test", INITIAL_ADMIN_PASSWORD: "LocalTestPassword123", INITIAL_ADMIN_NAME: "Initial Admin" };
   assert.equal(seedConfiguration(valid).email, "admin@example.test");
   assert.throws(() => seedConfiguration({ ...valid, INITIAL_ADMIN_PASSWORD: "weak" }), /INITIAL_ADMIN_PASSWORD/);
-  assert.throws(() => seedConfiguration({ ...valid, SEED_DEMO: "true" }), /planned/);
+  assert.throws(() => seedConfiguration({ ...valid, SEED_DEMO: "true" }), /DEMO_PASSWORD/);
+  assert.equal(seedConfiguration({...valid,SEED_DEMO:"false"}).demo,null);
+  assert.equal(seedConfiguration({...valid,SEED_DEMO:"true",DEMO_PASSWORD:"LocalDemo123"}).demo?.namespace,"demo");
+  assert.throws(()=>seedConfiguration({...valid,SEED_DEMO:"true",DEMO_PASSWORD:"LocalDemo123",DEMO_NAMESPACE:"invalid namespace"}),/DEMO_NAMESPACE/);
 });
 
 test("password hashes use unique salts and reject incorrect or malformed inputs", async () => {

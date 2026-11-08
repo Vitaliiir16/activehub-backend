@@ -2,7 +2,7 @@
 left to right direction
 skinparam packageStyle rectangle
 skinparam shadowing false
-title ActiveHub use cases - stage 04 status
+title ActiveHub mandatory use cases - acceptance implementation
 actor Guest
 actor User
 actor Organizer
@@ -13,70 +13,70 @@ rectangle ActiveHub {
   usecase "G1 Register user" as G1 #D9E9D0
   usecase "G2 Register organizer" as G2 #D9E9D0
   usecase "G3 Sign in" as G3 #D9E9D0
-  usecase "G4 Recover password [S]" as G4
+  usecase "G4 Recover password [S]" as G4 #EEEEEE
  }
  package "User workspace" {
-  usecase "U1 Browse event board" as U1
-  usecase "U2 Search and filter events" as U2
-  usecase "U3 View event" as U3
-  usecase "U4 Browse organizers / profile" as U4
-  usecase "U5 Book session" as U5
-  usecase "U6 Pay for booking" as U6
-  usecase "U7 Cancel booking" as U7
-  usecase "U8 View bookings / calendar" as U8
-  usecase "U9 Message organizer" as U9
-  usecase "U10 Purchase subscription" as U10
-  usecase "U11 View subscriptions" as U11
-  usecase "U12 View card / points" as U12
+  usecase "U1 Browse event board" as U1 #D9E9D0
+  usecase "U2 Search and filter events" as U2 #D9E9D0
+  usecase "U3 View event" as U3 #D9E9D0
+  usecase "U4 Browse organizers / profile" as U4 #D9E9D0
+  usecase "U5 Book session" as U5 #D9E9D0
+  usecase "U6 Pay for booking" as U6 #D9E9D0
+  usecase "U7 Cancel booking" as U7 #D9E9D0
+  usecase "U8 View bookings / calendar" as U8 #D9E9D0
+  usecase "U9 Message organizer" as U9 #D9E9D0
+  usecase "U10 Purchase subscription" as U10 #D9E9D0
+  usecase "U11 View subscriptions" as U11 #D9E9D0
+  usecase "U12 View card / points" as U12 #D9E9D0
   usecase "U13 Edit profile / preferences" as U13 #D9E9D0
   usecase "U14 Set email preferences" as U14 #D9E9D0
-  usecase "U15 Read notifications" as U15 #FFF0B3
+  usecase "U15 Read notifications" as U15 #D9E9D0
   usecase "U16 Change password" as U16 #D9E9D0
  }
  package "Organizer workspace" {
-  usecase "O1 View own dashboard" as O1
-  usecase "O2 Create event" as O2
-  usecase "O3 Edit event" as O3
-  usecase "O4 Manage sessions" as O4
-  usecase "O5 Pause / resume event" as O5
-  usecase "O6 Cancel / delete event" as O6
-  usecase "O7 View event bookings" as O7
-  usecase "O8 Approve / reject request" as O8
-  usecase "O9 Cancel booking" as O9
-  usecase "O10 Message eligible user" as O10
-  usecase "O11 Manage subscription plans" as O11
+  usecase "O1 View own dashboard" as O1 #D9E9D0
+  usecase "O2 Create event" as O2 #D9E9D0
+  usecase "O3 Edit event" as O3 #D9E9D0
+  usecase "O4 Manage sessions" as O4 #D9E9D0
+  usecase "O5 Pause / resume event" as O5 #D9E9D0
+  usecase "O6 Cancel / delete event" as O6 #D9E9D0
+  usecase "O7 View event bookings" as O7 #D9E9D0
+  usecase "O8 Approve / reject request" as O8 #D9E9D0
+  usecase "O9 Cancel booking" as O9 #D9E9D0
+  usecase "O10 Message eligible user" as O10 #D9E9D0
+  usecase "O11 Manage subscription plans" as O11 #D9E9D0
   usecase "O12 Edit organization profile" as O12 #D9E9D0
-  usecase "O13 Read notifications" as O13 #FFF0B3
-  usecase "O14 View session calendar [S]" as O14
+  usecase "O13 Read notifications" as O13 #D9E9D0
+  usecase "O14 View session calendar [S]" as O14 #EEEEEE
  }
  package Administration {
-  usecase "A1 View platform statistics" as A1
-  usecase "A2 Manage users / cards / points" as A2
-  usecase "A3 Manage organizers" as A3
-  usecase "A4 Moderate / manage events" as A4
-  usecase "A5 View / cancel bookings" as A5
-  usecase "A6 Manage cities / directions" as A6
-  usecase "A7 Configure loyalty" as A7
+  usecase "A1 View platform statistics" as A1 #D9E9D0
+  usecase "A2 Manage users / cards / points" as A2 #D9E9D0
+  usecase "A3 Manage organizers" as A3 #D9E9D0
+  usecase "A4 Moderate / manage events" as A4 #D9E9D0
+  usecase "A5 View / cancel bookings" as A5 #D9E9D0
+  usecase "A6 Manage cities / directions" as A6 #D9E9D0
+  usecase "A7 Configure loyalty" as A7 #D9E9D0
   usecase "A8 Create administrator" as A8 #D9E9D0
-  usecase "A9 View / archive plans" as A9
+  usecase "A9 View / archive plans" as A9 #D9E9D0
  }
  package "Scheduled behavior" {
-  usecase "S1 Expire bookings" as S1
-  usecase "S2 Complete sessions / bookings" as S2
-  usecase "S3 Send reminders" as S3
-  usecase "S4 Deliver queued email" as S4 #FFF0B3
-  usecase "S5 Award points / upgrade card" as S5
-  usecase "S6 Expire subscriptions" as S6
-  usecase "S7 Refund cancelled bookings" as S7
+  usecase "S1 Expire bookings" as S1 #D9E9D0
+  usecase "S2 Complete sessions / bookings" as S2 #D9E9D0
+  usecase "S3 Send reminders" as S3 #D9E9D0
+  usecase "S4 Deliver queued email" as S4 #D9E9D0
+  usecase "S5 Award points / upgrade card" as S5 #D9E9D0
+  usecase "S6 Expire subscriptions" as S6 #D9E9D0
+  usecase "S7 Refund cancelled bookings" as S7 #D9E9D0
  }
  package "Shared behavior" {
-  usecase "Calculate price snapshot" as Pricing
-  usecase "Choose subscription" as SubscriptionChoice
-  usecase "Redeem points [S]" as Redeem
-  usecase "Commit booking confirmation" as Confirm
-  usecase "Create notification intents" as Notify
-  usecase "Restore reserved resources" as Restore
-  usecase "Verify role / ownership / status" as Access
+  usecase "Calculate price snapshot" as Pricing #D9E9D0
+  usecase "Choose subscription" as SubscriptionChoice #D9E9D0
+  usecase "Redeem points [S]" as Redeem #EEEEEE
+  usecase "Commit booking confirmation" as Confirm #D9E9D0
+  usecase "Create notification intents" as Notify #D9E9D0
+  usecase "Restore reserved resources" as Restore #D9E9D0
+  usecase "Verify role / ownership / status" as Access #D9E9D0
  }
 }
 Guest --> G1
@@ -153,11 +153,10 @@ O6 ..> Notify : <<include>>
 A5 ..> Restore : <<include>>
 Restore ..> Notify : <<include>>
 note bottom of ActiveHub
-Green: account use cases implemented in stage 04. Yellow: welcome-only notification/email subset.
-Other use cases remain planned; health is outside this business diagram.
-Every protected use case requires server-side role, ownership and active-account checks.
-ADMIN cannot book or read chats; organizer chat initiation requires a current/past booking.
-[S] is optional. System S1-S7 are mandatory use-case IDs.
-Q-01 through Q-05 remain open; no proposed business resolution is approved here.
+Green: implemented mandatory behavior; verification scope is in FINAL_ACCEPTANCE.md.
+Grey [S] cases are optional and are not part of this delivery.
+Every protected action checks server role, owner and active account.
+System S1-S7 are mandatory IDs. Q-01 through Q-04 use the recorded owner decisions.
+Q-05 classification follows the latest decision in ASSUMPTIONS.md.
 end note
 @enduml

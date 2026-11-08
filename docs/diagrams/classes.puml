@@ -2,399 +2,315 @@
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 hide empty members
-title ActiveHub whole-system class model - proposed design, not implemented classes
+title ActiveHub implementation: TypeScript types, function modules and PostgreSQL records
 package "Presentation" {
- class ReactApplication {
-  +roleRoutes
-  +formsAndViews
- }
- class ApiClient {
-  +request()
- }
- class NextRouteAdapters {
-  +validateTransport()
-  +mapResponse()
- }
+ class ReactApplication <<module>> {
+  +SessionProvider
+  +App()
+  +SessionProvider()
 }
-package "Application services (planned)" {
- class IdentityService {
+ class ApiClient <<module>> {
+  +createApi()
+  +quoteBooking()
+  +createBooking()
+}
+ class NextRoutes <<module>> {
+  +handler()
+  +GET()
+  +POST()
+}
+}
+package "Application functions (actual modules, not runtime service classes)" {
+ class Accounts <<module>> {
   +register()
-  +signIn()
-  +revokeSessions()
- }
- class CatalogService {
-  +createEvent()
-  +changeSession()
- }
- class BookingService {
-  +create()
-  +transition()
-  +cancel()
- }
- class PaymentService {
-  +pay()
-  +refundOnce()
- }
- class SubscriptionService {
-  +purchase()
-  +reserveVisits()
-  +restoreVisits()
- }
- class LoyaltyService {
-  +awardOnce()
-  +reverseOnce()
-  +recalculateCard()
- }
- class ConversationService {
-  +send()
-  +markRead()
- }
- class NotificationService {
-  +createIntentOnce()
- }
- class AdministrationService {
-  +blockAccount()
-  +softDelete()
- }
- class ReportingService {
-  +aggregate()
-  +recommend()
- }
- class AccessPolicy {
-  +requireRoleAndOwner()
- }
- interface UnitOfWork {
-  +transaction()
- }
- class WorkerDispatcher {
-  +claimDueJob()
-  +dispatch()
- }
+  +login()
+  +applyProfile()
 }
-package "Domain entities (planned logical model)" {
- abstract class Record {
-  +id: UUID
-  +createdAt: Instant
-  +updatedAt: Instant
- }
- class Account {
-  +email: unique
-  +passwordHash
-  +role: USER|ORGANIZER|ADMIN
-  +status: ACTIVE|BLOCKED|DELETED
-  +lastLoginAt
- }
- class UserProfile {
-  +firstName
-  +lastName
-  +phone
-  +gender
-  +photo
-  +notificationSettings
-  +loyaltyLevel
-  +cardLockedByAdmin
-  +pointsBalance
-  +lifetimePoints
- }
- class OrganizerProfile {
-  +organizationName
+ class Catalog <<module>> {
+  +listEvents()
+  +createEvent()
+  +cancelEventCascade()
+}
+ class Bookings <<module>> {
+  +previewBooking()
+  +createBooking()
+  +lockBooking()
+  +transition()
+}
+ class Payments <<module>> {
+  +payBooking()
+  +refundBooking()
+}
+ class Subscriptions <<module>> {
+  +savePlan()
+  +purchaseSubscription()
+  +reserveVisits()
+  +returnVisits()
+}
+ class Loyalty <<module>> {
+  +quoteBooking()
+  +accruePoints()
+  +releaseLoyalty()
+  +syncCard()
+}
+ class Chat <<module>> {
+  +createConversation()
+  +sendMessage()
+  +readConversation()
+}
+ class Administration <<module>> {
+  +listAccounts()
+  +deleteAccount()
+  +editDictionaryItem()
+}
+ class Statistics <<module>> {
+  +organizerDashboard()
+  +platformStatistics()
+}
+}
+package "Domain types and persisted entities" {
+ class Account <<SQL>> {
+  +id
+  +role
+  +status
+  +email
+  -password_hash
+}
+ class UserProfile <<SQL>> {
+  +loyalty_level
+  +base_level
+  +points_balance
+  +lifetime_points
+}
+ class OrganizerProfile <<SQL>> {
+  +name
   +type
-  +description
-  +contactPhone
-  +logo
- }
- class AdminProfile {
-  +displayName
-  +createdBy
- }
- class City {
-  +name
-  +isActive
- }
- class Direction {
-  +name
-  +isActive
- }
- class Event {
-  +title
-  +description
-  +kind: immutable
-  +address
-  +level
-  +ageCategory
-  +price: Money
-  +promoPrice: Money?
-  +promoUntil
-  +seatsPerSession
-  +confirmationMode
+  +city_id
+}
+ class AdminProfile <<SQL>> {
+  +display_name
+  +created_by
+}
+ class City <<SQL>>
+ class Direction <<SQL>>
+ class EventRow <<type / SQL>> {
+  +organizer_id
+  +kind
+  +price_minor
   +status
- }
- class Photo {
-  +storageKey
+  +address_version
+}
+ class SessionRow <<type / SQL>> {
+  +starts_at
+  +ends_at
+  +seats_total
+  +status
+  +time_version
+}
+ class EventPhoto <<SQL>> {
+  +filename
   +position
-  +mediaType
- }
- class EventSession {
-  +startsAt: Instant
-  +endsAt: Instant
-  +status
-  +seatsTotal
-  +/seatsTaken
- }
- class Booking {
+}
+ class BookingRow <<type / SQL>> {
   +seats
   +status
-  +comment
-  +basePrice: Money
-  +discountBreakdown
-  +amountDue: Money
-  +paymentMethod
-  +pointsRedeemed
-  +deadlineAt
-  +cancelledBy
-  +cancelReason
- }
- class BookingTransition {
-  +fromState
-  +toState
-  +actor
+  +amount_due_minor
+  +subscription_id
+  +points_awarded
+}
+ class BookingHistory <<SQL>> {
+  +from_status
+  +to_status
+  +actor_role
   +reason
- }
- class Payment {
-  +amount: Money
+}
+ class Payment <<SQL>> {
+  +amount_minor
   +status
-  +cardLast4
- }
- class SubscriptionPlan {
-  +name
+  +card_last4
+}
+ class Refund <<SQL>> {
+  +payment_id
+  +amount_minor
+}
+ class SubscriptionPlan <<SQL>> {
   +type
-  +description
-  +price: Money
-  +validityDays
-  +visitsLimit: Integer?
+  +validity_days
+  +visits_limit
   +scope
   +status
- }
- class UserSubscription {
+}
+ class UserSubscription <<SQL>> {
+  +plan_snapshot
+  +visits_left
+  +expires_at
   +status
-  +startsAt
-  +expiresAt
-  +visitsLeft: Integer?
-  +companyName?
- }
- class LoyaltyLevelConfig {
-  +level
-  +displayName
-  +pointsThreshold
-  +pointsMultiplier
-  +discountPercent
-  +freeVisitsPerMonth
- }
- class LoyaltyRules {
-  +basePointsPerBooking
-  +pointsPerUah
-  +redeemRate
-  +maxRedeemPercent
- }
- class PointsTransaction {
+}
+ class VisitLedger <<SQL>> {
+  +booking_id
+  +visits
+  +returned_at
+}
+ class PointsTransaction <<SQL>> {
   +delta
   +reason
-  +originalAwardSnapshot
- }
- class Conversation {
-  +lastMessageAt
-  +unique(user, organizer)
- }
- class Message {
-  +text
-  +readAt
- }
- class Notification {
-  +type
-  +category
-  +title
+  +booking_id
+}
+ class FreeVisitLedger <<SQL>> {
+  +quota_month
+  +visits
+  +returned_at
+}
+ class LoyaltySettings <<SQL>> {
+  +levels
+  +rules
+  +free_directions
+}
+ class Conversation <<SQL>> {
+  +user_id
+  +organizer_id
+  +last_seq
+}
+ class Message <<SQL>> {
+  +seq
+  +sender_id
   +body
-  +link
-  +readAt
-  +emailStatus
- }
- class Money <<value object>> {
-  +minorUnits: Integer
-  +currency: UAH
- }
+  +read_at
 }
-package "Behavior variation (proposed GoF)" {
- interface EventKindPolicy <<Strategy>> {
-  +validateSeats()
-  +defaultConfirmation()
- }
- class SharedSeatPolicy
- class ExclusiveHallPolicy
- class TeamPolicy
- interface SubscriptionPolicy <<Strategy>> {
-  +isEligible()
- }
- interface LoyaltyBenefits <<Strategy>> {
-  +benefits()
- }
- interface BookingState <<State>> {
-  +transition()
- }
- class PendingState
- class ConfirmedState
- class TerminalState
- abstract class PriceHandler <<Chain of Responsibility>> {
-  +next: PriceHandler
+}
+package "Implemented variation policies" {
+ interface SeatPolicy {
+  +validate(seats)
+  +exclusive
+}
+ class OrdinarySeats <<strategy object>>
+ class SingleParticipant <<strategy object>>
+ class ExclusiveHall <<strategy object>>
+ abstract class PriceStep {
+  +then(next)
   +apply(context)
- }
- class EffectivePriceHandler
- class FreeVisitHandler
- class CardDiscountHandler
- class RedemptionHandler <<optional>>
- interface DomainSubscriber <<Observer>> {
-  +handle(event)
- }
- class NotificationSubscriber
+  #handle(context)
 }
-package "Infrastructure ports and adapters (proposed)" {
+ class PromotionStep
+ class FreeAccessStep
+ class CardDiscountStep
  interface PaymentGateway {
-  +charge()
-  +refund()
- }
- class SimulatedCardGateway <<Adapter>>
+  +charge(card)
+}
+ class SimulatedCardGateway <<Adapter>> {
+  +charge(card)
+}
+}
+package "Infrastructure" {
+ class Worker <<process>> {
+  +runBookingJobs()
+  +expireSubscriptions()
+  +runReminderJobs()
+  +dispatchEmails()
+}
  interface MailTransport {
-  +send()
- }
- class MailpitTransport <<Adapter>>
- interface FileStorage {
-  +put()
-  +read()
- }
- class VolumeFileStorage <<Adapter>>
- class PostgresRepositories
- class OutboxRecord {
-  +eventKey
-  +recipient
-  +type
-  +payload
-  +deliveryState
- }
- class ScheduledJob {
-  +deduplicationKey
-  +runAt
-  +leaseUntil
+  +send(mail)
+}
+ class SmtpMailTransport <<Adapter>> {
+  +send(mail)
+}
+ class Notification <<SQL>> {
+  +event_key
+  +account_id
+  +email_status
+}
+ class EmailOutbox <<SQL>> {
+  +state
   +attempts
- }
- class LoginSession {
-  +tokenHash
-  +csrfTokenHash
-  +expiresAt
-  +revokedAt
- }
- class IdempotencyRecord {
-  +actorId
-  +operation
+  +next_attempt_at
+}
+ class BackgroundRuns <<SQL>> {
+  +next_run_at
+  +finished_at
+}
+ class IdempotencyRecords <<SQL>> {
+  +scope
   +key
-  +requestHash
-  +response
-  +expiresAt
- }
+  +fingerprint
+  +response_body
+}
+ class SessionAndCsrf <<SQL>> {
+  -token_hash
+  -csrf_hash
+  +expires_at
+}
+ class AuditLog <<SQL>>
 }
 ReactApplication --> ApiClient
-ApiClient --> NextRouteAdapters : REST / DTOs
-NextRouteAdapters --> AccessPolicy
-NextRouteAdapters --> IdentityService
-NextRouteAdapters --> CatalogService
-NextRouteAdapters --> BookingService
-NextRouteAdapters --> AdministrationService
-NextRouteAdapters --> ConversationService
-NextRouteAdapters --> ReportingService
-Account --|> Record
-Account "1" *-- "0..1" UserProfile
-Account "1" *-- "0..1" OrganizerProfile
-Account "1" *-- "0..1" AdminProfile
-note right of Account : Exactly one role profile; all entities inherit Record fields.\nSoft deletion preserves referenced history.
-UserProfile "*" --> "1" City
+ApiClient --> NextRoutes
+NextRoutes --> Accounts
+NextRoutes --> Catalog
+NextRoutes --> Bookings
+NextRoutes --> Payments
+NextRoutes --> Subscriptions
+NextRoutes --> Chat
+NextRoutes --> Administration
+NextRoutes --> Statistics
+Account "1" -- "0..1" UserProfile
+Account "1" -- "0..1" OrganizerProfile
+Account "1" -- "0..1" AdminProfile
+UserProfile --> City
+OrganizerProfile --> City
 UserProfile "*" -- "*" Direction : preferences
-OrganizerProfile "*" --> "1" City
-OrganizerProfile "*" -- "1..*" Direction
-OrganizerProfile "1" -- "*" Event
-Event "*" --> "1" City
-Event "*" --> "1" Direction
-Event "1" *-- "0..8" Photo
-Event "1" *-- "1..60" EventSession
-EventSession "1" -- "*" Booking
-UserProfile "1" -- "*" Booking
-Booking "1" *-- "*" BookingTransition
-Booking "0..1" -- "*" Payment
-UserSubscription "0..1" -- "*" Payment : purchase
-note right of Payment : Exactly one payment subject:\nbooking OR subscription purchase.
+OrganizerProfile "1" -- "*" EventRow
+EventRow --> City
+EventRow --> Direction
+EventRow "1" *-- "*" SessionRow
+EventRow "1" *-- "0..8" EventPhoto
+SessionRow "1" -- "*" BookingRow
+UserProfile "1" -- "*" BookingRow
+BookingRow "1" -- "*" BookingHistory
+BookingRow "0..1" -- "*" Payment
+Payment "1" -- "0..1" Refund
 OrganizerProfile "1" -- "*" SubscriptionPlan
-SubscriptionPlan "1" -- "*" UserSubscription
+SubscriptionPlan "1" -- "*" UserSubscription : immutable purchase snapshot
 UserProfile "1" -- "*" UserSubscription
-Booking "*" --> "0..1" UserSubscription
-UserProfile "*" --> "1" LoyaltyLevelConfig
-LoyaltyLevelConfig "*" -- "*" Direction : free directions
-LoyaltyRules "1" -- "3" LoyaltyLevelConfig : system configuration
+UserSubscription "1" -- "*" VisitLedger
+BookingRow "1" -- "0..1" VisitLedger
+UserSubscription "0..1" -- "*" Payment : purchase
 UserProfile "1" -- "*" PointsTransaction
-Booking "0..1" -- "*" PointsTransaction
-UserProfile "1" -- "*" Conversation
-OrganizerProfile "1" -- "*" Conversation
+BookingRow "0..1" -- "*" PointsTransaction
+BookingRow "1" -- "0..1" FreeVisitLedger
+Loyalty --> LoyaltySettings
+Account "1" -- "*" SessionAndCsrf
+Account "1" -- "*" Notification
+Notification "1" -- "0..1" EmailOutbox
 Conversation "1" *-- "*" Message
-Message "*" --> "1" Account : sender
-Message "*" --> "0..1" Event
-Account "1" -- "*" Notification : recipient
-Account "1" -- "*" LoginSession
-IdentityService --> Account
-IdentityService --> LoginSession
-CatalogService --> Event
-CatalogService --> FileStorage
-BookingService --> Booking
-BookingService --> EventKindPolicy
-BookingService --> BookingState
-BookingService --> PriceHandler
-BookingService --> UnitOfWork
-BookingService --> SubscriptionService
-BookingService --> PaymentService
-BookingService --> LoyaltyService
-BookingService --> OutboxRecord
-PaymentService --> PaymentGateway
-SubscriptionService --> SubscriptionPolicy
-SubscriptionService --> UserSubscription
-LoyaltyService --> LoyaltyBenefits
-LoyaltyService --> PointsTransaction
-ConversationService --> Conversation
-NotificationService --> Notification
-AdministrationService --> BookingService : reuse cancellation
-AdministrationService --> IdentityService
-ReportingService --> PostgresRepositories : scoped reads
-PostgresRepositories ..|> UnitOfWork
+Conversation --> UserProfile
+Conversation --> OrganizerProfile
+Message --> Account : sender
+Bookings --> SeatPolicy
+OrdinarySeats ..|> SeatPolicy
+SingleParticipant ..|> SeatPolicy
+ExclusiveHall ..|> SeatPolicy
+Bookings --> Loyalty
+Bookings --> Subscriptions
+Bookings --> Payments : compensation
+Loyalty --> PriceStep
+PromotionStep --|> PriceStep
+FreeAccessStep --|> PriceStep
+CardDiscountStep --|> PriceStep
+PriceStep o--> PriceStep : next
+Payments --> PaymentGateway
+Subscriptions --> PaymentGateway
 SimulatedCardGateway ..|> PaymentGateway
-MailpitTransport ..|> MailTransport
-VolumeFileStorage ..|> FileStorage
-SharedSeatPolicy ..|> EventKindPolicy
-ExclusiveHallPolicy ..|> EventKindPolicy
-TeamPolicy ..|> EventKindPolicy
-PendingState ..|> BookingState
-ConfirmedState ..|> BookingState
-TerminalState ..|> BookingState
-EffectivePriceHandler --|> PriceHandler
-FreeVisitHandler --|> PriceHandler
-CardDiscountHandler --|> PriceHandler
-RedemptionHandler --|> PriceHandler
-PriceHandler --> LoyaltyBenefits
-PriceHandler --> PriceHandler : next
-NotificationSubscriber ..|> DomainSubscriber
-NotificationSubscriber --> NotificationService
-NotificationService --> MailTransport
-WorkerDispatcher --> ScheduledJob
-WorkerDispatcher --> OutboxRecord
-WorkerDispatcher --> DomainSubscriber
-WorkerDispatcher --> BookingService
-PaymentService --> IdempotencyRecord
-note bottom of BookingService
-Transaction coordinates capacity and compensation; patterns do not commit separately.
-Q-01 through Q-05 remain unresolved. No liability/quota-resolution model is approved.
-Physical bootstrap tables are a small subset of this planned logical model.
+Worker --> Bookings
+Worker --> Subscriptions
+Worker --> BackgroundRuns
+Worker --> EmailOutbox
+Worker --> MailTransport
+SmtpMailTransport ..|> MailTransport
+Administration --> Bookings : reuse cascades
+Administration --> AuditLog
+Bookings --> IdempotencyRecords
+Chat --> Notification
+note bottom
+Source index: ARCHITECTURE.md. Module boxes group real functions; they are not invented runtime classes.
+PostgreSQL owns transactions, constraints, state and deduplication. State/Observer/Singleton are not claimed GoF implementations.
 end note
 @enduml

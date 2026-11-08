@@ -1,3 +1,4 @@
+import {limits} from "../../infrastructure/limits";
 import { z } from "zod";
 import type { PoolClient } from "pg";
 import type { Actor } from "../accounts/security";
@@ -303,10 +304,22 @@ export function listEvents(
       ).rows;
       const items = [];
       for (const row of rows)
-        items.push(await eventDto(client, row, row.next_id ?? undefined));
+        items.push(
+          await eventDto(
+            client,
+            row,
+            owned || admin ? undefined : (row.next_id ?? undefined),
+          ),
+        );
       return Response.json(page(items, total, query.page, query.pageSize));
     },
-    admin ? ["ADMIN"] : owned ? ["ORGANIZER"] : recommended ? ["USER"] : undefined,
+    admin
+      ? ["ADMIN"]
+      : owned
+        ? ["ORGANIZER"]
+        : recommended
+          ? ["USER"]
+          : undefined,
   );
 }
 export function getEvent(
@@ -595,7 +608,14 @@ export async function setEventStatus(
         )
       ).rows[0];
       if (admin && row.status !== updated.status) {
-        await audit(client, current.id, `EVENT_${updated.status}`, "EVENT", row.id, input.reason ?? null);
+        await audit(
+          client,
+          current.id,
+          `EVENT_${updated.status}`,
+          "EVENT",
+          row.id,
+          input.reason ?? null,
+        );
         await notify(client, {
           accountId: row.organizer_id,
           key: `event:${row.id}:moderated:${updated.updated_at.toISOString()}`,
@@ -621,11 +641,18 @@ export async function cancelEventCascade(
   finalStatus: "CANCELLED" | "DELETED",
 ) {
   if (row.status !== "DELETED")
-    await client.query("UPDATE events SET status=$1,updated_at=now() WHERE id=$2", [finalStatus, row.id]);
+    await client.query(
+      "UPDATE events SET status=$1,updated_at=now() WHERE id=$2",
+      [finalStatus, row.id],
+    );
   const sessions = (
-    await client.query<SessionRow>("SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE", [row.id])
+    await client.query<SessionRow>(
+      "SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE",
+      [row.id],
+    )
   ).rows;
-  for (const s of sessions) await cancelSessionBookings(client, row, s, who, why);
+  for (const s of sessions)
+    await cancelSessionBookings(client, row, s, who, why);
   await client.query(
     "UPDATE event_sessions SET status='CANCELLED',updated_at=now() WHERE event_id=$1 AND status='SCHEDULED'",
     [row.id],
@@ -657,17 +684,28 @@ export async function cancelEvent(
             remove ? "DELETED" : "CANCELLED",
           );
           if (admin) {
-            await audit(client, current.id, remove ? "EVENT_DELETE" : "EVENT_CANCEL", "EVENT", row.id, input.reason);
+            await audit(
+              client,
+              current.id,
+              remove ? "EVENT_DELETE" : "EVENT_CANCEL",
+              "EVENT",
+              row.id,
+              input.reason,
+            );
             await notify(client, {
               accountId: row.organizer_id,
               key: `event:${row.id}:admin-${remove ? "delete" : "cancel"}`,
-              type: remove ? "EVENT_DELETED_BY_ADMIN" : "EVENT_CANCELLED_BY_ADMIN",
+              type: remove
+                ? "EVENT_DELETED_BY_ADMIN"
+                : "EVENT_CANCELLED_BY_ADMIN",
               category: "ACCOUNT",
               title: remove
                 ? "An administrator removed your event"
                 : "An administrator cancelled your event",
               body: `${row.title}. Active bookings were cancelled and paid bookings refunded.${input.reason ? ` Reason: ${input.reason}` : ""}`,
-              link: remove ? "/organizer/events" : `/organizer/events/${row.id}`,
+              link: remove
+                ? "/organizer/events"
+                : `/organizer/events/${row.id}`,
             });
           }
           return {
@@ -761,9 +799,9 @@ export async function createSession(request: Request, id: string) {
                   [id],
                 )
               ).rows[0].count,
-            ) >= 60
+            ) >= limits().sessions
           )
-            invalid("sessions", "An event may have at most 60 sessions");
+            invalid("sessions", `An event may have at most ${limits().sessions} sessions`);
           await validateSession(client, id, input);
           const s = (
             await client.query<SessionRow>(

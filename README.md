@@ -1,49 +1,80 @@
-# ActiveHub backend
+# ActiveHub
 
-ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Subscriptions, loyalty cards, points, free visits and administrator loyalty settings are available. Every notification appears in the site and is also emailed according to the user's preferences; reminders and user-organizer chat are available. Administrators manage users, organizers, events, bookings, subscriptions and dictionaries. Platform statistics and reporting remain planned.
+ActiveHub connects members with trainers, clubs, venues and activity organizers. Members discover activities, reserve places, use subscriptions and loyalty benefits, pay through a card simulator and communicate with organizers. Organizers manage activities, sessions, requests and plans. Administrators manage accounts, content, reference data, loyalty settings and statistics.
 
-## Start
+The backend is a TypeScript REST API built with Node.js 24 and Next.js 16. The separate frontend uses React 19, TypeScript and Vite. PostgreSQL owns transactional state; a separate worker handles deadlines, reminders and email. The interface is English, money is UAH and displayed time is Europe/Kyiv.
 
-Use Node.js 24 and Docker Desktop with its Linux engine running. Clone [activehub-frontend](https://github.com/Vitaliiir16/activehub-frontend) beside this directory, keeping both repository names. From this directory:
+## Run the application
+
+Install Node.js 24 and Docker Desktop with the Linux engine running. Keep the two repositories beside each other:
 
 ~~~powershell
+git clone https://github.com/Vitaliiir16/activehub-backend.git
+git clone https://github.com/Vitaliiir16/activehub-frontend.git
+cd activehub-backend
 node scripts/create-local-env.mjs
 docker compose up --build --wait
 ~~~
 
-Environment generation is needed once and refuses to overwrite an existing file. Review the generated .env privately for the initial administrator email/password/name. Alternatively copy .env.example and replace password placeholders. Existing bootstrap credentials are preserved on restart; changing environment values does not reset them.
+Generate .env once. The generator preserves an existing file and writes random local database, initial-administrator and demo passwords into a new file. Keep it private. Alternatively copy .env.example and fill its required credentials.
 
-Open the frontend at http://localhost:8080, readiness at http://localhost:3000/api/health, and Mailpit at http://localhost:8025 (by default every email is captured there and nothing leaves your machine; see Email to send real mail). Register a user or organizer, or sign in using the configured administrator. There are no demo accounts/events. UI, validation and seed labels are English. UAH and Europe/Kyiv remain the product conventions.
-
-Compose waits for PostgreSQL, runs checked migrations and idempotent required seeds, then starts API/worker and frontend. Named volumes retain database records, profile images and captured mail. Repeat the same startup command to apply new migrations without deleting data. Stop with docker compose stop; docker compose down retains volumes. Do not remove volumes to reset configuration. PostgreSQL 18 stores data at /var/lib/postgresql.
-
-## Account security
-
-Passwords use the existing salted scrypt configuration. Opaque session and CSRF context cookies are HTTP-only, SameSite=Lax and scoped to /. Session tokens are stored as digests, expire after seven days by default and are revoked on logout/block/deletion. Password changes verify the current password and rotate the current session while revoking other sessions.
-
-Every unsafe account operation requires a context/session-bound CSRF token and an exact configured Origin. The frontend fetches tokens and serializes mutations. All HTTPS origins enable Secure cookies; HTTP cookies are allowed only for localhost development. DTOs reject role/owner/status injection. Profiles derive their owner from the session. Inactive dictionary values remain visible on the owner's existing profile but cannot become new selections. Owned images are decoded, resized and stripped of metadata before WebP storage; arbitrary uploads and foreign reads are denied.
-
-Only ADMIN can create another administrator or update another administrator's status. Self-block and last-active-administrator removal are protected by serialized checks. Administrator deletion, dedicated listing and general management remain planned. Registration welcome records and email outbox entries are transactional. The separate worker currently delivers only welcome email to Mailpit, persists retries, skips completed records and shuts down cleanly. SMTP acceptance followed by a process crash before database commit can produce a duplicate external email; external exactly-once delivery is not claimed.
-
-## Configuration
-
-| Variable | Purpose |
+| Service | Default address |
 |---|---|
-| COMPOSE_PROJECT_NAME | Container/volume namespace; default activehub |
-| POSTGRES_DB / POSTGRES_USER / POSTGRES_PASSWORD | Database bootstrap; changes do not rewrite an existing volume |
-| INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD / INITIAL_ADMIN_NAME | Required first-administrator configuration; never published or reset on reseed |
-| API_PORT / FRONTEND_PORT / MAILPIT_PORT | Localhost ports; defaults 3000 / 8080 / 8025 |
-| APP_ORIGINS | Exact comma-separated browser origins; Compose defaults to localhost and 127.0.0.1 at FRONTEND_PORT |
-| SESSION_TTL_SECONDS | Default 604800; supported range 60-2592000 |
-| DATABASE_URL or PG* | Database connection for local commands outside Compose |
-| UPLOAD_DIR | Shared image directory; /app/uploads in Compose; set an absolute writable directory for local Next.js development |
-| SMTP_HOST / SMTP_PORT | Mail server; defaults to the Mailpit capture service (mailpit:1025). See Email for a real provider |
-| SMTP_USER / SMTP_PASSWORD / SMTP_FROM / SMTP_FROM_NAME / SMTP_SECURE / SMTP_REQUIRE_TLS | Authentication, sender and TLS for a real provider; leave empty for Mailpit |
-| APP_PUBLIC_URL | Public address used in email links; defaults to http://localhost:FRONTEND_PORT |
-| EMAIL_MAX_ATTEMPTS | Delivery attempts before an email is marked failed; default 50 |
-| REMINDER_FIRST_SECONDS / REMINDER_SECOND_SECONDS / REMINDER_WORKER_INTERVAL_SECONDS | Reminder lead times (24 h, 2 h) and job interval (60 s) |
+| Frontend | http://localhost:8080 |
+| API readiness | http://localhost:3000/api/health |
+| Mailpit | http://localhost:8025 |
 
-When using Vite development, configure APP_ORIGINS to include the exact http://localhost:5173 or http://127.0.0.1:5173 origin in addition to any Compose frontend origin. No wildcard CORS is enabled. Secrets never belong in frontend environment variables.
+Compose waits for PostgreSQL, applies checksum-checked migrations and required seeds, then starts API, worker and frontend. The initializer shares the uploads volume for demo images. Repeat the same command to upgrade without deleting data. Stop with docker compose stop. Database, uploads and captured mail use named volumes; keep them when restarting. The frontend proxies /api to the real backend on the same origin.
+
+To run only migrations and seeds against this Compose database, use `docker compose run --rm migrate`. Normal startup already performs this step; do not run it with another environment file unless that database is intended.
+
+## Sign in and demonstrate
+
+The initial ADMIN uses INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD from the private .env. Existing administrator credentials are preserved on reseed; changing environment values does not reset an account. Members and organizers can register themselves; administrators cannot self-register.
+
+To enable the demonstration dataset, set these keys in .env and repeat the startup command:
+
+~~~dotenv
+SEED_DEMO=true
+DEMO_NAMESPACE=demo
+~~~
+
+DEMO_PASSWORD must be explicitly configured: the generator supplies a random value in new environments. For an older environment, choose a private password with 8-256 characters including a letter and digit. The same configured password applies to newly seeded demo accounts; it is never printed or published.
+
+| Role | Email with the default namespace |
+|---|---|
+| Members | member1@demo.activehub.example.test through member4@demo.activehub.example.test |
+| Trainer | trainer@demo.activehub.example.test |
+| Club | club@demo.activehub.example.test |
+| Venue | venue@demo.activehub.example.test |
+| Organizer | organizer@demo.activehub.example.test |
+| Administrator | INITIAL_ADMIN_EMAIL from .env |
+
+The dataset includes four members, all organizer types, 12 activities with future sessions, covers and a promotion, all plan types, paid/free/subscription and historical bookings, loyalty ledgers, a conversation and notifications. Dates are relative to the first seed of a namespace. Repeating startup preserves records, edits, credentials and settings. To create a fresh cohort later, choose a new lowercase DEMO_NAMESPACE; the old cohort remains. If a reserved demo email already exists without its marker, seeding refuses to replace it. Demo mode is off by default and does not reset an existing installation.
+
+The teaching sequence and exact acceptance evidence are in [FINAL_ACCEPTANCE.md](docs/FINAL_ACCEPTANCE.md).
+
+## Environment and email
+
+| Variables | Purpose |
+|---|---|
+| POSTGRES_PASSWORD; INITIAL_ADMIN_EMAIL / PASSWORD / NAME | Required private database and first-administrator configuration |
+| API_PORT / FRONTEND_PORT / MAILPIT_PORT | Host ports, default 3000 / 8080 / 8025 |
+| APP_ORIGINS / APP_PUBLIC_URL | Exact accepted browser origins and absolute links in email |
+| SESSION_TTL_SECONDS | Session lifetime, default seven days |
+| BOOKING_CUTOFF_SECONDS / CANCELLATION_CUTOFF_SECONDS | Inclusive booking boundary and confirmed-cancellation window; defaults 1800 / 43200 |
+| PAYMENT_DEADLINE_SECONDS / PENDING_DEADLINE_SECONDS | Default 3600 / 172800, capped at the session start |
+| BOOKING_WORKER_INTERVAL_SECONDS / REMINDER_WORKER_INTERVAL_SECONDS | Persistent job cadence, default 60 seconds |
+| REMINDER_FIRST_SECONDS / REMINDER_SECOND_SECONDS | Default 24 hours / 2 hours |
+| MAX_EVENT_PHOTOS / MAX_EVENT_SESSIONS / MAX_UPLOAD_BYTES | Defaults 8 / 60 / 5242880; may be lowered within specification safety bounds |
+| UPLOAD_DIR; DATABASE_URL or PG* | Local development storage and database connection; Compose supplies these internally |
+| SEED_DEMO / DEMO_PASSWORD / DEMO_NAMESPACE | Explicit, idempotent demonstration cohort |
+
+List page sizes can be selected per API request, up to 100. Administrators configure loyalty thresholds, multipliers, discounts, free directions and rules in the application.
+
+Mailpit is the default SMTP destination: captured messages stay local. To use Gmail or another provider, explicitly configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD and SMTP_FROM in the private .env. Gmail normally uses smtp.gmail.com:587, SMTP_SECURE=false and SMTP_REQUIRE_TLS=true with an app password. Port 465 uses SMTP_SECURE=true. Keep SMTP_TLS_REJECT_UNAUTHORIZED=true for provider certificate checks. APP_PUBLIC_URL must be the browser address for email links. SMTP_FROM_NAME and EMAIL_MAX_ATTEMPTS customize sender display and bounded retries. Run npm.cmd run mail:check with the intended SMTP environment to diagnose configuration; credentials are redacted.
+
+For Vite development, run the frontend dev command and include its exact origin in APP_ORIGINS; configure API_PROXY_TARGET in the frontend when the API uses another port. Never put secrets in browser environment values.
 
 ## Checks
 
@@ -51,84 +82,26 @@ When using Vite development, configure APP_ORIGINS to include the exact http://l
 npm.cmd ci
 npm.cmd run lint
 npm.cmd run typecheck
-npm.cmd test
 npm.cmd run contract:check
 npm.cmd run build
+npm.cmd test
 ~~~
 
-PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:marketplace runs the catalog/booking/payment risk suite on an isolated database with ACTIVEHUB_TEST_WRITES=true. It checks concurrency and once-only refunds. test:loyalty runs the awards/quota/card risk suite the same way. It temporarily changes loyalty settings and restores them, and needs the administrator variables and a superuser database role to simulate subscription expiry. test:communications runs the notification table, reminder, email delivery and chat suite against the real API, database and Mailpit (set MAILPIT_BASE_URL and SMTP_HOST/SMTP_PORT). test:administration runs the administrator search, cascade, race and dictionary suite the same way; like test:communications it dispatches mail itself, so stop the worker first. mail:check verifies the configured mail server and can send one test email. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
+db:verify checks required seeds and migration checksums with probe changes rolled back. Real API/PostgreSQL risk suites are test:accounts, test:marketplace, test:loyalty, test:communications, test:administration and test:statistics. They require an initialized isolated database, SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true; they write synthetic fixtures. Run only the suites relevant to a change. Existing CI runs the full configured checks; frontend CI checks out its pinned backend and compares the canonical contract.
 
-GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap checks and the real production-server account suite. Frontend CI checks out its pinned backend revision and runs the full Compose/browser flows without mocks. Dependency versions and image digests are pinned; npm audits reported zero vulnerabilities at verification time.
+## Implemented patterns
 
-## Documentation
-
-- [Requirements](docs/REQUIREMENTS.md), [matrix](docs/REQUIREMENTS_MATRIX.md), [delivery plan](docs/DELIVERY_PLAN.md) and [progress](docs/PROGRESS.md)
-- [OpenAPI](docs/openapi.yaml), [conventions](docs/API_CONVENTIONS.md), [changelog](docs/API_CHANGELOG.md) and [account acceptance](docs/ACCOUNTS_ACCEPTANCE.md)
-- [Architecture](docs/ARCHITECTURE.md), [models](docs/MODELING.md) and [open decisions](docs/ASSUMPTIONS.md)
-
-OpenAPI 0.7.0 includes the stage 11 administration operations. Q-01/Q-02/Q-03/Q-04 are approved (see open decisions); Q-05 remains open. Booking expiry/completion, hourly subscription expiry, reminders and email delivery run in the worker. Statistics, reporting and optional recovery remain planned. This delivery stops after stage 11. See the [marketplace](docs/MARKETPLACE_REVIEW.md), [communications](docs/COMMUNICATIONS_REVIEW.md) and [administration](docs/ADMINISTRATION_REVIEW.md) reviews for manual checks and test limits.
-
-## Implemented design patterns
-
-| Pattern | Purpose | Source and search |
+| Pattern | Purpose and real source | Find it |
 |---|---|---|
-| Adapter | Map the mail port to an SMTP server (Mailpit locally, Gmail or another provider in production) so notifications and the dispatcher never touch transport details | [mail.ts](src/infrastructure/mail.ts): MailTransport, SmtpMailTransport; search: `rg -n MailTransport src` |
-| Strategy | Select ordinary/team/exclusive-hall seat rules without branching across booking orchestration | [policies.ts](src/modules/marketplace/policies.ts): SeatPolicy, seatPolicy; search: `rg -n SeatPolicy src` |
-| Chain of Responsibility | Apply promotion, card free access and card discount in the fixed source order, recording each modifier | [pricing.ts](src/modules/loyalty/pricing.ts): PriceStep, PromotionStep, FreeAccessStep, CardDiscountStep; search: `rg -n PriceStep src` |
-| Adapter | Isolate card simulation behind the payment port | [payment-gateway.ts](src/modules/marketplace/payment-gateway.ts): PaymentGateway, SimulatedCardGateway; search: `rg -n SimulatedCardGateway src` |
+| Strategy | SeatPolicy and seatPolicy select ordinary places, a single participant or an exclusive hall in src/modules/marketplace/policies.ts | rg -n SeatPolicy src |
+| Chain of Responsibility | PriceStep, PromotionStep, FreeAccessStep and CardDiscountStep preserve pricing order and record the breakdown in src/modules/loyalty/pricing.ts | rg -n 'class.*Step' src/modules/loyalty/pricing.ts |
+| Adapter | PaymentGateway / SimulatedCardGateway map the card simulator to the payment port in src/modules/marketplace/payment-gateway.ts | rg -n SimulatedCardGateway src |
+| Adapter | MailTransport / SmtpMailTransport isolate SMTP and error translation in src/infrastructure/mail.ts | rg -n SmtpMailTransport src |
 
-Other GoF collaborations in the architecture and UML remain proposed. The profile/session functions are not presented as invented pattern implementations.
+The UML [class model](docs/diagrams/classes.svg), [Use Cases](docs/diagrams/use-cases.svg), [booking collaboration](docs/diagrams/booking-patterns.svg) and [architecture](docs/ARCHITECTURE.md) distinguish real function modules, types and database records. SOLID/GRASP examples link actual symbols. Booking validation tables and the outbox are not claimed as GoF State or Observer implementations.
 
-## Subscriptions
+## Limits and project records
 
-Organizer Plans and My subscriptions are available. Purchases preserve price, duration, visits and scope; plan edits/archive affect future purchases only. Subscription bookings consume one visit per place and return visits once on reject/cancel/expiry. Subscription purchases are non-refundable. Apply migration 007 with `docker compose up --build --wait`; existing data is retained.
+Payments are simulated; card numbers and CVV are never persisted. Development defaults capture mail. SMTP delivery retains a possible acceptance/commit crash window; universal exactly-once external email is not claimed. Password recovery, schedule generation, organizer-wide calendar, redemption, near-expiry notices, an explicit free-only switch and a dedicated administrator list remain optional and unavailable.
 
-## Loyalty
-
-Bookings are priced by the member card: promotion, free visits for the card's directions (session month in Europe/Kyiv), then the card discount. Confirmed bookings earn points once, including free and subscription bookings; cancellation reverses the recorded award once, never below a zero balance. Premium follows lifetime points; Corporate follows an unexpired corporate subscription. Administrators configure levels and rules, assign or lock cards and adjust points with a reason. Migration 008 applies through the same startup command without resetting data.
-
-## Email
-
-Every notification is shown in the site and, when its category allows, also emailed. Booking, payment, subscription, cancellation, refund, change and administrator messages are always emailed. Reminders and offers are emailed by default, and each can be turned off in the profile. Points and chat messages are emailed only if the user turns them on; card upgrade emails are sent until the user changes the points setting. The worker sends queued emails with retries and never sends one twice.
-
-By default all email goes to Mailpit at http://localhost:8025, so nothing reaches real recipients while developing. To send real email, add these lines to the backend `.env` and restart with `docker compose up --build --wait`. Gmail example:
-
-~~~
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your.address@gmail.com
-SMTP_PASSWORD=your-16-character-app-password
-SMTP_FROM=your.address@gmail.com
-APP_PUBLIC_URL=https://your-site.example
-~~~
-
-Gmail requires 2-Step Verification and an app password (Google account, Security, App passwords); the normal account password does not work. Port 587 uses STARTTLS; port 465 with `SMTP_SECURE=true` uses implicit TLS. Gmail sends from your own address. Other providers use the same variables. The password is read only from the environment and is never logged or stored in the database.
-
-Check the settings without registering anyone, from the backend directory (the worker container already has the variables):
-
-~~~powershell
-docker compose run --rm --no-deps worker node --import tsx scripts/check-mail.ts you@example.com
-~~~
-
-Without Docker, run `node --env-file=.env --import tsx scripts/check-mail.ts you@example.com`. The worker log shows `Email: smtp.gmail.com:587 (STARTTLS, authenticated)` at start. A failed message stays queued and is retried with growing delays; a rejected recipient is marked failed. `APP_PUBLIC_URL` must be the address users open, because email links use it.
-
-## Chat
-
-A user starts a conversation from an organizer or activity page; an organizer starts one from a booking of that member. Each user-organizer pair has one conversation. Messages are text (up to 2000 characters), may carry an activity card and show sent/read state. The header shows unread messages and notifications and the pages update by polling every few seconds, with no manual reload. Administrators cannot read or send messages, blocked accounts cannot send, and sending is limited to 30 messages per minute.
-
-## Administration
-
-Sign in as the administrator from `.env` (the first administrator is created from the environment). The Administration area has Users, Organizers, Events, Bookings, Subscriptions, Dictionaries, Loyalty settings and Administrator access. Every list is paginated, sortable and filtered through the address, so a search can be shared. Deleted accounts stay searchable.
-
-- **Block** ends every session and prevents sign-in; existing bookings are kept. Blocking an organizer also hides its events, page and plans and stops new bookings, while existing bookings continue.
-- **Delete** is soft. Deleting a user cancels, refunds and compensates every active booking (places, visits, points) and notifies organizers. Deleting an organizer cancels and refunds events that have a future session or an active booking, archives its plans and notifies members. Payments, bookings, points and chats remain as history, and repeating a request changes nothing.
-- **Edit contacts** never changes passwords. Organizers are told by notification and email about edits, blocks and deletion.
-- **Events** can be searched in every status, edited (text), moderated (photos removed), blocked, cancelled or deleted; **bookings** can be cancelled with a refund.
-- **Dictionaries**: add, rename and deactivate cities and directions. Existing references keep working, new selections need an active value, and one value always stays active.
-- Every administrator decision is stored with its reason in an append-only audit log in the database.
-
-Platform statistics and the optional dedicated administrator list (Q-05) are not part of this stage.
-
-## Statistics
-
-Administrators open Statistics for 7, 30 or 90 days or a custom Europe/Kyiv range (at most one year). Totals, breakdowns and charts count records created in the period; net payments are successful card payments minus refunds; booking conversion is the share of created bookings that were ever confirmed. Organizers see their own dashboard (counters, net current-month revenue, unread messages and a 30-day chart). Recommendations without preferences rank city activities by live and completed bookings. The rules are in docs/ASSUMPTIONS.md (Stage 12).
+See [requirements](docs/REQUIREMENTS.md), [matrix](docs/REQUIREMENTS_MATRIX.md), [decisions](docs/ASSUMPTIONS.md), [OpenAPI](docs/openapi.yaml), [API changes](docs/API_CHANGELOG.md) and [acceptance](docs/FINAL_ACCEPTANCE.md). All five original questions have recorded owner decisions. Stage 13 stops before optional stage 14.
