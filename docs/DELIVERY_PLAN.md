@@ -24,9 +24,11 @@ Stages 00-04 have delivered models, scaffolds, infrastructure, contract foundati
 
 The dependency table is not permission to call unfinished integration complete. Notification event types and outbox hooks must be designed with their originating features; stage 10 completes delivery and rechecks all previous triggers. Cancellation crosses bookings, money, visits, points and quota: stages 06-09 stay provisionally integrated until joint tests pass. Base price/promotion snapshots appear before loyalty; stage 09 completes the required final pricing pipeline. Q-01 affects spent-point reversals most directly when [S] redemption is added, but the rule must be settled before claiming the full ledger safe. Unrelated scaffolding/catalog work can proceed while questions remain open.
 
+Stages 05?07 now have implementation and risk-based evidence in PROGRESS.md. Q-03 is approved. Their cross-module subscription/loyalty compensation remains provisional until stages 08?09. The current run stops after stage 07.
+
 ## API synchronization
 
-1. Backend proposes contract changes and acceptance examples first in `docs/openapi.yaml` and `docs/API_CHANGELOG.md`. The foundation now exists; only health is implemented.
+1. Backend proposes contract changes and acceptance examples first in `docs/openapi.yaml` and `docs/API_CHANGELOG.md`. The foundation now exists; health, accounts and the stage 05?07 operations marked implemented in OpenAPI are available.
 2. Review auth, ownership, lifecycle, amounts, timestamps, errors, filtering, pagination and repeat-request behavior before code relies on them.
 3. Implement and verify backend behavior against that contract, using real PostgreSQL for integration acceptance.
 4. Record the backend commit; update/generate the frontend client and UI against that exact revision. Record the contract hash when it exists.

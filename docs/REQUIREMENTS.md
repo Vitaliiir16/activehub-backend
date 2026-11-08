@@ -242,7 +242,7 @@ Jobs run without user actions, persist state in PostgreSQL, survive restarts and
 
 ## 9. Invariants
 
-The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01/Q-03 identify actual wording conflicts rather than silently resolving them.
+The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01 remains an unresolved wording conflict; Q-03 has the approved inclusive interpretation in section 7.5.
 
 ## 10. Validation
 

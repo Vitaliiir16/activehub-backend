@@ -1,6 +1,6 @@
 # ActiveHub backend
 
-ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Catalogs, bookings, payments, subscriptions, loyalty behavior and other communications are planned.
+ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Subscriptions, loyalty, chat, reminders and complete reporting remain planned.
 
 ## Start
 
@@ -52,7 +52,7 @@ npm.cmd run contract:check
 npm.cmd run build
 ~~~
 
-PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
+PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:marketplace runs the catalog/booking/payment risk suite on an isolated database with ACTIVEHUB_TEST_WRITES=true. It checks concurrency and once-only refunds. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
 
 GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap checks and the real production-server account suite. Frontend CI checks out its pinned backend revision and runs the full Compose/browser flows without mocks. Dependency versions and image digests are pinned; npm audits reported zero vulnerabilities at verification time.
 
@@ -62,12 +62,14 @@ GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap ch
 - [OpenAPI](docs/openapi.yaml), [conventions](docs/API_CONVENTIONS.md), [changelog](docs/API_CHANGELOG.md) and [account acceptance](docs/ACCOUNTS_ACCEPTANCE.md)
 - [Architecture](docs/ARCHITECTURE.md), [models](docs/MODELING.md) and [open decisions](docs/ASSUMPTIONS.md)
 
-OpenAPI 0.2.0 marks 21 operations implemented and 89 planned. Q-01 through Q-05 remain open. Initial profile card metadata is persisted, but no accrual, redemption, pricing or card-transition behavior exists. No business scheduling/reminders, optional recovery or demo data is implemented. This delivery stops after stage 04.
+OpenAPI 0.3.0 marks 62 of 112 operations implemented. Q-03 is approved as an inclusive cutoff; Q-01/Q-02/Q-04/Q-05 remain open. Persisted booking expiry/completion runs in the worker. Subscription/loyalty benefits, reminders and optional recovery remain planned. This delivery stops after stage 07. See [marketplace review](docs/MARKETPLACE_REVIEW.md) for manual checks and test limits.
 
 ## Implemented design patterns
 
 | Pattern | Purpose | Source and search |
 |---|---|---|
 | Adapter | Map the welcome-mail port to local SMTP while keeping delivery details outside account registration | [welcome-mail.ts](src/infrastructure/welcome-mail.ts): WelcomeMail, MailpitWelcomeMail; search: `rg -n WelcomeMail src` |
+| Strategy | Select ordinary/team/exclusive-hall seat rules without branching across booking orchestration | [policies.ts](src/modules/marketplace/policies.ts): SeatPolicy, seatPolicy; search: `rg -n SeatPolicy src` |
+| Adapter | Isolate card simulation behind the payment port | [payment-gateway.ts](src/modules/marketplace/payment-gateway.ts): PaymentGateway, SimulatedCardGateway; search: `rg -n SimulatedCardGateway src` |
 
 Other GoF collaborations in the architecture and UML remain proposed. The profile/session functions are not presented as invented pattern implementations.

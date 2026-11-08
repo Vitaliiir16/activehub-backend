@@ -14,7 +14,7 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 | P-01 | Selected and locally verified | Node 24, Next.js 16.4.5, React 19.3.1, Vite 8.3.6, TypeScript 5.9.3, ESLint 10.14.0. Exact dependencies and transitive versions are locked separately. TypeScript stays within the declared TypeScript ESLint support range. |
 | P-02 | Infrastructure implemented; jobs planned | Backend-owned Compose, sibling frontend, PostgreSQL, worker lifecycle/heartbeat, Mailpit and named database/uploads/mail volumes. Outbox and business jobs remain planned. No Redis. |
 | P-03 | Implemented and verified | Opaque HTTP-only cookie sessions, persisted token digests, session-bound CSRF and exact Origin validation. Details and test boundaries are in API_CONVENTIONS.md and PROGRESS.md. |
-| P-04 | Contract defined; business calculations planned | JSON money uses integer UAH minor units; decimal rates use strings. Persist UTC instants and interpret calendar filters in Europe/Kyiv. This does not resolve Q-02 or Q-03. |
+| P-04 | Contract defined; business calculations planned | JSON money uses integer UAH minor units; decimal rates use strings. Persist UTC instants and interpret calendar filters in Europe/Kyiv. Q-02 remains open; the later Q-03 decision below approves the inclusive cutoff. |
 | P-05 | Proposed technical choice | Polling is sufficient for live chat and counters initially, if it meets the no-manual-reload requirement. Choose the interval and test stale/out-of-order responses; SSE remains an option. |
 | P-06 | Source interpretation | A corporate subscription belongs to the purchasing user and covers multiple places; it is not a new company account or transferable shared login. A wider multi-account company pool would need a new requirement. |
 
@@ -56,6 +56,12 @@ Decision needed: approve exhaustion-based loss and restoration of eligibility, o
 
 Source: section 7.4.7 marks the dedicated administrators list as [S], while section 11 includes Administrators in the screen map. Proposal: administrator creation form/API and protection of active administrators remain mandatory; the separate list tab remains optional, following the explicit [S] marking. Confirm before closing final acceptance.
 
-## Further design decisions
+## Stage 04 design decisions (historical)
 
 Accounts reuse salted scrypt, pg transactions and strict DTOs. The worker implements welcome delivery only, using a PostgreSQL outbox and a Mailpit SMTP Adapter. Profiles persist initial card metadata without implementing loyalty behavior. Optional registration logos upload after automatic sign-in; upload failure keeps the account intact. Inactive dictionary selections can be retained only by their existing owner. General idempotency/payment/job behavior remains planned. Exact dependency versions and image digests are pinned, and CI checks the public backend at an exact commit. SMTP acceptance before a crash/transaction rollback remains a possible external duplicate-delivery window. None of these choices approves Q-01 through Q-05.
+
+## Stage 05?07 implementation decisions
+
+Reservations lock event ? session ? booking before payment rows; active capacity is derived from booking state, so terminal transitions release it without a second counter write. A database schedule row persists expiry/completion cadence; retrying does not repeat terminal transitions. The simulator holds the reservation locks across its bounded 1?2 second delay and rechecks the deadline before recording success. Payment response replay lasts 24 hours; only an HMAC fingerprint of canonical input is stored. The database holds a private idempotency key; backups must protect it. No PAN/CVV or holder is persisted.
+
+Time/address revision counters preserve the exceptional cancellation right even if the organizer later changes the value back. Pending/card/free pricing is fixed at reservation time; subscriptions and loyalty remain unsupported until stages 08?09. Recommendation fallback currently counts all bookings per event within the user city; full recommendation/reporting acceptance remains stage 12. The outbox dispatcher now sends originating catalog/booking/payment notices as well as welcome mail. SMTP acceptance before transaction rollback still has the documented external duplicate window. These technical decisions approve none of Q-01/Q-02/Q-04/Q-05.

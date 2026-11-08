@@ -1,6 +1,32 @@
 # Delivery progress
 
-Snapshot: 2026-11-08, Europe/Kyiv. **Stages 00-04 are complete for the authorized scope. Stop after stage 04.** Q-01 through Q-05 remain open. Catalogs, bookings, payments, subscriptions, loyalty behavior, other communication triggers and optional recovery remain planned.
+Snapshot: 2026-11-08, Europe/Kyiv. Stages 05?07 are implemented for catalog, card/free bookings and simulated payments. Stop after stage 07. Subscription/loyalty integration remains unfinished for stages 08?09; the full communications matrix remains stage 10. Q-03 is approved; Q-01/Q-02/Q-04/Q-05 remain open.
+
+## Stages 05?07
+
+- Fetched both remotes; PRs #1/#2/#3 were merged. Local main advanced by fast-forward to backend 6fff9c3 and frontend 7e73b65. All original branches were retained; work started clean on feature/05-07-marketplace. No merge, reset, rebase or force push was performed.
+- Stage 05: authenticated catalog/organizers, URL filters/paging, recommendations foundation, owned event/session management, decoded event photos/order/cover, pause/resume/cancel/soft deletion. Real creation/discovery/idempotence/pause/resume/access smoke passed. Frontend lint/types/build passed.
+- Stage 06: PostgreSQL event/session locks and partial unique indexes reserve places; kind Strategy handles ordinary/team/exclusive hall units. Persisted seven-state history, MANUAL decisions, deadlines, cancellation, list/calendar and background expiry/completion are implemented. Q-03 uses an inclusive server cutoff.
+- Stage 07: format/expiry-validated simulator, FAILED retries, immutable price snapshots, receipt, HMAC idempotency and full once-only refunds. Shared time/address changes and event/session cancellation grant/execute refunds and release capacity transactionally.
+- OpenAPI 0.3.0: 112 operations, 62 implemented and 50 planned; lint and route-export/security metadata check passed. Later benefit/communication modules remain planned.
+
+### Verification observed
+
+- Both applications: lint, typecheck and production build passed. Three existing backend Node tests passed. Backend real PostgreSQL/API accounts suite passed, including seeded/new ADMIN. Required seeds/migration checksum and repeat-initialization verification passed with probe changes rolled back.
+- scripts/verify-marketplace.mjs passed against isolated activehub-marketplace-check PostgreSQL/API: paid/refund flow, MANUAL approve/reject, free booking, decline/retry, competing last place/hall/duplicate active user, guest/role/foreign-owner/CSRF denial, immutable prices, reserved-capacity/delete guards, key mismatch, cutoff either side, changed-time/address refund, event/session cascades, expiry/completion and repeated worker without duplicate transitions. Exact equality is checked in the cutoff predicate, rather than claiming exact HTTP transport timing.
+- Browser: the new desktop marketplace scenario passed through actual forms/API, including reload and refunded receipt. Three existing desktop account scenarios passed, including seeded administrator creation. An early run used the old frontend during rebuild; a subsequent run exposed dropdown accessible-name ambiguity, corrected with explicit names. The successful marketplace run took approximately four seconds.
+- Database responses/payment/idempotency records were checked for full PAN/CVV absence. Decoded event photo upload/order/delete and invalid-content rejection passed. Authenticated recommendations returned real data. Captured API/worker logs contained none of the configured/test secrets or checked PAN/hash fields. The final published pair is recorded in the local handoff and linked PRs.
+- Review uses a separate pass in this session; no independent review is claimed. Broad field/filter combinations, every transition edge, visual/multiple-engine coverage, calendar/DST matrix, load and crash fault-injection were not run. Existing CI checks remain enabled; the new API risk suite is added to backend CI and one desktop workflow to frontend CI.
+
+### Revision boundary
+
+Implementation checkpoints: backend dedcf768d3b445560c4e0443af5868223f16cb58 (catalog), 2e8141f68c4f1880082ff6fb50a10da7cffa1eea (bookings), d1e48006cdcdd28cfad7aa7ad03cc63d1fda12ee (payments); frontend a969d9a (catalog), fbee90a145528d98fff1b1517e17ba800708bd12 (bookings). Later review fixes and final documentation follow in meaningful commits. The frontend manifest pins its backend contract; the final tested pair belongs in the local handoff and PR descriptions because this document cannot contain its own final SHA. New PRs target main directly.
+
+Startup and manual acceptance: [MARKETPLACE_REVIEW.md](MARKETPLACE_REVIEW.md). Next authorized delivery would be stage 08, followed by stage 09 and shared financial compensation acceptance. No remaining business rule is silently approved.
+
+## Historical stage 04 snapshot
+
+The following evidence describes the earlier account delivery and its then-open PR dependencies; the current state is above.
 
 ## Stage 04 delivery
 
