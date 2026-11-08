@@ -1,7 +1,7 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.3.0
+  version: 0.4.0
   description: Accounts are implemented. Stages 05-07 deliver catalog, card bookings and simulated payments;
     each operation declares its actual implementation status. Q-03 is approved as an inclusive cutoff.
     Subscription and loyalty integration remain planned.
@@ -1308,8 +1308,8 @@ paths:
       tags:
         - Member
       summary: List purchasable plans
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1378,6 +1378,7 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
   /api/me/recommendations:
     get:
       operationId: listRecommendations
@@ -3278,8 +3279,8 @@ paths:
       tags:
         - Member
       summary: Read a subscription plan
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3324,14 +3325,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
   /api/subscriptions:
     get:
       operationId: listSubscriptions
       tags:
         - Member
       summary: List own subscriptions
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3410,13 +3412,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
     post:
       operationId: purchaseSubscription
       tags:
         - Member
       summary: Buy a subscription with simulated payment
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3468,14 +3471,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SubscriptionPurchase"
+      x-delivery-stage: "08"
   /api/subscriptions/{id}:
     get:
       operationId: getSubscription
       tags:
         - Member
       summary: Read own subscription
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3518,14 +3522,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
   /api/organizer/subscription-plans:
     get:
       operationId: listOwnPlans
       tags:
         - Organizer
       summary: List own plans
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3586,13 +3591,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
     post:
       operationId: createPlan
       tags:
         - Organizer
       summary: Create a subscription plan
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3642,14 +3648,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PlanWrite"
+      x-delivery-stage: "08"
   /api/organizer/subscription-plans/{id}:
     patch:
       operationId: updatePlan
       tags:
         - Organizer
       summary: Edit own plan
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3699,14 +3706,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PlanPatch"
+      x-delivery-stage: "08"
   /api/organizer/subscription-plans/{id}/archive:
     post:
       operationId: archivePlan
       tags:
         - Organizer
       summary: Archive own plan
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Stage 08 contract: snapshot purchase terms, transactional visit reservation/return, no purchase
+        refunds. Corporate loyalty remains stage 09."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3756,6 +3764,7 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "08"
   /api/me/loyalty:
     get:
       operationId: getLoyalty
@@ -8314,8 +8323,13 @@ components:
           maxLength: 300
         paymentMethod:
           type: string
-          const: CARD
-          description: Only card/free bookings are delivered in stages 06-07. Subscriptions and loyalty are not enabled.
+          enum:
+            - CARD
+            - SUBSCRIPTION
+        subscriptionId:
+          type: string
+          format: uuid
+      description: SUBSCRIPTION requires subscriptionId; CARD must omit it. Each reserved place consumes one visit.
     Discount:
       type: object
       additionalProperties: false
@@ -8436,8 +8450,10 @@ components:
             - SUBSCRIPTION
             - FREE
         subscriptionUsedId:
-          type: "null"
-          description: Planned for stage 08.
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
         pointsRedeemed:
           type: integer
           const: 0
@@ -8688,7 +8704,7 @@ components:
         validityDays:
           type: integer
           minimum: 1
-          maximum: 2147483647
+          maximum: 36500
         visitsLimit:
           anyOf:
             - type: integer
@@ -8753,7 +8769,7 @@ components:
         validityDays:
           type: integer
           minimum: 1
-          maximum: 2147483647
+          maximum: 36500
         visitsLimit:
           anyOf:
             - type: integer
@@ -8791,6 +8807,8 @@ components:
           maxLength: 100
         card:
           $ref: "#/components/schemas/CardInput"
+      description: Successful purchase fixes an immutable plan snapshot. Company name is required only for
+        CORPORATE. FAILED card attempts create no subscription; use a new key to retry. No purchase refunds.
     SubscriptionPurchaseResult:
       type: object
       additionalProperties: false
@@ -8833,6 +8851,7 @@ components:
           format: uuid
         plan:
           $ref: "#/components/schemas/SubscriptionPlan"
+          description: Immutable snapshot of purchase terms; editing/archiving the source plan does not change it.
         status:
           type: string
           enum:
