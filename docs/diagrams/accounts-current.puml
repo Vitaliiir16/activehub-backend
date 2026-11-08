@@ -11,7 +11,7 @@ package "React frontend" {
   updateProfile()
  }
 }
-package "Next.js transport" {
+package "REST transport" {
  class "src/app/api/*/route.ts" as Routes <<route modules>>
  class "accounts/http.ts" as Http <<module>> {
   handler()
