@@ -5,6 +5,7 @@ import { access, conflict, idempotent, missing, notify, page } from "./core";
 import { pagination } from "./validation";
 import { cardInput, SimulatedCardGateway } from "./payment-gateway";
 import type { EventRow, SessionRow } from "./types";
+import { revertExpiredCorporateCards, syncCard } from "../loyalty/ledger";
 
 const fields = {
   name: z.string().trim().min(2).max(100),
@@ -299,6 +300,8 @@ export async function purchaseSubscription(request: Request) {
             body: `${p.name}. Subscription purchases are non-refundable.`,
             link: "/subscriptions",
           });
+          if (p.type === "CORPORATE")
+            await syncCard(c, a.id, `subscription:${row.id}:card`);
         }
         const row = (
           await c.query(
@@ -434,7 +437,12 @@ export async function returnVisits(c: PoolClient, bookingId: string) {
   );
 }
 export async function expireSubscriptions(pool: Pool) {
-  await pool.query(
-    "WITH due AS (UPDATE background_runs SET next_run_at=clock_timestamp()+interval '1 hour',finished_at=clock_timestamp() WHERE name='subscription-expiry' AND next_run_at<=clock_timestamp() RETURNING name)  , candidates AS (SELECT id FROM user_subscriptions WHERE expires_at<=clock_timestamp() AND status<>'EXPIRED' AND EXISTS(SELECT 1 FROM due) FOR UPDATE SKIP LOCKED) UPDATE user_subscriptions SET status='EXPIRED',updated_at=clock_timestamp() WHERE id IN (SELECT id FROM candidates)",
+  const due = await pool.query(
+    "UPDATE background_runs SET next_run_at=clock_timestamp()+interval '1 hour',finished_at=clock_timestamp() WHERE name='subscription-expiry' AND next_run_at<=clock_timestamp() RETURNING name",
   );
+  if (!due.rowCount) return;
+  await pool.query(
+    "UPDATE user_subscriptions SET status='EXPIRED',updated_at=clock_timestamp() WHERE id IN (SELECT id FROM user_subscriptions WHERE expires_at<=clock_timestamp() AND status<>'EXPIRED' FOR UPDATE SKIP LOCKED)",
+  );
+  await revertExpiredCorporateCards(pool);
 }
