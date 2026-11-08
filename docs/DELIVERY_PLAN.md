@@ -1,6 +1,6 @@
 # Delivery plan
 
-The repositories currently contain documentation only. All application work below is planned. Preparation is complete only when documentation has been reviewed, local checks recorded and the initial meaningful commits published. Stage 00 still has modeling deliverables after preparation; no functional module is included in this setup.
+Stages 00-03 have delivered the system models, runnable scaffolds, required infrastructure and contract foundation. Evidence and exact revisions are recorded in PROGRESS.md. The stage table describes acceptance scope; it does not imply that later business modules exist. The current run stops after stage 03. Demo records remain deferred until their business entities exist.
 
 ## Stages and acceptance
 
@@ -8,7 +8,7 @@ The repositories currently contain documentation only. All application work belo
 |---|---|---|---|
 | 00 Analysis | Requirements baseline/matrix, decisions, architecture; complete Use Case diagram and whole-system class diagram including layers/services | Supplied specification | Every mandatory requirement mapped; diagrams cover source actors/use cases/entities; proposed patterns have reasons and interactions; open business conflicts explicitly scoped |
 | 01 Scaffolds | Next.js TypeScript REST backend; separate React TypeScript frontend, routing and base layout; choose runtime/build/test versions | 00 modeling | Both apps run; installed versions/lockfiles recorded; actual scripts for typecheck/lint/build and focused tests documented; basic health route defined rather than presumed |
-| 02 Infrastructure | PostgreSQL, migrations, required and optional demo seeds, Dockerfiles, backend-owned Compose, sibling frontend context, worker process, Mailpit, volumes/proxy | 01 | Clean one-command startup; init completes before API/worker; healthy database; restart keeps data/uploads and does not duplicate seed records; no real outbound email; `.env.example` documented |
+| 02 Infrastructure | PostgreSQL, migrations, required seeds, Dockerfiles, backend-owned Compose, sibling frontend context, worker process, Mailpit, volumes/proxy; demo seed implementation deferred to 13 | 01 | Clean one-command startup; init completes before API/worker; healthy database; restart keeps data/uploads and does not duplicate seed records; no real outbound email; `.env.example` documented |
 | 03 Contract foundation | Real OpenAPI, errors, field validation, paging/sort/filter conventions, auth/CSRF/cookie and idempotency decisions, generated or typed frontend client | 00-02 | Specification parses/lints; frontend client agrees with reviewed schema; exact backend revision recorded; no invented implementations claimed |
 | 04 Accounts | USER/ORGANIZER two-step signup, sessions/logout/password/profile, preferences, dictionaries, first admin and admin-creation capability, role layouts | 02-03 | Role/ownership denial tests; unique email; automatic sign-in; blocked-session revocation; signup welcome effects; dictionary seed/deactivation checks |
 | 05 Catalog | Organizer/event/session CRUD, uploads, pause/resume, all catalog/detail screens, URL filters, pagination and recommendations foundation | 04 | Organizer creates discoverable event; authenticated discovery and edit rules work; guests denied; file/session validation; ANY and full-event filters; no price-snapshot regression |
@@ -26,14 +26,14 @@ The dependency table is not permission to call unfinished integration complete. 
 
 ## API synchronization
 
-1. Backend proposes the contract change and acceptance examples first in `docs/openapi.yaml` and `docs/API_CHANGELOG.md`. Both route definitions and schema are planned today.
+1. Backend proposes contract changes and acceptance examples first in `docs/openapi.yaml` and `docs/API_CHANGELOG.md`. The foundation now exists; only health is implemented.
 2. Review auth, ownership, lifecycle, amounts, timestamps, errors, filtering, pagination and repeat-request behavior before code relies on them.
 3. Implement and verify backend behavior against that contract, using real PostgreSQL for integration acceptance.
 4. Record the backend commit; update/generate the frontend client and UI against that exact revision. Record the contract hash when it exists.
 5. Run both applications at the pinned pair, capture checks and add reciprocal PR links. Update `PROGRESS.md` and frontend `BACKEND_CONTRACT.md` with actual compatibility evidence.
 6. For incompatible changes, expand backend compatibility first, migrate the consumer second, retire old behavior in a later reviewed change. Do not rely on moving branch names as proof of compatibility.
 
-No endpoint, schema or compatibility pair is currently implemented. The frontend must not invent a server contract to unblock itself.
+The current health client and real-stack checks establish foundation compatibility only. Planned OpenAPI operations are not available endpoints. The frontend must not invent behavior to unblock later modules.
 
 ## Delivery workflow
 
@@ -45,11 +45,11 @@ Before marking a stage complete, review the whole diff separately from writing i
 
 ## Verification policy
 
-Current delivery: source archive hash, English authored text, full requirement and [S] inventory, valid document references, no whitespace errors, exclusion of local material and staged-secret review. No application scripts exist, so no lint/build/test result can be reported.
+Current checks include lint/typecheck/build in both repositories, bootstrap/password tests, real PostgreSQL initialization/restart checks, OpenAPI lint and live health-schema validation, generated frontend types, and desktop/mobile health connection tests. Documentation checks include source archive hash, English text, requirement inventories, relative links, whitespace and staged-secret review. See PROGRESS.md for exact outcomes and limitations.
 
-Planned backend checks: type checking, lint, build, domain tests and real PostgreSQL integration tests. Planned frontend checks: type checking, lint, build and meaningful component tests. Planned integrated checks: E2E for three roles; last-seat/hall and duplicate-user races; repeated payment/refund/worker actions; concurrent visits/points/quota; changed-time/address full refund; session revocation; data isolation and no admin chat access; last-active-admin race; restart durability; Europe/Kyiv calendar/DST and exact deadline boundaries. Run appropriate checks on each change; broaden only when warranted.
+Later modules must extend the existing checks with domain/PostgreSQL integration and meaningful component tests. Planned integrated checks: E2E for three roles; last-seat/hall and duplicate-user races; repeated payment/refund/worker actions; concurrent visits/points/quota; changed-time/address full refund; session revocation; data isolation and no admin chat access; last-active-admin race; business restart durability; Europe/Kyiv calendar/DST and exact deadline boundaries. Run appropriate checks on each change; broaden only when warranted.
 
-GitHub Actions is planned for PRs and pushes once scripts exist. Include a PostgreSQL service for database integration checks. Paired checks must pin the other repository's commit. Verify cross-repository checkout access, particularly if visibility becomes private; do not assume the default token grants it. Do not publish a workflow that claims to check an application which does not yet exist.
+GitHub Actions runs on PRs and pushes. Backend checks use a real PostgreSQL service. Frontend checks pin the backend commit from the contract manifest and build the paired Compose stack. Cross-repository access relies on the backend's public visibility; reassess credentials if visibility changes. These workflows do not claim business integration coverage.
 
 ## Resume and handoff
 

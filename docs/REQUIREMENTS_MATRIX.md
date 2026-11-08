@@ -8,6 +8,13 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 |---|---|---|---|
 | M-001 through M-004, M-100 | Stage 00 domain and whole-system modeling | [MODELING.md](MODELING.md), three PlantUML sources and locally rendered SVGs; PlantUML 1.2026.9 successful compilation; use-case ID inventory reviewed | All business behavior, actual GoF implementation and final source-to-model reconciliation |
 | M-005, M-006 | Stage 01 Next.js REST and separate React/TypeScript scaffolds | Both `lint`, `typecheck`, `build` scripts passed; production server health smoke passed; exact package lockfiles | All functional product modules and role screens |
+| M-007, M-008, M-101 | PostgreSQL, automatic migration/required seeds, shared uploads and one-command Compose | Clean isolated volumes; all five long-running services healthy, initializer exit 0; repeat startup and `scripts/verify-db.ts`; persisted account IDs and upload marker | Persistence for future business entities |
+| M-013, M-055, M-077, M-103 | 15 cities, 16 directions, first configured administrator, three loyalty levels/rules | Real database seed identities, idempotency, password verification, changed-bootstrap protection, preservation of edits and migration-checksum rejection | Dictionary management, administrator API/form, tier behavior and timing configuration |
+| M-083, M-096 | Mailpit capture service and separate worker lifecycle | Mailpit API reachable with zero messages; worker heartbeat healthy and SIGTERM exits 0 with connections closed | Persisted jobs/outbox, scheduling, actual email delivery and all deduplication behavior |
+| M-005, M-009, M-099 | Typed real health client, English loading/ready/error/retry welcome screen | OpenAPI lint (109 operations, only health implemented), generated snapshot/hash checks, live 200/503 schema checks, two Chromium desktop/mobile tests and screenshot review | All business endpoints/security enforcement, full role screens, currency/time calculations and business E2E |
+| M-105 | Runnable READMEs, feature commits and CI workflows | [PROGRESS.md](PROGRESS.md) records local evidence, pinned revision pair and hosted run status | Final product acceptance and implemented GoF source index |
+
+Stages 00-03 are foundation delivery only. M-102 demo data remains planned for stage 13; demo mode is explicitly rejected until the required business schema exists. Q-01 through Q-05 remain open. Every business invariant, notification case and functional validation row below still requires its own implementation evidence.
 
 ## Mandatory scope
 

@@ -12,9 +12,9 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 | D-04 | Owner instruction | Commits, push and pull requests are authorized in both repositories; merge remains manual with the owner. No force push or history rewriting. Empty repositories start with a meaningful documentation commit on main. |
 | D-05 | Fixed source constraint | Next.js REST API + TypeScript, separate React + TypeScript frontend, PostgreSQL and Docker Compose. No framework substitution. |
 | P-01 | Selected and locally verified | Node 24, Next.js 16.4.5, React 19.3.1, Vite 8.3.6, TypeScript 5.9.3, ESLint 10.14.0. Exact dependencies and transitive versions are locked separately. TypeScript stays within the declared TypeScript ESLint support range. |
-| P-02 | Proposed technical choice | Backend-owned Compose, sibling frontend context, PostgreSQL-backed worker and outbox, local Mailpit, named database/uploads volumes. No Redis required initially. |
-| P-03 | Proposed technical choice | Persist login sessions, preferably opaque tokens in secure HTTP-only cookies. Agree CSRF, cookie, origin and proxy behavior in the contract before implementing auth. |
-| P-04 | Proposed technical choice | Store money in integer minor units or exact database decimal types, never binary floating-point. Persist UTC instants and interpret calendar boundaries in Europe/Kyiv. Final JSON representation belongs in OpenAPI. |
+| P-02 | Infrastructure implemented; jobs planned | Backend-owned Compose, sibling frontend, PostgreSQL, worker lifecycle/heartbeat, Mailpit and named database/uploads/mail volumes. Outbox and business jobs remain planned. No Redis. |
+| P-03 | Contract defined; implementation planned | Opaque HTTP-only cookie sessions, session-bound CSRF token and exact Origin validation. Details in API_CONVENTIONS.md; no auth/session/CSRF handlers exist yet. |
+| P-04 | Contract defined; business calculations planned | JSON money uses integer UAH minor units; decimal rates use strings. Persist UTC instants and interpret calendar filters in Europe/Kyiv. This does not resolve Q-02 or Q-03. |
 | P-05 | Proposed technical choice | Polling is sufficient for live chat and counters initially, if it meets the no-manual-reload requirement. Choose the interval and test stale/out-of-order responses; SSE remains an option. |
 | P-06 | Source interpretation | A corporate subscription belongs to the purchasing user and covers multiple places; it is not a new company account or transferable shared login. A wider multi-account company pool would need a new requirement. |
 
@@ -58,4 +58,4 @@ Source: section 7.4.7 marks the dedicated administrators list as [S], while sect
 
 ## Further design decisions
 
-Scaffolding must choose dependency versions, database access/migrations, password hashing, test tooling and CI commands. Contract work must choose route names, transport schemas, errors, paging, ordering, auth and idempotency semantics. These are planned decisions, not existing interfaces. Cross-repository CI access must be verified rather than assuming one repository's token can read another.
+Scaffolding selected pg with checked SQL migrations, transactional advisory-lock initialization, salted scrypt bootstrap password hashes, Node test runner, Playwright and GitHub Actions. Exact package versions and container digests are pinned. OpenAPI now defines planned transport, security and idempotency semantics; only health is implemented. CI checks the public backend at an exact commit rather than a moving branch. Demo seeds remain planned because business tables do not exist. None of these technical choices approves Q-01 through Q-05.

@@ -8,7 +8,7 @@ Stage 00 models describe the complete intended product. All business classes, us
 
 Use Case include arrows point from the including behavior to required behavior; extend arrows point from optional/conditional behavior to its base. Confirmation and refunds are conditional: manual approval alone does not award points while card payment is still due. Shared authorization applies to all protected operations. The guest has no catalog access; administrators have no booking or chat-content access.
 
-All logical entities include UUID and timestamps. The diagram shows exclusive role profiles, payment subject exclusivity, shared conversations and preserved history. Proposed technical records (sessions, jobs, outbox, idempotency and transition history) are additions needed to satisfy persistence and retry requirements, not completed tables. The bootstrap migration in stage 02 will implement only the minimum account/admin and reference/configuration tables required for seeds.
+All logical entities include UUID and timestamps. The diagram shows exclusive role profiles, payment subject exclusivity, shared conversations and preserved history. Proposed technical records (sessions, jobs, outbox, idempotency and transition history) are additions needed to satisfy persistence and retry requirements, not completed tables. The stage 02 bootstrap migration now implements only account/admin and reference/configuration tables required for seeds. Those SQL tables do not implement the diagram's proposed domain classes or business services.
 
 The architecture explains each proposed pattern and when a simpler implementation is appropriate. No GoF implementation is claimed by these diagrams. Update the model's status and real source links as each later module is delivered.
 

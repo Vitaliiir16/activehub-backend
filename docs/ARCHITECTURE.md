@@ -4,6 +4,8 @@ Status: proposed product architecture. Business modules, classes and GoF pattern
 
 ## Shape of the system
 
+Implemented foundation: `src/app/api/health/route.ts` checks readiness through `src/infrastructure/database.ts`; `scripts/init-db.ts` coordinates checked SQL migrations and required seeds under a PostgreSQL advisory lock. `scripts/worker.ts` only manages lifecycle and database heartbeat. `compose.yaml` wires PostgreSQL, initialization, API, worker, Mailpit and the sibling frontend. The frontend uses `src/api/client.ts` and generated types. Application/domain services, job/outbox execution and every GoF collaboration below remain proposed.
+
 Use a modular monolith for the Next.js REST backend and a separate React TypeScript frontend. PostgreSQL is the transactional authority. Shared file storage holds uploads. A separate worker process uses the same backend build and persisted database state. This keeps cross-feature booking compensation within a database transaction without introducing distributed-service overhead.
 
 ```mermaid
@@ -28,7 +30,7 @@ Arrows through adapters describe proposed wiring, not a deployed topology. Domai
 | Domain | State transitions, eligibility, pricing and invariants | `src/modules/<module>/domain/` |
 | Infrastructure | PostgreSQL repositories/migrations, uploads, email and simulator adapters | `src/modules/<module>/infrastructure/` |
 | Composition/worker | Wire dependencies; claim and execute persisted jobs | `src/composition/`, `src/worker/` |
-| Frontend | Role routes, forms, query state, typed API integration and presentation | Separate frontend `src/` structure to be chosen in stage 01 |
+| Frontend | Role routes, forms, query state, typed API integration and presentation | Separate frontend `src/`; `src/api` and welcome screen exist, role modules remain planned |
 
 ## Modules and ownership
 

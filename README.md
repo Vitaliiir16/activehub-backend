@@ -41,6 +41,7 @@ npm.cmd ci
 npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd test
+npm.cmd run contract:check
 npm.cmd run build
 docker compose run --rm --no-deps migrate node --import tsx scripts/verify-db.ts
 ```
@@ -54,6 +55,9 @@ Exact dependencies and image digests are pinned. Node 24, Next.js 16, TypeScript
 - [Requirements](docs/REQUIREMENTS.md), [matrix](docs/REQUIREMENTS_MATRIX.md) and [delivery plan](docs/DELIVERY_PLAN.md)
 - [Current evidence](docs/PROGRESS.md) and [open decisions](docs/ASSUMPTIONS.md)
 - [System models](docs/MODELING.md) and [architecture](docs/ARCHITECTURE.md)
+- [OpenAPI](docs/openapi.yaml), [API conventions](docs/API_CONVENTIONS.md) and [change history](docs/API_CHANGELOG.md)
+
+`npm.cmd run test:contract` validates the real health response against OpenAPI. Set `API_BASE_URL` for another port and `EXPECTED_HEALTH_STATUS=503` when deliberately testing an unavailable database. GitHub Actions runs the backend checks with PostgreSQL; frontend CI checks the paired stack at its pinned backend revision.
 
 Q-01 through Q-05 remain open. Infrastructure does not approve those proposals. Current checks cover scaffolding and bootstrap only; there is no business integration coverage.
 
