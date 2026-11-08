@@ -54,7 +54,18 @@ export async function payBooking(request: Request, id: string) {
                 ? `Receipt ${payment.id}: UAH ${(b.amount_due_minor / 100).toFixed(2)}, card ending ${result.last4}.`
                 : "No payment was taken. Try again before the booking deadline.",
             link: `/bookings/${b.id}`,
+            email: result.status === "SUCCEEDED",
           });
+          if (result.status === "SUCCEEDED")
+            await notify(client, {
+              accountId: e.organizer_id,
+              key: `payment:${payment.id}:organizer`,
+              type: "PAYMENT_SUCCEEDED",
+              title: "Booking payment received",
+              body: e.title,
+              link: `/organizer/bookings/${b.id}`,
+              email: false,
+            });
           return {
             status: 201,
             body: (await paymentDtos(client, b.id)).find(

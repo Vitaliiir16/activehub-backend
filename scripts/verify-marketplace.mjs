@@ -218,6 +218,24 @@ try {
   assert.equal(failed.status, "FAILED");
   assert.equal(
     (
+      await pool.query(
+        "SELECT email_status FROM notifications WHERE event_key=$1",
+        [`payment:${failed.id}:result`],
+      )
+    ).rows[0].email_status,
+    "NONE",
+  );
+  assert.notEqual(
+    (
+      await pool.query(
+        "SELECT email_status FROM notifications WHERE event_key=$1",
+        [`booking:${pending.id}:PENDING:user`],
+      )
+    ).rows[0].email_status,
+    "NONE",
+  );
+  assert.equal(
+    (
       await pay(
         user,
         retry.id,
@@ -319,6 +337,75 @@ try {
   await reserve(user, await create({ hours: 0.51 }));
   console.log(
     "PASS: guest/role/owner/CSRF denial and inclusive cutoff predicate with real API either side",
+  );
+  const foreign = new Browser();
+  await foreign.call(
+    "/api/auth/register/organizer",
+    "POST",
+    {
+      email: `foreign-${run}@example.test`,
+      password,
+      passwordConfirmation: password,
+      name: "Other Club",
+      type: "CLUB",
+      phone: "+380501234567",
+      cityId: city,
+      directionIds: [direction],
+    },
+    201,
+  );
+  await foreign.call(
+    `/api/organizer/events/${event.id}`,
+    "PATCH",
+    { title: "Foreign edit" },
+    404,
+  );
+  await foreign.call(
+    `/api/organizer/bookings/${retry.id}`,
+    "GET",
+    undefined,
+    404,
+  );
+  await other.call(`/api/bookings/${retry.id}/payments`, "POST", card, 404);
+  await user.call(`/api/bookings/${rejected.id}/cancel`, "POST", {}, 404);
+  await other.call(`/api/bookings/${rejected.id}/cancel`, "POST", {}, 409);
+  const snapshotEvent = await create({ capacity: 3 }),
+    snapshot = await reserve(user, snapshotEvent, 2);
+  await org.call(`/api/organizer/events/${snapshotEvent.id}`, "PATCH", {
+    priceMinor: 25000,
+  });
+  assert.equal(
+    (await user.call(`/api/bookings/${snapshot.id}`)).amountDueMinor,
+    20000,
+  );
+  await org.call(
+    `/api/organizer/sessions/${snapshot.sessionId}`,
+    "DELETE",
+    undefined,
+    409,
+  );
+  await org.call(
+    `/api/organizer/events/${snapshotEvent.id}`,
+    "PATCH",
+    { seatsPerSession: 1 },
+    409,
+  );
+  const requestKey = randomUUID(),
+    requestBody = {
+      sessionId: snapshotEvent.nextSession.id,
+      seats: 1,
+      paymentMethod: "CARD",
+    };
+  await other.call("/api/bookings", "POST", requestBody, 201, requestKey);
+  await other.call(
+    "/api/bookings",
+    "POST",
+    { ...requestBody, seats: 2 },
+    409,
+    requestKey,
+  );
+  console.log(
+    "PASS: foreign organizer/payment ownership, immutable price snapshot, reserved-capacity/delete guards and key mismatch",
   );
   for (const change of ["address", "time"]) {
     const e = await create({ hours: 2 }),

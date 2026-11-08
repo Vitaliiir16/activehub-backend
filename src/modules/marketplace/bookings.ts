@@ -334,7 +334,7 @@ export async function createBooking(request: Request) {
                 : "Payment required",
           body: e.title,
           link: `/bookings/${b.id}`,
-          email: status !== "PENDING",
+          email: true,
         });
         await notify(client, {
           accountId: e.organizer_id,
@@ -345,6 +345,24 @@ export async function createBooking(request: Request) {
           link: `/organizer/bookings/${b.id}`,
           email: status === "PENDING",
         });
+        const occupied = Number(
+          (
+            await client.query(
+              "SELECT coalesce(sum(seats),0) AS seats FROM bookings WHERE session_id=$1 AND status=ANY($2::text[])",
+              [s.id, activeStatuses],
+            )
+          ).rows[0].seats,
+        );
+        if (policy.exclusive || occupied === s.seats_total)
+          await notify(client, {
+            accountId: e.organizer_id,
+            key: `session:${s.id}:filled:${b.id}`,
+            type: "SESSION_FULL",
+            title: "Session is full",
+            body: e.title,
+            link: `/organizer/events/${e.id}`,
+            email: false,
+          });
         return { status: 201, body: await bookingDto(client, b, e, s) };
       }),
     ["USER"],

@@ -266,11 +266,13 @@ export function listEvents(
         query.availableOnly === "true"
       )
         clauses.push("next.id IS NOT NULL");
+      let popularityFallback = false;
       if (recommended) {
         const preferences = await client.query(
           "SELECT direction_id FROM profile_directions WHERE account_id=$1",
           [current.id],
         );
+        popularityFallback = !preferences.rowCount;
         if (preferences.rowCount)
           clauses.push(
             `e.direction_id=ANY(${bind(preferences.rows.map((row) => row.direction_id))}::uuid[])`,
@@ -280,8 +282,9 @@ export function listEvents(
       const total = Number(
         (await client.query(`SELECT count(*) ${from}`, values)).rows[0].count,
       );
-      const sort =
-        query.sort === "priceAsc"
+      const sort = popularityFallback
+        ? "(SELECT count(*) FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=e.id) DESC,next.starts_at ASC"
+        : query.sort === "priceAsc"
           ? `(${price}) ASC`
           : query.sort === "priceDesc"
             ? `(${price}) DESC`
@@ -573,6 +576,15 @@ export async function setEventStatus(
           [input.status, id],
         )
       ).rows[0];
+      if (admin && row.status !== updated.status)
+        await notify(client, {
+          accountId: row.organizer_id,
+          key: `event:${row.id}:moderated:${updated.updated_at.toISOString()}`,
+          type: "EVENT_MODERATED",
+          title: "Event publishing status changed",
+          body: `${row.title}: ${updated.status.toLowerCase()}${input.reason ? `. ${input.reason}` : ""}`,
+          link: `/organizer/events/${row.id}`,
+        });
       return Response.json(await eventDto(client, updated));
     },
     admin ? ["ADMIN"] : ["ORGANIZER"],

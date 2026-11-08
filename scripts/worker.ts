@@ -19,7 +19,9 @@ const pool = createPool();
 const mail = new MailpitWelcomeMail();
 try {
   await assertDatabaseReady(pool);
-  console.log("Worker started; welcome email delivery is enabled");
+  console.log(
+    "Worker started; email delivery and booking lifecycle jobs are enabled",
+  );
   while (!stop.signal.aborted) {
     await assertDatabaseReady(pool);
     await writeFile(

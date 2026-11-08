@@ -48,6 +48,9 @@ try {
     process.env.INITIAL_ADMIN_PASSWORD,
     "ActiveHubTest123",
     "UpdatedActiveHub123",
+    "MarketTestPassword123",
+    "4242424242424242",
+    "4000000000000002",
   ].filter((value): value is string => !!value);
   if (
     secretValues.some((value) => output.includes(value)) ||
