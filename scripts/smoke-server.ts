@@ -47,6 +47,7 @@ try {
   if (process.env.VERIFY_LOYALTY === "true") await import("./verify-loyalty.mjs");
   if (process.env.VERIFY_COMMUNICATIONS === "true") await import("./verify-communications.mjs");
   if (process.env.VERIFY_ADMINISTRATION === "true") await import("./verify-administration.mjs");
+  if (process.env.VERIFY_STATISTICS === "true") await import("./verify-statistics.mjs");
   const secretValues = [
     process.env.INITIAL_ADMIN_PASSWORD,
     "ActiveHubTest123",
@@ -55,6 +56,7 @@ try {
     "LoyaltyTestPassword123",
     "CommsTestPassword123",
     "AdminTestPassword123",
+    "StatsTestPassword123",
     "4242424242424242",
     "4000000000000002",
   ].filter((value): value is string => !!value);

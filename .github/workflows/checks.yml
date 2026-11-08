@@ -68,3 +68,4 @@ jobs:
       - run: npm run test:loyalty
       - run: npm run test:communications
       - run: npm run test:administration
+      - run: npm run test:statistics

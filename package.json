@@ -27,6 +27,7 @@
     "test:loyalty": "node --import tsx scripts/loyalty-smoke.ts",
     "test:communications": "node --import tsx scripts/communications-smoke.ts",
     "test:administration": "node --import tsx scripts/administration-smoke.ts",
+    "test:statistics": "node --import tsx scripts/statistics-smoke.ts",
     "mail:check": "node --import tsx scripts/check-mail.ts"
   },
   "dependencies": {
