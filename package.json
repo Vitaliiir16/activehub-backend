@@ -19,7 +19,9 @@
     "db:init": "node --import tsx scripts/init-db.ts",
     "env:init": "node scripts/create-local-env.mjs",
     "worker": "node --import tsx scripts/worker.ts",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "contract:check": "redocly lint docs/openapi.yaml && node scripts/check-contract.mjs",
+    "test:contract": "node scripts/check-health-contract.mjs"
   },
   "dependencies": {
     "next": "16.4.5",
