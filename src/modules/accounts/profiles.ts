@@ -107,10 +107,10 @@ export async function profile(
       gender: row.gender,
       photoUrl: row.photo_id ? `/api/media/${row.photo_id}` : null,
       preferredDirectionIds: directions.map((d) => d.id),
-      loyaltyLevel: "STANDARD",
-      cardLockedByAdmin: false,
-      pointsBalance: 0,
-      lifetimePoints: 0,
+      loyaltyLevel: row.loyalty_level,
+      cardLockedByAdmin: row.card_locked_by_admin,
+      pointsBalance: row.points_balance,
+      lifetimePoints: row.lifetime_points,
     };
   return {
     ...base,
