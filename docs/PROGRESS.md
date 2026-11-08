@@ -1,6 +1,28 @@
 # Delivery progress
 
-## Stage 10 - current delivery
+## Stage 11 - current delivery
+
+Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #7 (stage 10) were verified merged: backend main f4e73b0, frontend main 12eb745. Both repositories branched feature/11-administration from those heads. No merge, history rewrite or force push was performed.
+
+Implemented: administrator search, details, contact edits, block/unblock and soft deletion of users and organizers with compensating, notifying cascades; administrator event and booking searches with the full filter sets; subscription and plan searches and plan archiving; city and direction management with a last-active guard; an append-only audit log of every administrator decision (also for event moderation and booking cancellation); the public session list no longer exposes unpublished events. OpenAPI 0.7.0 has 112 operations, 105 implemented; migration 010. Frontend: an Administration area (users, organizers, events, bookings, subscriptions, dictionaries, loyalty, administrator access) with URL-backed filters, detail pages and reason-confirmed actions. Not implemented: platform and organizer statistics (stage 12) and the optional administrator list (Q-05).
+
+### Verification observed
+
+- Backend lint, typecheck and production build passed; 16 Node tests passed; OpenAPI lint and route/status check passed (105 implemented operations).
+- Isolated stack activehub-admin-check (ignored .env.admin; UI 8780, API 3900, Mailpit 8725, PostgreSQL 127.0.0.1:5599 and SMTP 127.0.0.1:1029 through a local-only override) applied migrations 001-010 to a new volume. Through the CI-style production-server harness db:verify, test:accounts, test:marketplace, test:loyalty, test:communications and the new test:administration passed. The account suite now drains a shared email queue.
+- scripts/verify-administration.mjs passed: role denial and administrator IDs unreachable; every user and organizer filter alone and combined; contact edit validation; block versus delete; deletion of a user with PENDING, paid, free and subscription bookings cancelled once under two concurrent administrators with one refund, visits restored, points reversed, history and contact redaction kept; organizer block (hidden, bookings continue and are payable) and delete (events cancelled and refunded, finished history untouched, plans archived, members notified); a payment racing a deletion; event, booking, subscription and plan searches; plan archive; dictionary add, rename, deactivate with references kept and two concurrent last-value deactivations refused; self-block refusal and append-only audit.
+- Frontend lint, typecheck, build and api:check passed. Playwright against the same stack: 12 passed, 4 skipped (mobile duplicates of the desktop-only workflows). The new administration workflow searches by email, edits, blocks and unblocks, cancels a paid booking, blocks an event, manages a city, removes an organizer and confirms member denial. Screenshots of the administration home, users, events, bookings, dictionaries and a user page were reviewed at desktop and phone width: English text, no horizontal page overflow.
+- API and worker logs contained none of the test passwords, card number or hash fields.
+
+Not run locally: mobile browser workflow, photo removal through an upload fixture, a statistics dashboard, worker crash injection, a live mail provider. No independent review is claimed; review was a separate pass in this session. CI gains a test:administration step; hosted results belong to the pushed heads and are not claimed here.
+
+### Revision boundary
+
+Input revisions: backend f4e73b0, frontend 12eb745. Backend commits: 71720a7 (contract), 60ef943 (accounts, cascades, searches), d55d432 (dictionaries and subscription searches, pinned by the frontend manifest), d1d953b (suite and CI), then documentation. Frontend commits: 3b6db67 (contract pin and client), 77e5cf0 (screens), dc4b856 (browser test), then documentation. The tested pair is backend d1d953b runtime with frontend dc4b856; documentation commits follow and change no runtime.
+
+Startup: `docker compose up --build --wait` from the backend applies migration 010 and keeps volumes. Pull requests into main are created by the agent and merged by the owner. Stop after stage 11; next is stage 12 statistics, after a new instruction.
+
+## Stage 10 (historical)
 
 Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #6 (stage 09) were verified merged: backend main 6055732, frontend main 3baae5c. Both repositories branched feature/10-communications from those heads. No merge, reset of published history or force push was performed. Two unpublished local backend commits were rebuilt before the first push because a staged file deletion had landed in the wrong commit.
 

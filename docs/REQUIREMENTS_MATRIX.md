@@ -4,6 +4,19 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 11
+
+| Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
+|---|---|---|---|
+| M-047, M-048 | User search by exact ID, name/email/phone, city, status and registration dates; details with card and points; contact edits (not passwords); block/unblock/delete; card lock and points adjustment (stage 09) | scripts/verify-administration.mjs: each filter alone and combined, sorting and paging, detail fields, edit validation (duplicate email, strict fields), block/unblock effects on sessions and sign-in, audit rows; browser edit, block and unblock | Calendar-day boundaries of the registration filter beyond one range check |
+| M-049, M-050; BR-09, BR-20 | Organizer search by ID, name, type, city, direction and status; edit, block, unblock, delete; user deletion cancels, refunds and notifies | Block hides events, page and plans and stops new bookings while existing bookings continue and can still be paid; deletion cancels and refunds once under two concurrent administrators, returns visits, reverses points, keeps COMPLETED history, hides contacts of cancelled bookings (BR-08) and notifies organizers and members | Organizer statistics on the detail page (stage 12) |
+| M-051, M-052 | Event search in every status with exact and combined filters, events without upcoming sessions; text edit, photo removal, block/unblock/cancel/delete with organizer notification and audit | Status, city, direction, kind, organizer, ID, title and date filters; public search hides what the administrator list shows; moderation audit and notifications; browser block | Photo removal is covered by the API/UI wiring, not by a browser upload fixture |
+| M-053 | Booking search by ID, status, user, organizer, event ID and title, period and sort; cancellation with refund | Combined filters, cancelled-by-ADMIN history, repeated cancellation, browser cancellation of a paid booking | Idempotent replay of the same key beyond the existing booking suite |
+| M-054, BR-21 | Plan and purchased-subscription search, plan archive keeping purchases usable; city and direction add, rename, deactivate, activate | Archive stops purchases; references stay, new selections of an inactive value are rejected; last-active guard under two concurrent administrators; browser dictionary flow | Moderation of subscription purchases (none required) |
+| M-056, BR-10 | An administrator cannot block themselves; administrators are unreachable through the user and organizer endpoints | Self-block 409, 404 for administrator IDs, existing concurrent mutual-block case from stage 04 | A dedicated administrator list is optional (Q-05) |
+
+Not part of this stage: the platform statistics dashboard and organizer statistics (M-046, stage 12) and the optional administrator list.
+
 ### Stage 10
 
 | Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |

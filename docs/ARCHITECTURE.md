@@ -1,6 +1,6 @@
 # Architecture proposal
 
-Status: accounts/access, catalog, card/free bookings, simulated payments, subscriptions, loyalty and communications (email, reminders, chat) are implemented. Administration and reporting architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
+Status: accounts/access, catalog, card/free bookings, simulated payments, subscriptions, loyalty, communications (email, reminders, chat) and administration are implemented. Reporting architecture is proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
 
 ## Shape of the system
 
@@ -171,4 +171,27 @@ flowchart TD
   Smtp --> Server[(Mailpit or real SMTP server)]
   Chat[communications/chat.ts] --> Notify
   Chat --> Messages[(conversations / messages)]
+```
+
+## Implemented administration module
+
+src/modules/administration owns administrator use cases and calls the owning modules instead of touching their tables from routes. accounts.ts searches users and organizers from one account summary query, applies profile edits through `applyProfile` (shared with the self-service profile update), changes status (the existing database trigger revokes sessions) and performs soft deletion. A user deletion locks the account row, then cancels each active booking through `lockBooking` and the ordinary `transition`, so refunds, visit returns, point reversals and notifications behave exactly as for any cancellation. An organizer deletion locks the account row, then cancels each event with a future session or active booking through `cancelEventCascade` (the same function the event cancellation route uses), and archives plans. dictionaries.ts edits cities and directions under a per-dictionary advisory lock. subscriptions.ts lists purchases and plans; archiving reuses the organizer plan use case with an administrator flag. Event, booking and plan searches reuse the public query builders with an administrator mode that removes the visibility filters. audit.ts appends every decision and its reason to `admin_audit_log` in the same transaction.
+
+Lock order is account, then event, session, booking, member card and subscription, matching booking creation. Organizer blocking needs no cascade because event and organizer visibility already depend on the organizer's account status.
+
+```mermaid
+flowchart TD
+  Routes[admin routes] --> Accounts[administration/accounts.ts]
+  Routes --> Dict[administration/dictionaries.ts]
+  Routes --> Subs[administration/subscriptions.ts]
+  Routes --> Lists[catalog.listEvents / bookings.listBookings admin mode]
+  Accounts --> Apply[accounts/service.applyProfile]
+  Accounts --> Lock[bookings.lockBooking + transition]
+  Accounts --> Cascade[catalog.cancelEventCascade]
+  Lock --> Compensation[refunds, visits, points, notices]
+  Cascade --> Lock
+  Accounts --> Audit[(admin_audit_log)]
+  Dict --> Audit
+  Accounts --> Notify[core.notify]
+  Accounts --> DB[(accounts, bookings, events, plans)]
 ```

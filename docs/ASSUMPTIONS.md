@@ -18,6 +18,7 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 | P-05 | Proposed technical choice | Polling is sufficient for live chat and counters initially, if it meets the no-manual-reload requirement. Choose the interval and test stale/out-of-order responses; SSE remains an option. |
 | D-06 | Owner instruction, 2026-11-08 | Deliver stage 09 loyalty on new branches after PRs #5 were merged. Commit and push are authorized; the owner creates and merges pull requests. Q-01, Q-02 and Q-04 are decided below; Q-05 remains open. |
 | D-07 | Owner instruction, 2026-11-08 | Every notification shows in the site and is duplicated by email as the delivery table allows, and email must work through a real mail provider such as Gmail when configured. Mailpit capture stays the default so development never emails real people. |
+| D-08 | Owner instruction, 2026-11-08 | Deliver stage 11 administration: complete management of users, organizers, events, bookings, subscriptions and dictionaries. Pull requests are created by the agent and merged by the owner. Q-05 remains open. |
 | P-06 | Source interpretation | A corporate subscription belongs to the purchasing user and covers multiple places; it is not a new company account or transferable shared login. A wider multi-account company pool would need a new requirement. |
 
 ## Q-01: Reversing points that have already been spent — approved
@@ -94,3 +95,17 @@ None of these changes Q-05.
 - Chat: one conversation per user-organizer pair; starting an existing one returns it (200). Organizers start from a booking in any status. Both participants must be active to send, but history stays readable. Message order uses a per-conversation sequence assigned under the conversation row lock, so polling never skips a message. Read state is stored per message. Each message creates one MESSAGES notification; reading the conversation clears those notifications. Updates use polling (about 3 seconds in a thread, 8 seconds for header counts, paused in hidden tabs) as decided in P-05. Messages cannot be edited or deleted.
 - Chat limits: 30 messages per sender per minute (429), enforced by the server.
 - Sessions hold one CSRF token, so the browser serializes mutations; concurrent chat tests therefore use separate sessions.
+
+## Stage 11 implementation decisions
+
+None of these changes Q-05.
+
+- Blocking versus deleting: blocking never cancels anything. Deleting a user cancels every PENDING, AWAITING_PAYMENT and CONFIRMED booking through the normal cancellation transition, so refunds, visit returns, point reversals and notifications are the same as for any cancellation. Finished (COMPLETED, REJECTED, EXPIRED, CANCELLED) bookings are untouched.
+- Deleting an organizer cancels only events that still have a scheduled future session or an active booking, so finished events keep their real status. Cancelled events keep status CANCELLED; their plans are archived and purchased subscriptions remain as records. Plans are archived rather than refunded because subscription purchases are non-refundable.
+- Visibility of a blocked organizer is derived from the account status, so its events keep their own status and reappear unchanged after unblocking. The public session list also no longer returns sessions of events that are not ACTIVE or whose organizer is not active.
+- Deleted accounts keep their email address reserved (globally unique, history preserved); it cannot be registered again. Deleted accounts cannot be edited, blocked or unblocked, and repeating a deletion succeeds without effect.
+- Notifications: organizers receive in-app and email notices for administrator edits, blocks, restorations and deletion, and for event edits, moderation and cancellation. Members receive the usual cancellation and refund notices when their bookings are cancelled by a deletion, including a deleted member (the refund notice matters financially). Members are not notified of contact edits or blocks, which the table in section 7.9 does not list.
+- Contact edits cover email, name, phone, city and gender for users and email, name, type, phone, city, description and directions for organizers. Passwords, photos and notification preferences stay with the owner of the account.
+- Audit: decisions are written in the same transaction as their effect to `admin_audit_log` (append-only by trigger) with the reason. Reading the log is not part of the contract; it is available in the database for investigation.
+- Dictionaries: names are unique ignoring case; the code is derived from the name; a PATCH changes only the sent fields; a per-dictionary lock serializes edits so the last active value cannot be deactivated by two requests together.
+- Concurrency: account deletions lock the account first, then events, sessions and bookings in the same order as booking operations; a payment racing a deletion ends cancelled with the charge refunded. A session holds one CSRF token, so concurrent requests in tests use separate sessions.
