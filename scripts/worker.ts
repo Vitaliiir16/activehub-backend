@@ -9,6 +9,7 @@ import {
   MailpitWelcomeMail,
 } from "../src/infrastructure/welcome-mail";
 
+import { runBookingJobs } from "../src/infrastructure/booking-jobs";
 const heartbeatPath =
   process.env.WORKER_HEARTBEAT_PATH ?? "/tmp/activehub-worker.json";
 const stop = new AbortController();
@@ -26,6 +27,7 @@ try {
       JSON.stringify({ status: "ready", checkedAt: Date.now() }),
       { mode: 0o600 },
     );
+    await runBookingJobs(pool);
     await dispatchWelcome(pool, mail);
     await pool.query("DELETE FROM csrf_contexts WHERE expires_at<now()");
     await pool.query("DELETE FROM account_sessions WHERE expires_at<now()");

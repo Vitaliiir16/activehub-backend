@@ -23,7 +23,7 @@ export function database() {
 
 export async function assertDatabaseReady(pool: pg.Pool) {
   const result = await pool.query<{ ready: boolean }>(
-    "SELECT count(*)=4 AS ready FROM schema_migrations WHERE name IN ('001_bootstrap.sql','002_accounts_access.sql','003_profile_card_defaults.sql','004_catalog.sql')",
+    "SELECT count(*)=5 AS ready FROM schema_migrations WHERE name IN ('001_bootstrap.sql','002_accounts_access.sql','003_profile_card_defaults.sql','004_catalog.sql','005_bookings.sql')",
   );
   if (!result.rows[0]?.ready) throw new Error("Database migration is incomplete");
 }

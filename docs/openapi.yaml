@@ -2604,11 +2604,10 @@ paths:
       tags:
         - Member
       summary: List own bookings
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
@@ -2729,7 +2728,7 @@ paths:
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
@@ -2786,11 +2785,10 @@ paths:
       tags:
         - Member
       summary: Read own booking and timeline
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
@@ -2837,12 +2835,11 @@ paths:
       tags:
         - Member
       summary: Cancel own booking
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
@@ -2973,11 +2970,10 @@ paths:
       tags:
         - Organizer
       summary: Search bookings on own events
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -3098,12 +3094,11 @@ paths:
       tags:
         - Organizer
       summary: Read a booking on own events
-      description: Stage 06 delivery contract; implementation pending. Expose email and phone only for own PENDING,
-        AWAITING_PAYMENT, CONFIRMED or COMPLETED bookings. Redact contacts for REJECTED, CANCELLED and EXPIRED
-        bookings (BR-08).
+      description: Implemented. Expose email and phone only for own PENDING, AWAITING_PAYMENT, CONFIRMED or
+        COMPLETED bookings. Redact contacts for REJECTED, CANCELLED and EXPIRED bookings (BR-08).
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -3150,12 +3145,11 @@ paths:
       tags:
         - Organizer
       summary: Approve or reject a pending booking
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -3216,12 +3210,11 @@ paths:
       tags:
         - Organizer
       summary: Cancel booking with full compensation
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -6135,11 +6128,10 @@ paths:
       tags:
         - Administration
       summary: Read a booking
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -6186,12 +6178,11 @@ paths:
       tags:
         - Administration
       summary: Cancel booking with full compensation
-      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
