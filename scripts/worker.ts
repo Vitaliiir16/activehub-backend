@@ -10,6 +10,7 @@ import {
 } from "../src/infrastructure/welcome-mail";
 
 import { runBookingJobs } from "../src/infrastructure/booking-jobs";
+import { expireSubscriptions } from "../src/modules/marketplace/subscriptions";
 const heartbeatPath =
   process.env.WORKER_HEARTBEAT_PATH ?? "/tmp/activehub-worker.json";
 const stop = new AbortController();
@@ -29,6 +30,7 @@ try {
       JSON.stringify({ status: "ready", checkedAt: Date.now() }),
       { mode: 0o600 },
     );
+    await expireSubscriptions(pool);
     await runBookingJobs(pool);
     await dispatchWelcome(pool, mail);
     await pool.query("DELETE FROM csrf_contexts WHERE expires_at<now()");

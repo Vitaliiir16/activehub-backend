@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { PoolClient } from "pg";
-import { jsonBody } from "../accounts/http";
+import { jsonBody, invalid } from "../accounts/http";
 import type { Actor, Role } from "../accounts/security";
 import {
   access,
@@ -17,6 +17,7 @@ import { seatPolicy, withinCutoff } from "./policies";
 import { pagination, reason } from "./validation";
 import type { EventRow, SessionRow } from "./types";
 
+import { reserveVisits, returnVisits } from "./subscriptions";
 import { paymentDtos, refundBooking } from "./payment-records";
 export type BookingRow = {
   id: string;
@@ -30,6 +31,7 @@ export type BookingRow = {
   amount_due_minor: number;
   discounts: unknown[];
   payment_method: string;
+  subscription_id: string | null;
   deadline_at: Date | null;
   address_version: number;
   time_version: number;
@@ -128,7 +130,7 @@ export async function bookingDto(
     discountBreakdown: b.discounts,
     amountDueMinor: b.amount_due_minor,
     paymentMethod: b.payment_method,
-    subscriptionUsedId: null,
+    subscriptionUsedId: b.subscription_id,
     pointsRedeemed: 0,
     deadlineAt: b.deadline_at,
     cancelledBy: b.cancelled_by,
@@ -175,8 +177,10 @@ export async function transition(
           ),
         )
       : null;
-  if (["CANCELLED", "REJECTED", "EXPIRED"].includes(to))
+  if (["CANCELLED", "REJECTED", "EXPIRED"].includes(to)) {
+    await returnVisits(client, b.id);
     await refundBooking(client, b.id, b.user_id, why ?? to);
+  }
   const updated = (
     await client.query<BookingRow>(
       "UPDATE bookings SET status=$2,deadline_at=$3,cancelled_by=CASE WHEN $2='CANCELLED' THEN $4 ELSE cancelled_by END,cancel_reason=CASE WHEN $2 IN ('CANCELLED','REJECTED') THEN $5 ELSE cancel_reason END,updated_at=clock_timestamp() WHERE id=$1 RETURNING *",
@@ -214,10 +218,16 @@ const createInput = z.strictObject({
   sessionId: z.uuid(),
   seats: z.number().int().min(1).max(10),
   comment: z.string().trim().max(300).optional(),
-  paymentMethod: z.literal("CARD"),
+  paymentMethod: z.enum(["CARD", "SUBSCRIPTION"]),
+  subscriptionId: z.uuid().optional(),
 });
 export async function createBooking(request: Request) {
   const input = createInput.parse(await jsonBody(request));
+  if ((input.paymentMethod === "SUBSCRIPTION") !== !!input.subscriptionId)
+    invalid(
+      "subscriptionId",
+      "Select a subscription only for subscription payment",
+    );
   return access(
     request,
     async (client, current) =>
@@ -268,7 +278,16 @@ export async function createBooking(request: Request) {
           e.promo_price_minor !== null && e.promo_until && e.promo_until > now
             ? e.promo_price_minor
             : e.price_minor;
-        const amount = price * input.seats;
+        if (input.subscriptionId)
+          await reserveVisits(
+            client,
+            input.subscriptionId,
+            current.id,
+            e,
+            s,
+            input.seats,
+          );
+        const amount = input.subscriptionId ? 0 : price * input.seats;
         const status =
           e.confirmation_mode === "MANUAL"
             ? "PENDING"
@@ -290,7 +309,7 @@ export async function createBooking(request: Request) {
             : null;
         const b = (
           await client.query<BookingRow>(
-            "INSERT INTO bookings(user_id,session_id,exclusive,seats,comment,status,base_price_minor,amount_due_minor,discounts,payment_method,deadline_at,address_version,time_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *",
+            "INSERT INTO bookings(user_id,session_id,exclusive,seats,comment,status,base_price_minor,amount_due_minor,discounts,payment_method,deadline_at,address_version,time_version,subscription_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *",
             [
               current.id,
               s.id,
@@ -311,13 +330,23 @@ export async function createBooking(request: Request) {
                     ]
                   : [],
               ),
-              amount === 0 ? "FREE" : "CARD",
+              input.subscriptionId
+                ? "SUBSCRIPTION"
+                : amount === 0
+                  ? "FREE"
+                  : "CARD",
               deadline,
               e.address_version,
               s.time_version,
+              input.subscriptionId ?? null,
             ],
           )
         ).rows[0];
+        if (input.subscriptionId)
+          await client.query(
+            "INSERT INTO subscription_visit_ledger(booking_id,subscription_id,visits) VALUES($1,$2,$3)",
+            [b.id, input.subscriptionId, input.seats],
+          );
         await client.query(
           "INSERT INTO booking_history(booking_id,to_status,actor_id,actor_role) VALUES($1,$2,$3,'USER')",
           [b.id, status, current.id],
