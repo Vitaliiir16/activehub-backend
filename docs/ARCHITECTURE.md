@@ -1,10 +1,10 @@
 # Architecture proposal
 
-Status: accounts/access, catalog, card/free bookings, simulated payments, subscriptions and loyalty are implemented. Communications, administration and reporting architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
+Status: accounts/access, catalog, card/free bookings, simulated payments, subscriptions, loyalty and communications (email, reminders, chat) are implemented. Administration and reporting architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
 
 ## Shape of the system
 
-Implemented: thin routes in src/app/api call src/modules/accounts/service.ts; security.ts checks sessions/CSRF/origins, validation.ts defines strict role DTOs, profiles.ts owns profile/reference mapping, and images.ts handles decoded owned files. PostgreSQL transactions hold account locks across validation and writes; status changes revoke sessions with a database trigger. Migrations/required seeds run under the initialization advisory lock. scripts/worker.ts dispatches queued outbox records through the WelcomeMail port and MailpitWelcomeMail Adapter in src/infrastructure/welcome-mail.ts, with row claims, retries and graceful shutdown. The frontend uses generated types, src/api/client.ts, SessionProvider and role-specific routes/forms. compose.yaml wires these processes to PostgreSQL, shared uploads and Mailpit. The stage 05-07 implementation below adds booking and payment services, seat policies and persisted lifecycle jobs. Later subscription/loyalty/chat services remain proposed.
+Implemented: thin routes in src/app/api call src/modules/accounts/service.ts; security.ts checks sessions/CSRF/origins, validation.ts defines strict role DTOs, profiles.ts owns profile/reference mapping, and images.ts handles decoded owned files. PostgreSQL transactions hold account locks across validation and writes; status changes revoke sessions with a database trigger. Migrations/required seeds run under the initialization advisory lock. scripts/worker.ts dispatches queued outbox records through the MailTransport port and SmtpMailTransport Adapter in src/infrastructure/mail.ts, with row claims, retries and graceful shutdown. The frontend uses generated types, src/api/client.ts, SessionProvider and role-specific routes/forms. compose.yaml wires these processes to PostgreSQL, shared uploads and Mailpit. The stage 05-07 implementation below adds booking and payment services, seat policies and persisted lifecycle jobs. Later subscription/loyalty/chat services remain proposed.
 
 Use a modular monolith for the Next.js REST backend and a separate React TypeScript frontend. PostgreSQL is the transactional authority. Shared file storage holds uploads. A separate worker process uses the same backend build and persisted database state. This keeps cross-feature booking compensation within a database transaction without introducing distributed-service overhead.
 
@@ -91,7 +91,7 @@ Avoid Singleton for settings: a unique database row plus injected configuration 
 
 ## Documentation during implementation
 
-Implemented GoF: Adapter, specifically WelcomeMail/MailpitWelcomeMail in src/infrastructure/welcome-mail.ts. Its comment and README index name the roles and search command. Registration records notification and email intent transactionally; delivery consumes persisted records without invoking pricing/loyalty observers. An outbox alone is not claimed as a GoF Observer. The initial card metadata stored with user profiles does not implement loyalty behavior. SOLID/GRASP already visible here include cohesive transport/security/profile/mail responsibilities, server-owned identity as Information Expert, thin route controllers and a narrow mail port that separates registration from SMTP details. The other pattern choices above remain proposed.
+Implemented GoF: Adapter, specifically MailTransport/SmtpMailTransport in src/infrastructure/mail.ts. Its comment and README index name the roles and search command. Registration records notification and email intent transactionally; delivery consumes persisted records without invoking pricing/loyalty observers. An outbox alone is not claimed as a GoF Observer. The initial card metadata stored with user profiles does not implement loyalty behavior. SOLID/GRASP already visible here include cohesive transport/security/profile/mail responsibilities, server-owned identity as Information Expert, thin route controllers and a narrow mail port that separates registration from SMTP details. The other pattern choices above remain proposed.
 
 Add only brief English comments at actual pattern implementations naming the pattern, its roles and reason. Optional file headers may identify ActiveHub and describe the file's purpose; avoid repetitive commentary. Update README with a table of implemented pattern, purpose, actual source path/symbol and a reproducible search such as `rg -n 'Strategy|State|Adapter' src` only when those symbols exist. The final class diagram must show real collaborations and be compared to the code. Frontend patterns need their own justification; they need not mirror backend patterns.
 
@@ -145,4 +145,30 @@ flowchart TD
   Quote --> Quota[(free_visit_ledger)]
   Release --> Quota
   Sync --> Cards[(user_profiles and card_assignments)]
+```
+
+## Implemented communications module
+
+Every user-facing event calls notify() in src/modules/marketplace/core.ts inside the originating transaction. It inserts one notification keyed by trigger, recipient and type, applies the category preference (BOOKINGS and ACCOUNT always email; REMINDERS, PROMOTIONS, LOYALTY and MESSAGES follow notification_settings, with card upgrades defaulting on until the preference is changed) and, when email applies, inserts the email_outbox row in the same transaction. A business change and its notifications therefore commit or roll back together.
+
+src/infrastructure/email-outbox.ts claims one due row with FOR UPDATE SKIP LOCKED, renders it with email-templates.ts (plain text and HTML, escaped, absolute link from APP_PUBLIC_URL) and sends it through the MailTransport port. SmtpMailTransport in mail.ts is the Adapter; smtpSettings() chooses local capture or an encrypted authenticated connection from the environment. Outcomes are recorded on the row (SENT, retry with backoff, or FAILED) and mirrored in notifications.email_status. The worker loop also runs src/infrastructure/reminder-jobs.ts, which claims the persisted `reminders` schedule row and sends the 24-hour and 2-hour notifications under the normal event, session and booking locks.
+
+src/modules/communications/chat.ts owns conversations and messages. A message locks its conversation row, assigns the next per-conversation sequence number, inserts the message and creates the recipient's notification in one transaction; this keeps order gap-free and makes cursor polling safe. Triggers keep participants to a user and an organizer and make messages immutable apart from their read time.
+
+```mermaid
+flowchart TD
+  Domain[bookings / catalog / payments / loyalty / chat] --> Notify[core.notify]
+  Notify --> Prefs[(notification_settings)]
+  Notify --> Notifications[(notifications)]
+  Notify --> Outbox[(email_outbox)]
+  Worker[scripts/worker.ts] --> Dispatch[email-outbox.dispatchNextEmail]
+  Worker --> Reminders[reminder-jobs.runReminderJobs]
+  Reminders --> Notify
+  Dispatch --> Outbox
+  Dispatch --> Templates[email-templates.renderEmail]
+  Dispatch --> Port[MailTransport]
+  Smtp[SmtpMailTransport Adapter] -.implements.-> Port
+  Smtp --> Server[(Mailpit or real SMTP server)]
+  Chat[communications/chat.ts] --> Notify
+  Chat --> Messages[(conversations / messages)]
 ```

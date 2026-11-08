@@ -17,6 +17,7 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 | P-04 | Contract defined; business calculations planned | JSON money uses integer UAH minor units; decimal rates use strings. Persist UTC instants and interpret calendar filters in Europe/Kyiv. Q-02 remains open; the later Q-03 decision below approves the inclusive cutoff. |
 | P-05 | Proposed technical choice | Polling is sufficient for live chat and counters initially, if it meets the no-manual-reload requirement. Choose the interval and test stale/out-of-order responses; SSE remains an option. |
 | D-06 | Owner instruction, 2026-11-08 | Deliver stage 09 loyalty on new branches after PRs #5 were merged. Commit and push are authorized; the owner creates and merges pull requests. Q-01, Q-02 and Q-04 are decided below; Q-05 remains open. |
+| D-07 | Owner instruction, 2026-11-08 | Every notification shows in the site and is duplicated by email as the delivery table allows, and email must work through a real mail provider such as Gmail when configured. Mailpit capture stays the default so development never emails real people. |
 | P-06 | Source interpretation | A corporate subscription belongs to the purchasing user and covers multiple places; it is not a new company account or transferable shared login. A wider multi-account company pool would need a new requirement. |
 
 ## Q-01: Reversing points that have already been spent — approved
@@ -79,3 +80,17 @@ These ordinary assumptions implement the approved rules; none changes Q-05.
 - Free access never applies to zero-price events, so no quota is consumed by them.
 - Notifications: accrual, reversal, adjustment and upgrade notifications use the LOYALTY category and its single email preference (default off). The source distinguishes accrual email (off by default) from upgrade email (preference applies); that needs separate settings in the stage 10 notification matrix.
 - Locking: booking work locks event, session and booking, then the member card, then a subscription. Booking jobs commit per booking to keep card locks short; lock conflicts are retried on the next worker interval.
+
+## Stage 10 implementation decisions
+
+None of these changes Q-05.
+
+- Email transport: one SMTP adapter reads host, port, TLS and credentials from the environment. Without credentials and with a local host the connection is plain (Mailpit). With credentials or any other host the connection must be encrypted (STARTTLS, or implicit TLS on 465) and the certificate is verified. The sender is `SMTP_FROM`, defaulting to `SMTP_USER`. Gmail needs an app password.
+- Delivery failures: a rejected message (permanent 5xx other than credential errors) is marked FAILED at once. Connection, timeout and credential errors are retried with backoff up to 300 seconds apart, up to `EMAIL_MAX_ATTEMPTS` (default 50, roughly four hours), then FAILED. A batch stops after the first temporary failure so a mail outage does not stall the worker. Logs record only the error code, never the recipient, subject or credentials. Duplicate delivery after a crash between acceptance and commit remains possible; the Message-ID is the notification ID.
+- Email links: absolute, built from `APP_PUBLIC_URL` (default: the first allowed origin). Only site-relative links are used.
+- Loyalty email defaults: points, reversal and adjustment emails follow the LOYALTY preference (default off). Card upgrade emails are sent while the preference has never been changed; once the user changes it, it applies to all loyalty emails. This satisfies the table's "off by default" for accrual and "preference applies" for upgrades with a single setting.
+- Reminders: sent only to CONFIRMED bookings with a scheduled future session and only when the booking was made before the lead time (24 hours for the first, 2 hours for the second). The 24-hour reminder is skipped once the 2-hour one is due, so a delayed worker never sends both. Message text states the start time rather than a countdown.
+- Organizer self-actions: an organizer is not notified of a cancellation it performed. Administrator edits, cancellations and moderation of an event notify the organizer in-app and by email; notices for administrator actions on organizer accounts arrive with the stage 11 account management.
+- Chat: one conversation per user-organizer pair; starting an existing one returns it (200). Organizers start from a booking in any status. Both participants must be active to send, but history stays readable. Message order uses a per-conversation sequence assigned under the conversation row lock, so polling never skips a message. Read state is stored per message. Each message creates one MESSAGES notification; reading the conversation clears those notifications. Updates use polling (about 3 seconds in a thread, 8 seconds for header counts, paused in hidden tabs) as decided in P-05. Messages cannot be edited or deleted.
+- Chat limits: 30 messages per sender per minute (429), enforced by the server.
+- Sessions hold one CSRF token, so the browser serializes mutations; concurrent chat tests therefore use separate sessions.

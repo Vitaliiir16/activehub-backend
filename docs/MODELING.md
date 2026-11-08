@@ -11,7 +11,7 @@ Use Case include arrows point from the including behavior to required behavior; 
 
 The logical class model preserves role profiles, payment subjects, shared conversations and history. Stage 04 migrations add real user/organizer profiles, directions/preferences, settings, sessions/CSRF contexts, owned images, notifications/outbox and initial card metadata. Financial entities, general jobs/idempotency and their proposed classes remain planned. The account implementation uses cohesive TypeScript function modules; the whole-system class design must not be mistaken for a list of implemented classes.
 
-The implemented account diagram and README identify the real WelcomeMail/MailpitWelcomeMail Adapter. Other GoF collaborations remain proposed. G1/G2/G3, U13/U14/U16, O12 and A8 are implemented; U15/O13/S4 currently cover welcome notifications/email only. The optional administrator list and password recovery remain planned.
+The implemented account diagram and README identify the real MailTransport/SmtpMailTransport Adapter. Other GoF collaborations remain proposed. G1/G2/G3, U13/U14/U16, O12 and A8 are implemented; U15/O13/S4 currently cover welcome notifications/email only. The optional administrator list and password recovery remain planned.
 
 Render locally with the PlantUML Docker image (record its resolved digest in progress):
 
