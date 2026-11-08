@@ -4,6 +4,14 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 12
+
+| Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
+|---|---|---|---|
+| M-046, M-093, M-094, M-095; 7.12 | Administrator statistics for 7/30/90-day and custom Kyiv periods: totals, exact conversion, net payments, day and category breakdowns, top ten activities, registrations and member breakdowns | scripts/verify-statistics.mjs: exact deltas for bookings, net payments (payments minus refund), status buckets, day bucket, top-event count and conversion checked in SQL; access and period validation; unit tests for periods, zero denominators and rounding | Every breakdown permutation and month/DST boundary in the browser; no mobile browser test of the statistics screen |
+| M-035, M-036 | Organizer dashboard counters, net current-month revenue, unread messages, 30-day chart, own data only | Exact counters for a fresh organizer with paused, pending, paid, refunded, cancelled and unread records; second-organizer isolation; administrator view identical | Own proposal list with occupancy and session availability (existing organizer screens); phone layout of the chart not browser-tested |
+| M-085 (recommendations completion) | Popularity without preferences counts live and completed bookings only | verify-statistics.mjs ranks two live bookings above one and cancelled bookings below | Ordering with preferences beyond the existing nearest-first order |
+
 ### Stage 11
 
 | Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |

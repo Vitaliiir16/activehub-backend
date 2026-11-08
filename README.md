@@ -128,3 +128,7 @@ Sign in as the administrator from `.env` (the first administrator is created fro
 - Every administrator decision is stored with its reason in an append-only audit log in the database.
 
 Platform statistics and the optional dedicated administrator list (Q-05) are not part of this stage.
+
+## Statistics
+
+Administrators open Statistics for 7, 30 or 90 days or a custom Europe/Kyiv range (at most one year). Totals, breakdowns and charts count records created in the period; net payments are successful card payments minus refunds; booking conversion is the share of created bookings that were ever confirmed. Organizers see their own dashboard (counters, net current-month revenue, unread messages and a 30-day chart). Recommendations without preferences rank city activities by live and completed bookings. The rules are in docs/ASSUMPTIONS.md (Stage 12).
