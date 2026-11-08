@@ -211,6 +211,74 @@ export const logout = (request: Request) =>
     undefined,
     true,
   );
+type ProfileChanges = Record<string, unknown> & {
+  email?: string;
+  cityId?: string;
+  directionIds?: string[];
+  preferredDirectionIds?: string[];
+};
+/** Validates dictionaries and applies a role-specific profile change to the target account. */
+export async function applyProfile(
+  client: PoolClient,
+  target: Pick<Actor, "id" | "role">,
+  input: ProfileChanges,
+) {
+  if (
+    "cityId" in input ||
+    "directionIds" in input ||
+    "preferredDirectionIds" in input
+  )
+    await dictionaries(
+      client,
+      "cityId" in input ? input.cityId : undefined,
+      "directionIds" in input
+        ? input.directionIds
+        : "preferredDirectionIds" in input
+          ? input.preferredDirectionIds
+          : undefined,
+      target.id,
+    );
+  if (input.email)
+    await client.query("UPDATE accounts SET email=$1 WHERE id=$2", [
+      input.email,
+      target.id,
+    ]);
+  const columns: Record<string, string> = {
+    firstName: "first_name",
+    lastName: "last_name",
+    phone: "phone",
+    cityId: "city_id",
+    gender: "gender",
+    photoId: "photo_id",
+    name: "name",
+    type: "type",
+    description: "description",
+    logoId: "logo_id",
+    displayName: "display_name",
+  };
+  const entries = Object.entries(input).filter(([key]) => key in columns);
+  const table =
+    target.role === "USER"
+      ? "user_profiles"
+      : target.role === "ORGANIZER"
+        ? "organizer_profiles"
+        : "admin_profiles";
+  if (entries.length)
+    await client.query(
+      `UPDATE ${table} SET ${entries.map(([key], i) => `${columns[key]}=$${i + 1}`).join(",")},updated_at=now() WHERE account_id=$${entries.length + 1}`,
+      [...entries.map(([, value]) => value), target.id],
+    );
+  const directionIds =
+    "directionIds" in input
+      ? input.directionIds
+      : "preferredDirectionIds" in input
+        ? input.preferredDirectionIds
+        : undefined;
+  if (directionIds) await setDirections(client, target.id, directionIds);
+  await client.query("UPDATE accounts SET updated_at=now() WHERE id=$1", [
+    target.id,
+  ]);
+}
 export async function updateProfile(request: Request) {
   const body = await jsonBody(request);
   return protectedAction(
@@ -219,21 +287,6 @@ export async function updateProfile(request: Request) {
       const input = profileSchemas[current.role].parse(body);
       if (!Object.keys(input).length)
         invalid("form", "Change at least one field");
-      if (
-        "cityId" in input ||
-        "directionIds" in input ||
-        "preferredDirectionIds" in input
-      )
-        await dictionaries(
-          client,
-          "cityId" in input ? input.cityId : undefined,
-          "directionIds" in input
-            ? input.directionIds
-            : "preferredDirectionIds" in input
-              ? input.preferredDirectionIds
-              : undefined,
-          current.id,
-        );
       await ownedImage(
         client,
         current.id,
@@ -243,46 +296,7 @@ export async function updateProfile(request: Request) {
             ? input.logoId
             : undefined,
       );
-      if (input.email)
-        await client.query("UPDATE accounts SET email=$1 WHERE id=$2", [
-          input.email,
-          current.id,
-        ]);
-      const columns: Record<string, string> = {
-        firstName: "first_name",
-        lastName: "last_name",
-        phone: "phone",
-        cityId: "city_id",
-        gender: "gender",
-        photoId: "photo_id",
-        name: "name",
-        type: "type",
-        description: "description",
-        logoId: "logo_id",
-        displayName: "display_name",
-      };
-      const entries = Object.entries(input).filter(([key]) => key in columns);
-      const table =
-        current.role === "USER"
-          ? "user_profiles"
-          : current.role === "ORGANIZER"
-            ? "organizer_profiles"
-            : "admin_profiles";
-      if (entries.length)
-        await client.query(
-          `UPDATE ${table} SET ${entries.map(([key], i) => `${columns[key]}=$${i + 1}`).join(",")},updated_at=now() WHERE account_id=$${entries.length + 1}`,
-          [...entries.map(([, value]) => value), current.id],
-        );
-      const directionIds =
-        "directionIds" in input
-          ? input.directionIds
-          : "preferredDirectionIds" in input
-            ? input.preferredDirectionIds
-            : undefined;
-      if (directionIds) await setDirections(client, current.id, directionIds);
-      await client.query("UPDATE accounts SET updated_at=now() WHERE id=$1", [
-        current.id,
-      ]);
+      await applyProfile(client, current, input);
       return Response.json(await profile(client, current));
     },
     undefined,

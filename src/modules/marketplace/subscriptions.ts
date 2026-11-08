@@ -6,6 +6,7 @@ import { pagination } from "./validation";
 import { cardInput, SimulatedCardGateway } from "./payment-gateway";
 import type { EventRow, SessionRow } from "./types";
 import { revertExpiredCorporateCards, syncCard } from "../loyalty/ledger";
+import { audit } from "../administration/audit";
 
 const fields = {
   name: z.string().trim().min(2).max(100),
@@ -38,7 +39,7 @@ type Plan = {
   createdAt: Date | string;
   updatedAt: Date | string;
 };
-type PlanRow = {
+export type PlanRow = {
   id: string;
   organizer_id: string;
   name: string;
@@ -54,7 +55,7 @@ type PlanRow = {
   created_at: Date;
   updated_at: Date;
 };
-type SubRow = {
+export type SubRow = {
   id: string;
   user_id: string;
   plan_id: string;
@@ -67,7 +68,7 @@ type SubRow = {
   created_at: Date;
   updated_at: Date;
 };
-const planDto = (p: PlanRow): Plan => ({
+export const planDto = (p: PlanRow): Plan => ({
   id: p.id,
   organizerId: p.organizer_id,
   name: p.name,
@@ -224,13 +225,14 @@ export async function savePlan(request: Request, id?: string) {
     true,
   );
 }
-export function archivePlan(request: Request, id: string) {
+export function archivePlan(request: Request, id: string, admin = false) {
   return access(
     request,
     async (c, a) =>
       idempotent(c, a, request, `archivePlan:${id}`, {}, async () => {
         const p = await planRow(c, id, true);
-        if (p.organizer_id !== a.id) missing("Plan not found");
+        if (!admin && p.organizer_id !== a.id) missing("Plan not found");
+        if (admin) await audit(c, a.id, "PLAN_ARCHIVE", "PLAN", p.id, null);
         const row = (
           await c.query<PlanRow>(
             "UPDATE subscription_plans SET status='ARCHIVED',updated_at=clock_timestamp() WHERE id=$1 RETURNING *",
@@ -239,7 +241,7 @@ export function archivePlan(request: Request, id: string) {
         ).rows[0];
         return { status: 200, body: planDto(row) };
       }),
-    ["ORGANIZER"],
+    [admin ? "ADMIN" : "ORGANIZER"],
     true,
   );
 }
