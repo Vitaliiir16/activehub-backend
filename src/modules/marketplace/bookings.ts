@@ -1,0 +1,655 @@
+import { z } from "zod";
+import type { PoolClient } from "pg";
+import { jsonBody } from "../accounts/http";
+import type { Actor, Role } from "../accounts/security";
+import {
+  access,
+  activeStatuses,
+  conflict,
+  idempotent,
+  missing,
+  notify,
+  page,
+  settings,
+} from "./core";
+import { eventRow, sessionEventId } from "./catalog";
+import { seatPolicy, withinCutoff } from "./policies";
+import { pagination, reason } from "./validation";
+import type { EventRow, SessionRow } from "./types";
+
+import { paymentDtos, refundBooking } from "./payment-records";
+export type BookingRow = {
+  id: string;
+  user_id: string;
+  session_id: string;
+  exclusive: boolean;
+  seats: number;
+  comment: string;
+  status: string;
+  base_price_minor: number;
+  amount_due_minor: number;
+  discounts: unknown[];
+  payment_method: string;
+  deadline_at: Date | null;
+  address_version: number;
+  time_version: number;
+  cancelled_by: string | null;
+  cancel_reason: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+export async function lockBooking(
+  client: PoolClient,
+  id: string,
+  current?: Actor,
+  scope: "user" | "organizer" | "admin" = "user",
+) {
+  z.uuid().parse(id);
+  const meta = (
+    await client.query(
+      "SELECT s.event_id FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE b.id=$1",
+      [id],
+    )
+  ).rows[0];
+  if (!meta) missing("Booking not found");
+  const event = await eventRow(client, meta.event_id, undefined, true);
+  const session = (
+    await client.query<SessionRow>(
+      "SELECT s.* FROM event_sessions s JOIN bookings b ON b.session_id=s.id WHERE b.id=$1 FOR UPDATE OF s",
+      [id],
+    )
+  ).rows[0];
+  const booking = (
+    await client.query<BookingRow>(
+      "SELECT * FROM bookings WHERE id=$1 FOR UPDATE",
+      [id],
+    )
+  ).rows[0];
+  if (
+    current &&
+    ((scope === "user" && booking.user_id !== current.id) ||
+      (scope === "organizer" && event.organizer_id !== current.id))
+  )
+    missing("Booking not found");
+  return { booking, event, session };
+}
+export const changeEligible = (
+  b: BookingRow,
+  e: EventRow,
+  s: SessionRow,
+  now = new Date(),
+) =>
+  now < s.starts_at &&
+  (b.address_version < e.address_version || b.time_version < s.time_version);
+export const userCanCancel = (
+  b: BookingRow,
+  e: EventRow,
+  s: SessionRow,
+  now = new Date(),
+) =>
+  ["PENDING", "AWAITING_PAYMENT"].includes(b.status) ||
+  (b.status === "CONFIRMED" &&
+    (withinCutoff(s.starts_at, now, settings().cancelSeconds) ||
+      changeEligible(b, e, s, now)));
+export async function bookingDto(
+  client: PoolClient,
+  b: BookingRow,
+  e?: EventRow,
+  s?: SessionRow,
+) {
+  s ??= (
+    await client.query<SessionRow>("SELECT * FROM event_sessions WHERE id=$1", [
+      b.session_id,
+    ])
+  ).rows[0];
+  e ??= await eventRow(client, s.event_id);
+  const timeline = (
+    await client.query(
+      'SELECT from_status AS "from",to_status AS "to",created_at AS at,actor_role AS actor,reason FROM booking_history WHERE booking_id=$1 ORDER BY created_at,id',
+      [b.id],
+    )
+  ).rows;
+  return {
+    id: b.id,
+    createdAt: b.created_at,
+    updatedAt: b.updated_at,
+    userId: b.user_id,
+    sessionId: b.session_id,
+    eventId: e.id,
+    eventTitle: e.title,
+    organizerId: e.organizer_id,
+    startsAt: s.starts_at,
+    endsAt: s.ends_at,
+    address: e.address,
+    seats: b.seats,
+    comment: b.comment,
+    status: b.status,
+    basePriceMinor: b.base_price_minor,
+    discountBreakdown: b.discounts,
+    amountDueMinor: b.amount_due_minor,
+    paymentMethod: b.payment_method,
+    subscriptionUsedId: null,
+    pointsRedeemed: 0,
+    deadlineAt: b.deadline_at,
+    cancelledBy: b.cancelled_by,
+    cancelReason: b.cancel_reason,
+    timeline,
+    payments: await paymentDtos(client, b.id),
+    canCancel: userCanCancel(b, e, s),
+    canPay:
+      b.status === "AWAITING_PAYMENT" &&
+      !!b.deadline_at &&
+      b.deadline_at > new Date(),
+    changeRefundEligible: changeEligible(b, e, s),
+  };
+}
+export async function transition(
+  client: PoolClient,
+  b: BookingRow,
+  e: EventRow,
+  s: SessionRow,
+  to: string,
+  who: { id?: string; role: string },
+  why: string | null = null,
+) {
+  if (b.status === to) return b;
+  if (!activeStatuses.includes(b.status)) conflict("This booking is final");
+  const allowed: Record<string, string[]> = {
+    PENDING: [
+      "AWAITING_PAYMENT",
+      "CONFIRMED",
+      "REJECTED",
+      "CANCELLED",
+      "EXPIRED",
+    ],
+    AWAITING_PAYMENT: ["CONFIRMED", "CANCELLED", "EXPIRED"],
+    CONFIRMED: ["CANCELLED", "COMPLETED"],
+  };
+  if (!allowed[b.status]?.includes(to)) conflict("Invalid booking transition");
+  const deadline =
+    to === "AWAITING_PAYMENT"
+      ? new Date(
+          Math.min(
+            Date.now() + settings().paymentSeconds * 1000,
+            s.starts_at.getTime(),
+          ),
+        )
+      : null;
+  if (["CANCELLED", "REJECTED", "EXPIRED"].includes(to))
+    await refundBooking(client, b.id, b.user_id, why ?? to);
+  const updated = (
+    await client.query<BookingRow>(
+      "UPDATE bookings SET status=$2,deadline_at=$3,cancelled_by=CASE WHEN $2='CANCELLED' THEN $4 ELSE cancelled_by END,cancel_reason=CASE WHEN $2 IN ('CANCELLED','REJECTED') THEN $5 ELSE cancel_reason END,updated_at=clock_timestamp() WHERE id=$1 RETURNING *",
+      [b.id, to, deadline, who.role, why],
+    )
+  ).rows[0];
+  await client.query(
+    "INSERT INTO booking_history(booking_id,from_status,to_status,actor_id,actor_role,reason) VALUES($1,$2,$3,$4,$5,$6)",
+    [b.id, b.status, to, who.id ?? null, who.role, why],
+  );
+  await notify(client, {
+    accountId: b.user_id,
+    key: `booking:${b.id}:${to}:user`,
+    type: `BOOKING_${to}`,
+    title: `Booking ${to.toLowerCase().replaceAll("_", " ")}`,
+    body: `${e.title}${why ? `: ${why}` : ""}`,
+    link: `/bookings/${b.id}`,
+  });
+  if (
+    ["CONFIRMED", "CANCELLED"].includes(to) ||
+    (to === "EXPIRED" && b.status === "PENDING")
+  )
+    await notify(client, {
+      accountId: e.organizer_id,
+      key: `booking:${b.id}:${to}:organizer`,
+      type: `BOOKING_${to}`,
+      title: `Booking ${to.toLowerCase()}`,
+      body: e.title,
+      link: `/organizer/bookings/${b.id}`,
+      email: to === "CANCELLED" && who.role === "USER",
+    });
+  return updated;
+}
+const createInput = z.strictObject({
+  sessionId: z.uuid(),
+  seats: z.number().int().min(1).max(10),
+  comment: z.string().trim().max(300).optional(),
+  paymentMethod: z.literal("CARD"),
+});
+export async function createBooking(request: Request) {
+  const input = createInput.parse(await jsonBody(request));
+  return access(
+    request,
+    async (client, current) =>
+      idempotent(client, current, request, "createBooking", input, async () => {
+        const e = await eventRow(
+          client,
+          await sessionEventId(client, input.sessionId),
+          undefined,
+          true,
+        );
+        const s = (
+          await client.query<SessionRow>(
+            "SELECT * FROM event_sessions WHERE id=$1 FOR UPDATE",
+            [input.sessionId],
+          )
+        ).rows[0];
+        const now = new Date();
+        if (
+          e.status !== "ACTIVE" ||
+          s.status !== "SCHEDULED" ||
+          s.is_deleted ||
+          !(
+            await client.query(
+              "SELECT id FROM accounts WHERE id=$1 AND status='ACTIVE'",
+              [e.organizer_id],
+            )
+          ).rowCount
+        )
+          conflict("This session is unavailable");
+        if (!withinCutoff(s.starts_at, now, settings().cutoffSeconds))
+          conflict("The booking cutoff has passed");
+        const policy = seatPolicy(e.kind);
+        policy.validate(input.seats);
+        const reserved = (
+          await client.query(
+            "SELECT coalesce(sum(seats),0)::int AS seats,bool_or(user_id=$2) AS duplicate FROM bookings WHERE session_id=$1 AND status=ANY($3::text[])",
+            [s.id, current.id, activeStatuses],
+          )
+        ).rows[0];
+        if (reserved.duplicate)
+          conflict("You already have an active booking for this session");
+        if (
+          (policy.exclusive && reserved.seats > 0) ||
+          (!policy.exclusive && reserved.seats + input.seats > s.seats_total)
+        )
+          conflict("There are not enough available places");
+        const price =
+          e.promo_price_minor !== null && e.promo_until && e.promo_until > now
+            ? e.promo_price_minor
+            : e.price_minor;
+        const amount = price * input.seats;
+        const status =
+          e.confirmation_mode === "MANUAL"
+            ? "PENDING"
+            : amount > 0
+              ? "AWAITING_PAYMENT"
+              : "CONFIRMED";
+        const deadline =
+          status === "PENDING" || status === "AWAITING_PAYMENT"
+            ? new Date(
+                Math.min(
+                  now.getTime() +
+                    (status === "PENDING"
+                      ? settings().pendingSeconds
+                      : settings().paymentSeconds) *
+                      1000,
+                  s.starts_at.getTime(),
+                ),
+              )
+            : null;
+        const b = (
+          await client.query<BookingRow>(
+            "INSERT INTO bookings(user_id,session_id,exclusive,seats,comment,status,base_price_minor,amount_due_minor,discounts,payment_method,deadline_at,address_version,time_version) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *",
+            [
+              current.id,
+              s.id,
+              policy.exclusive,
+              input.seats,
+              input.comment ?? "",
+              status,
+              e.price_minor * input.seats,
+              amount,
+              JSON.stringify(
+                price < e.price_minor
+                  ? [
+                      {
+                        type: "PROMOTION",
+                        amountMinor: (e.price_minor - price) * input.seats,
+                        description: "Event promotion",
+                      },
+                    ]
+                  : [],
+              ),
+              amount === 0 ? "FREE" : "CARD",
+              deadline,
+              e.address_version,
+              s.time_version,
+            ],
+          )
+        ).rows[0];
+        await client.query(
+          "INSERT INTO booking_history(booking_id,to_status,actor_id,actor_role) VALUES($1,$2,$3,'USER')",
+          [b.id, status, current.id],
+        );
+        await notify(client, {
+          accountId: current.id,
+          key: `booking:${b.id}:${status}:user`,
+          type: `BOOKING_${status}`,
+          title:
+            status === "PENDING"
+              ? "Request sent to organizer"
+              : status === "CONFIRMED"
+                ? "Booking confirmed"
+                : "Payment required",
+          body: e.title,
+          link: `/bookings/${b.id}`,
+          email: true,
+        });
+        await notify(client, {
+          accountId: e.organizer_id,
+          key: `booking:${b.id}:${status}:organizer`,
+          type: `BOOKING_${status}`,
+          title: status === "PENDING" ? "New booking request" : "New booking",
+          body: e.title,
+          link: `/organizer/bookings/${b.id}`,
+          email: status === "PENDING",
+        });
+        const occupied = Number(
+          (
+            await client.query(
+              "SELECT coalesce(sum(seats),0) AS seats FROM bookings WHERE session_id=$1 AND status=ANY($2::text[])",
+              [s.id, activeStatuses],
+            )
+          ).rows[0].seats,
+        );
+        if (policy.exclusive || occupied === s.seats_total)
+          await notify(client, {
+            accountId: e.organizer_id,
+            key: `session:${s.id}:filled:${b.id}`,
+            type: "SESSION_FULL",
+            title: "Session is full",
+            body: e.title,
+            link: `/organizer/events/${e.id}`,
+            email: false,
+          });
+        return { status: 201, body: await bookingDto(client, b, e, s) };
+      }),
+    ["USER"],
+    true,
+  );
+}
+export async function organizerBookingDto(
+  client: PoolClient,
+  b: BookingRow,
+  e?: EventRow,
+  s?: SessionRow,
+) {
+  const row = (
+    await client.query(
+      "SELECT a.email,p.first_name,p.last_name,p.phone FROM accounts a JOIN user_profiles p ON p.account_id=a.id WHERE a.id=$1",
+      [b.user_id],
+    )
+  ).rows[0];
+  return {
+    booking: await bookingDto(client, b, e, s),
+    user: {
+      id: b.user_id,
+      displayName: `${row.first_name} ${row.last_name}`,
+      ...(!["REJECTED", "CANCELLED", "EXPIRED"].includes(b.status)
+        ? { email: row.email, phone: row.phone }
+        : {}),
+    },
+  };
+}
+export const scopeRoles = (scope: string): Role[] =>
+  scope === "organizer"
+    ? ["ORGANIZER"]
+    : scope === "admin"
+      ? ["ADMIN"]
+      : ["USER"];
+export function getBooking(
+  request: Request,
+  id: string,
+  scope: "user" | "organizer" | "admin" = "user",
+) {
+  return access(
+    request,
+    async (client, current) => {
+      const {
+        booking: b,
+        event: e,
+        session: s,
+      } = await lockBooking(client, id, current, scope);
+      return Response.json(
+        scope === "organizer"
+          ? await organizerBookingDto(client, b, e, s)
+          : await bookingDto(client, b, e, s),
+      );
+    },
+    scopeRoles(scope),
+  );
+}
+export async function cancelBooking(
+  request: Request,
+  id: string,
+  scope: "user" | "organizer" | "admin" = "user",
+) {
+  const input = (
+    scope === "user"
+      ? z.strictObject({ reason: z.string().trim().max(500).optional() })
+      : reason
+  ).parse(await jsonBody(request));
+  return access(
+    request,
+    async (client, current) =>
+      idempotent(
+        client,
+        current,
+        request,
+        `cancelBooking:${id}`,
+        input,
+        async () => {
+          const {
+            booking: b,
+            event: e,
+            session: s,
+          } = await lockBooking(client, id, current, scope);
+          if (b.status !== "CANCELLED") {
+            if (scope === "user" && !userCanCancel(b, e, s))
+              conflict("The cancellation deadline has passed");
+            await transition(
+              client,
+              b,
+              e,
+              s,
+              "CANCELLED",
+              { id: current.id, role: current.role },
+              input.reason ?? null,
+            );
+          }
+          const latest = (
+            await client.query<BookingRow>(
+              "SELECT * FROM bookings WHERE id=$1",
+              [id],
+            )
+          ).rows[0];
+          return { status: 200, body: await bookingDto(client, latest, e, s) };
+        },
+      ),
+    scopeRoles(scope),
+    true,
+  );
+}
+export async function decideBooking(request: Request, id: string) {
+  const input = z
+    .strictObject({
+      decision: z.enum(["APPROVE", "REJECT"]),
+      reason: z.string().trim().max(500).optional(),
+    })
+    .parse(await jsonBody(request));
+  return access(
+    request,
+    async (client, current) =>
+      idempotent(
+        client,
+        current,
+        request,
+        `decideBooking:${id}`,
+        input,
+        async () => {
+          const {
+            booking: b,
+            event: e,
+            session: s,
+          } = await lockBooking(client, id, current, "organizer");
+          if (b.status !== "PENDING")
+            conflict("Only pending bookings can be decided");
+          if (
+            !b.deadline_at ||
+            b.deadline_at <= new Date() ||
+            s.starts_at <= new Date()
+          )
+            conflict("The request has expired");
+          const updated = await transition(
+            client,
+            b,
+            e,
+            s,
+            input.decision === "REJECT"
+              ? "REJECTED"
+              : b.amount_due_minor > 0
+                ? "AWAITING_PAYMENT"
+                : "CONFIRMED",
+            { id: current.id, role: current.role },
+            input.reason ?? null,
+          );
+          return { status: 200, body: await bookingDto(client, updated, e, s) };
+        },
+      ),
+    ["ORGANIZER"],
+    true,
+  );
+}
+const listInput = z.strictObject({
+  ...pagination,
+  status: z
+    .enum([
+      "PENDING",
+      "AWAITING_PAYMENT",
+      "CONFIRMED",
+      "REJECTED",
+      "CANCELLED",
+      "EXPIRED",
+      "COMPLETED",
+    ])
+    .optional(),
+  dateFrom: z.iso.date().optional(),
+  dateTo: z.iso.date().optional(),
+  organizerId: z.uuid().optional(),
+  eventId: z.uuid().optional(),
+  sessionId: z.uuid().optional(),
+  title: z.string().max(120).optional(),
+  userName: z.string().max(100).optional(),
+  tab: z.enum(["upcoming", "past", "cancelled"]).optional(),
+  sort: z
+    .enum(["newest", "oldest", "startsAtAsc", "startsAtDesc"])
+    .default("startsAtAsc"),
+});
+export function listBookings(request: Request, owned = false) {
+  const input = listInput.parse(
+    Object.fromEntries(new URL(request.url).searchParams),
+  );
+  return access(
+    request,
+    async (client, current) => {
+      const values: unknown[] = [current.id];
+      const bind = (v: unknown) => {
+        values.push(v);
+        return `$${values.length}`;
+      };
+      const where = [owned ? "e.organizer_id=$1" : "b.user_id=$1"];
+      if (input.status) where.push(`b.status=${bind(input.status)}`);
+      if (input.organizerId)
+        where.push(`e.organizer_id=${bind(input.organizerId)}`);
+      if (input.eventId) where.push(`e.id=${bind(input.eventId)}`);
+      if (input.sessionId) where.push(`s.id=${bind(input.sessionId)}`);
+      if (input.title)
+        where.push(`strpos(lower(e.title),lower(${bind(input.title)}))>0`);
+      if (input.userName)
+        where.push(
+          `strpos(lower(p.first_name||' '||p.last_name),lower(${bind(input.userName)}))>0`,
+        );
+      if (input.dateFrom)
+        where.push(
+          `s.starts_at>=(${bind(input.dateFrom)}::date::timestamp AT TIME ZONE 'Europe/Kyiv')`,
+        );
+      if (input.dateTo)
+        where.push(
+          `s.starts_at<((${bind(input.dateTo)}::date+1)::timestamp AT TIME ZONE 'Europe/Kyiv')`,
+        );
+      if (input.tab === "upcoming")
+        where.push(
+          "s.ends_at>now() AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED')",
+        );
+      if (input.tab === "past")
+        where.push(
+          "(s.ends_at<=now() OR b.status='COMPLETED') AND b.status NOT IN ('CANCELLED','REJECTED','EXPIRED')",
+        );
+      if (input.tab === "cancelled")
+        where.push("b.status IN ('CANCELLED','REJECTED','EXPIRED')");
+      const from = `FROM bookings b JOIN event_sessions s ON s.id=b.session_id JOIN events e ON e.id=s.event_id JOIN user_profiles p ON p.account_id=b.user_id WHERE ${where.join(" AND ")}`;
+      const total = Number(
+        (await client.query(`SELECT count(*) ${from}`, values)).rows[0].count,
+      );
+      const sort = {
+        newest: "b.created_at DESC",
+        oldest: "b.created_at ASC",
+        startsAtAsc: "s.starts_at ASC",
+        startsAtDesc: "s.starts_at DESC",
+      }[input.sort];
+      const rows = (
+        await client.query<BookingRow>(
+          `SELECT b.* ${from} ORDER BY ${sort},b.id LIMIT ${bind(input.pageSize)} OFFSET ${bind((input.page - 1) * input.pageSize)}`,
+          values,
+        )
+      ).rows;
+      const items = [];
+      for (const b of rows)
+        items.push(
+          owned
+            ? await organizerBookingDto(client, b)
+            : await bookingDto(client, b),
+        );
+      return Response.json(page(items, total, input.page, input.pageSize));
+    },
+    owned ? ["ORGANIZER"] : ["USER"],
+  );
+}
+export async function cancelSessionBookings(
+  client: PoolClient,
+  e: EventRow,
+  s: SessionRow,
+  who: { id?: string; role: string },
+  why: string,
+) {
+  const rows = (
+    await client.query<BookingRow>(
+      "SELECT * FROM bookings WHERE session_id=$1 AND status=ANY($2::text[]) ORDER BY id FOR UPDATE",
+      [s.id, activeStatuses],
+    )
+  ).rows;
+  for (const b of rows)
+    await transition(client, b, e, s, "CANCELLED", who, why);
+}
+export async function notifyChanged(
+  client: PoolClient,
+  e: EventRow,
+  s?: SessionRow,
+) {
+  const rows = (
+    await client.query<BookingRow>(
+      "SELECT b.* FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=$1 AND ($2::uuid IS NULL OR s.id=$2) AND b.status=ANY($3::text[])",
+      [e.id, s?.id ?? null, activeStatuses],
+    )
+  ).rows;
+  for (const b of rows)
+    await notify(client, {
+      accountId: b.user_id,
+      key: `booking:${b.id}:change:${e.address_version}:${s?.time_version ?? 0}`,
+      type: "SESSION_CHANGED",
+      title: "Activity details changed",
+      body: `${e.title}: ${s ? "session time" : "address"} changed. You may cancel for a full refund until the session starts.`,
+      link: `/bookings/${b.id}`,
+    });
+}

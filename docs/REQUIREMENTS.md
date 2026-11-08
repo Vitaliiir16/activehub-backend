@@ -147,7 +147,7 @@ Blocking an organizer hides its events and prevents new bookings; existing booki
 
 ## 7.5. Booking rules
 
-Creation requires active USER, ACTIVE event/organizer, SCHEDULED session, permitted time cutoff (Q-03 unresolved), permitted seats and sufficient capacity, no other active booking by that user for that session, and no other active booking for HALL_RENTAL. Atomically reserve capacity, price snapshot, applicable subscription visits and [S] redeemed points; free quota also needs atomic accounting after Q-02.
+Creation requires active USER, ACTIVE event/organizer, SCHEDULED session, `startsAt - captured serverNow >= bookingCutoff` (inclusive, owner-approved Q-03; exactly 30 minutes is permitted by default), permitted seats and sufficient capacity, no other active booking by that user for that session, and no other active booking for HALL_RENTAL. Atomically reserve capacity, price snapshot, applicable subscription visits and [S] redeemed points; free quota also needs atomic accounting after Q-02. Subscription/loyalty effects remain stage 08-09 dependencies rather than being simulated in stages 06-07.
 
 MANUAL starts PENDING. AUTO starts AWAITING_PAYMENT if positive card amount is due, otherwise CONFIRMED (zero price/subscription). Active states occupy places: PENDING, AWAITING_PAYMENT, CONFIRMED. Terminal states are irreversible: REJECTED, CANCELLED, EXPIRED, COMPLETED.
 
@@ -242,7 +242,7 @@ Jobs run without user actions, persist state in PostgreSQL, survive restarts and
 
 ## 9. Invariants
 
-The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01/Q-03 identify actual wording conflicts rather than silently resolving them.
+The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01 remains an unresolved wording conflict; Q-03 has the approved inclusive interpretation in section 7.5.
 
 ## 10. Validation
 

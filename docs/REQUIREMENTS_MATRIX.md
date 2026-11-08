@@ -4,7 +4,18 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
-### Stage 04 accounts and access
+### Stages 05-07 catalog, bookings and payments
+
+| Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
+|---|---|---|---|
+| M-017, M-022-M-027, M-037-M-043; BR-13/14/16 | Authenticated catalog, organizer details, URL filters/paging, owned events/sessions/photos, publishing and recommendations foundation | Real API catalog smoke; marketplace browser creates/discovers an event; capacity/delete guards and immutable kind via strict DTOs | Plans/chat; complete recommendation statistics and broad filter/photo/field combinations |
+| M-028-M-030, M-040/M-042-M-044, M-057-M-067; BR-02-09/15/17/22 | Card/free reservation lifecycle, history, MANUAL decisions, deadlines, list/week-month calendar, cancellation and changed-details rights | scripts/verify-marketplace.mjs: concurrency, ownership, expiry/completion, frozen price, cascade and retry checks; real browser booking/reload/cancellation | Subscription visits, points/quota compensation; all transition/calendar/DST permutations; full communications |
+| M-068-M-071; BR-06/11/15 | Simulated attempts, decline/retry, receipt, full refund, HMAC idempotency, integer price snapshots | Required success/decline cards, repeat payment/cancel, refund uniqueness, DB response/PAN/CVV checks and browser receipt/refund | Loyalty pricing/free quota/card discount; subscription bypass; exhaustive card-format matrix |
+| Originating subset of M-083/M-096/M-097 | Durable lifecycle notifications/outbox plus minute expiry/completion jobs | PostgreSQL schedule/state, duplicate transition checks; existing SMTP dispatcher reused | Complete notification recipient/preference matrix, reminders, subscription/loyalty/chat jobs and crash fault injection |
+
+Q-03 is approved as inclusive (equal to the cutoff is allowed). Q-01/Q-02/Q-04/Q-05 remain open. No grouped requirement spanning later stages is marked fully complete. See [MARKETPLACE_REVIEW.md](MARKETPLACE_REVIEW.md) and current [progress](PROGRESS.md).
+
+### Stage 04 accounts and access (historical)
 
 | Requirements | Delivered subset | Actual evidence | Still planned |
 |---|---|---|---|
@@ -90,7 +101,7 @@ The foundation table records the earlier snapshot; stage 04 evidence above super
 | M-054 | 7.4.5-6 | Admin subscription view/archive, dictionary editing and all loyalty configuration | 09, 11 | Archive continuity and configuration validation/use |
 | M-055 | 7.4.7 | First admin from environment; admin-only API and form creates another by email/password/name | 02, 04 | Clean seed/reseed and role-denied creation; form success |
 | M-056 | 7.4.7 | Block other admins, no self block/delete, never remove last active admin | 04, 11 | Concurrent disable/delete and self-operation denial |
-| M-057 | 7.5.1 | Active USER/event/organizer/scheduled session, cutoff, capacity, no duplicate user or hall booking | 06 | Every failed predicate and atomic successful reservation; Q-03 |
+| M-057 | 7.5.1 | Active USER/event/organizer/scheduled session, cutoff, capacity, no duplicate user or hall booking | 06 | Every failed predicate and atomic successful reservation; Q-03 approved inclusive |
 | M-058 | 7.5.1 | Reserve seats/price/visits and initial state based on mode and amount | 06-09 | MANUAL/AUTO x card/free/subscription cases and rollback |
 | M-059 | 7.5.2 | All seven states; active occupy capacity; terminal states irreversible | 06 | Complete transition matrix with allowed/denied edges |
 | M-060 | 7.5.2 | Organizer approve/reject; approval starts capped payment deadline | 06-07 | Paid/unpaid/free/subscription approval, optional rejection reason |
@@ -147,7 +158,7 @@ The foundation table records the earlier snapshot; stage 04 evidence above super
 | BR-01 | 9 | Unique global email, noncombined roles | 04 | Cross-role duplicate email concurrency and role assignment |
 | BR-02 | 9 | Capacity never exceeded under concurrency | 06 | Parallel last-seat claims against PostgreSQL |
 | BR-03 | 9 | At most one active user booking/session | 06 | Duplicate simultaneous request, terminal prior booking allows new one |
-| BR-04 | 9 | Active event/organizer, scheduled session, configured cutoff | 06 | All predicates plus below/equal/above boundary; Q-03 |
+| BR-04 | 9 | Active event/organizer, scheduled session, configured cutoff | 06 | All predicates plus below/equal/above boundary; Q-03 approved inclusive |
 | BR-05 | 9 | Terminal states irreversible | 06 | Deny every outgoing terminal transition |
 | BR-06 | 9 | Refund/visits/points restoration/reversal once per booking | 07-10 | Duplicate cancel, worker retry and race; Q-01 |
 | BR-07 | 9 | User and organizer ownership isolation | 04-13 | Foreign-ID reads/writes across each resource |

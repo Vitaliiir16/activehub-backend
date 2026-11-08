@@ -68,7 +68,7 @@ export async function actor(
   if (!value) throw new HttpError(401, "UNAUTHENTICATED", "Please sign in");
   const result = await client.query(
     `SELECT a.id,a.email,a.role,a.status,s.id AS session_id,s.expires_at FROM account_sessions s
-    JOIN accounts a ON a.id=s.account_id WHERE s.token_hash=$1 AND s.expires_at>now() FOR UPDATE OF a,s`,
+    JOIN accounts a ON a.id=s.account_id WHERE s.token_hash=$1 AND s.expires_at>now() FOR NO KEY UPDATE OF a,s`,
     [digest(value)],
   );
   const row = result.rows[0];

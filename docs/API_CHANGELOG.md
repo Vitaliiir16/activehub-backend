@@ -1,5 +1,13 @@
 # API change history
 
+## 0.3.0 - 2026-11-08
+
+Implemented stages 05–07: authenticated organizers/events/sessions/photos and recommendations, owned catalog management, booking lists/details/decisions/cancellation and simulated card attempts/receipts/refunds. There are 112 operations: 62 implemented and 50 planned. The two new read operations serve authenticated event photos and organizer logos. Other administrative screens, subscriptions, loyalty, chat and recovery remain planned.
+
+Added optional trainer names, booking action/changed-details flags and refunded-at receipts. Until stages 08–09, booking creation accepts CARD only, with zero-price bookings becoming FREE; subscriptionUsedId is null and pointsRedeemed is zero. These values do not claim implemented benefit calculations. Strict DTOs reject role, price and subscription injection. Q-03 uses the approved inclusive cutoff; other open questions remain unresolved.
+
+UUID idempotency keys replay successful mutation responses for 24 hours; changed payloads conflict. Payment fingerprints use HMAC, not stored card input. A declined payment returns a persisted FAILED attempt with HTTP 201; intentional retry requires a new key. New keys cannot charge a confirmed/refunded booking. Catalog changes preserve booking price snapshots and use revision counters for changed-time/address cancellation rights.
+
 ## 0.2.0 - 2026-11-08
 
 Implemented stage 04 account registration/login/session/logout, own role-specific profiles, password changes, notification preferences, validated owned images, dictionaries, welcome notification reading and ADMIN-only creation/blocking. Twenty-one route operations now match implemented OpenAPI status; 89 remain planned. Added /api/media/{id} for authenticated owner image reads.

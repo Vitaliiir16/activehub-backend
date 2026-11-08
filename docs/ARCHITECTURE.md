@@ -1,10 +1,10 @@
 # Architecture proposal
 
-Status: accounts/access and welcome delivery are implemented; the remaining product architecture is proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
+Status: accounts/access, catalog, card/free bookings and simulated payments are implemented. Subscriptions, loyalty and remaining product architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
 
 ## Shape of the system
 
-Implemented: thin routes in src/app/api call src/modules/accounts/service.ts; security.ts checks sessions/CSRF/origins, validation.ts defines strict role DTOs, profiles.ts owns profile/reference mapping, and images.ts handles decoded owned files. PostgreSQL transactions hold account locks across validation and writes; status changes revoke sessions with a database trigger. Migrations/required seeds run under the initialization advisory lock. scripts/worker.ts dispatches only welcome outbox records through the WelcomeMail port and MailpitWelcomeMail Adapter in src/infrastructure/welcome-mail.ts, with row claims, retries and graceful shutdown. The frontend uses generated types, src/api/client.ts, SessionProvider and role-specific routes/forms. compose.yaml wires these processes to PostgreSQL, shared uploads and Mailpit. Other application services, financial/domain policies and background jobs remain proposed.
+Implemented: thin routes in src/app/api call src/modules/accounts/service.ts; security.ts checks sessions/CSRF/origins, validation.ts defines strict role DTOs, profiles.ts owns profile/reference mapping, and images.ts handles decoded owned files. PostgreSQL transactions hold account locks across validation and writes; status changes revoke sessions with a database trigger. Migrations/required seeds run under the initialization advisory lock. scripts/worker.ts dispatches queued outbox records through the WelcomeMail port and MailpitWelcomeMail Adapter in src/infrastructure/welcome-mail.ts, with row claims, retries and graceful shutdown. The frontend uses generated types, src/api/client.ts, SessionProvider and role-specific routes/forms. compose.yaml wires these processes to PostgreSQL, shared uploads and Mailpit. The stage 05-07 implementation below adds booking and payment services, seat policies and persisted lifecycle jobs. Later subscription/loyalty/chat services remain proposed.
 
 Use a modular monolith for the Next.js REST backend and a separate React TypeScript frontend. PostgreSQL is the transactional authority. Shared file storage holds uploads. A separate worker process uses the same backend build and persisted database state. This keeps cross-feature booking compensation within a database transaction without introducing distributed-service overhead.
 
@@ -94,3 +94,35 @@ Avoid Singleton for settings: a unique database row plus injected configuration 
 Implemented GoF: Adapter, specifically WelcomeMail/MailpitWelcomeMail in src/infrastructure/welcome-mail.ts. Its comment and README index name the roles and search command. Registration records notification and email intent transactionally; delivery consumes persisted records without invoking pricing/loyalty observers. An outbox alone is not claimed as a GoF Observer. The initial card metadata stored with user profiles does not implement loyalty behavior. SOLID/GRASP already visible here include cohesive transport/security/profile/mail responsibilities, server-owned identity as Information Expert, thin route controllers and a narrow mail port that separates registration from SMTP details. The other pattern choices above remain proposed.
 
 Add only brief English comments at actual pattern implementations naming the pattern, its roles and reason. Optional file headers may identify ActiveHub and describe the file's purpose; avoid repetitive commentary. Update README with a table of implemented pattern, purpose, actual source path/symbol and a reproducible search such as `rg -n 'Strategy|State|Adapter' src` only when those symbols exist. The final class diagram must show real collaborations and be compared to the code. Frontend patterns need their own justification; they need not mirror backend patterns.
+
+## Implemented marketplace modules
+
+Thin REST adapters call catalog.ts/photos.ts/bookings.ts/payments.ts in src/modules/marketplace. core.ts owns transactional access, keyed idempotency and notification insertion. policies.ts implements SeatPolicy Strategy variants for ordinary seats, single participants and exclusive hall units. PaymentGateway is the narrow simulation port; SimulatedCardGateway is its Adapter. These are actual implementations with English pattern comments and README search entries. The lifecycle transition table and SQL terminal-state trigger are ordinary state validation, not a claimed GoF State implementation. A future price Chain of Responsibility and outbox Observer remain proposed.
+
+Locks follow account/session authentication -> event -> event session -> booking -> payment. Account rows use FOR NO KEY UPDATE to retain revocation serialization while permitting foreign-key key-share checks. Capacity is the sum of active booking seats; partial unique indexes prevent duplicate active user/session reservations and exclusive hall bookings. All catalog edits and cancellation cascades take the same event lock. Derived capacity, payment/refund records, history and notifications commit or roll back together. Prices use integer minor units and immutable booking snapshots. Address/time revision counters retain exceptional cancellation eligibility.
+
+The PostgreSQL background_runs row schedules minute lifecycle batches with SKIP LOCKED. Due bookings are rechecked under the normal locks. Terminal transitions and unique event/refund keys prevent repeat effects. The worker retains its existing SMTP outbox and graceful signal handling. SMTP delivery itself still has the known acceptance/commit crash window.
+
+```mermaid
+flowchart TD
+  Routes[Next.js route adapters] --> Catalog[catalog.ts / photos.ts]
+  Routes --> Bookings[bookings.ts application functions]
+  Routes --> Payments[payments.ts application function]
+  Bookings --> Strategy[SeatPolicy strategies: policies.ts]
+  Payments --> Gateway[PaymentGateway interface]
+  Simulator[SimulatedCardGateway Adapter] -.implements.-> Gateway
+  Payments --> Bookings
+  Catalog --> Bookings
+  Bookings --> Records[payment-records.ts refund functions]
+  Worker[scripts/worker.ts] --> Jobs[runBookingJobs]
+  Jobs --> Bookings
+  Bookings --> DB[(PostgreSQL bookings / history / payments / refunds)]
+  Catalog --> DB
+  Records --> DB
+  Jobs --> Schedule[(background_runs)]
+  Bookings --> Outbox[(notifications / email_outbox)]
+  Worker --> SMTP[Existing SMTP Adapter]
+  SMTP --> Outbox
+```
+
+Future subscriptions/loyalty compensation must join the existing transaction and preserve original award/visit/price snapshots. No fake visits, free quota or points are written by the current delivery.
