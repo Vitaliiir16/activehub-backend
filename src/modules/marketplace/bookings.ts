@@ -237,6 +237,75 @@ const createInput = z.strictObject({
   paymentMethod: z.enum(["CARD", "SUBSCRIPTION"]),
   subscriptionId: z.uuid().optional(),
 });
+export async function previewBooking(request: Request) {
+  const input = createInput.parse(await jsonBody(request));
+  if ((input.paymentMethod === "SUBSCRIPTION") !== !!input.subscriptionId)
+    invalid(
+      "subscriptionId",
+      "Select a subscription only for subscription payment",
+    );
+  return access(
+    request,
+    async (client, current) => {
+      const e = await eventRow(
+        client,
+        await sessionEventId(client, input.sessionId),
+        undefined,
+        true,
+      );
+      const s = (
+        await client.query<SessionRow>(
+          "SELECT * FROM event_sessions WHERE id=$1 FOR UPDATE",
+          [input.sessionId],
+        )
+      ).rows[0];
+      const now = new Date();
+      if (
+        e.status !== "ACTIVE" ||
+        s.status !== "SCHEDULED" ||
+        s.is_deleted ||
+        !(
+          await client.query(
+            "SELECT id FROM accounts WHERE id=$1 AND status='ACTIVE'",
+            [e.organizer_id],
+          )
+        ).rowCount
+      )
+        conflict("This session is unavailable");
+      if (!withinCutoff(s.starts_at, now, settings().cutoffSeconds))
+        conflict("The booking cutoff has passed");
+      seatPolicy(e.kind).validate(input.seats);
+      const quote = await quoteBooking(
+        client,
+        current.id,
+        e,
+        s,
+        input.seats,
+        !!input.subscriptionId,
+        now,
+      );
+      if (input.subscriptionId)
+        await reserveVisits(
+          client,
+          input.subscriptionId,
+          current.id,
+          e,
+          s,
+          input.seats,
+          false,
+        );
+      return Response.json({
+        seats: input.seats,
+        subscriptionId: input.subscriptionId ?? null,
+        basePriceMinor: quote.basePriceMinor,
+        discountBreakdown: quote.discounts,
+        amountDueMinor: quote.amountDueMinor,
+      });
+    },
+    ["USER"],
+    true,
+  );
+}
 export async function createBooking(request: Request) {
   const input = createInput.parse(await jsonBody(request));
   if ((input.paymentMethod === "SUBSCRIPTION") !== !!input.subscriptionId)
@@ -506,7 +575,14 @@ export async function cancelBooking(
             if (scope === "user" && !userCanCancel(b, e, s))
               conflict("The cancellation deadline has passed");
             if (scope === "admin")
-              await audit(client, current.id, "BOOKING_CANCEL", "BOOKING", b.id, input.reason ?? null);
+              await audit(
+                client,
+                current.id,
+                "BOOKING_CANCEL",
+                "BOOKING",
+                b.id,
+                input.reason ?? null,
+              );
             await transition(
               client,
               b,
@@ -615,7 +691,11 @@ const adminListInput = listInput
 export function listBookings(request: Request, owned = false, admin = false) {
   const input = (admin ? adminListInput : listInput).parse(
     Object.fromEntries(new URL(request.url).searchParams),
-  ) as z.infer<typeof listInput> & { id?: string; userId?: string; eventName?: string };
+  ) as z.infer<typeof listInput> & {
+    id?: string;
+    userId?: string;
+    eventName?: string;
+  };
   return access(
     request,
     async (client, current) => {
@@ -624,7 +704,13 @@ export function listBookings(request: Request, owned = false, admin = false) {
         values.push(v);
         return `$${values.length}`;
       };
-      const where = [admin ? "$1::uuid IS NOT NULL" : owned ? "e.organizer_id=$1" : "b.user_id=$1"];
+      const where = [
+        admin
+          ? "$1::uuid IS NOT NULL"
+          : owned
+            ? "e.organizer_id=$1"
+            : "b.user_id=$1",
+      ];
       if (input.id) where.push(`b.id=${bind(input.id)}`);
       if (input.userId) where.push(`b.user_id=${bind(input.userId)}`);
       if (input.eventName)

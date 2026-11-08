@@ -391,6 +391,7 @@ export async function reserveVisits(
   e: EventRow,
   s: SessionRow,
   seats: number,
+  reserve = true,
 ) {
   const sub = (
     await c.query<SubRow>(
@@ -411,7 +412,7 @@ export async function reserveVisits(
     (sub.visits_left !== null && sub.visits_left < seats)
   )
     conflict("This subscription does not cover the session or enough visits");
-  if (sub.visits_left !== null)
+  if (reserve && sub.visits_left !== null)
     await c.query(
       "UPDATE user_subscriptions SET visits_left=visits_left-$2,status=CASE WHEN visits_left=$2 THEN 'EXHAUSTED' ELSE 'ACTIVE' END,updated_at=clock_timestamp() WHERE id=$1",
       [id, seats],

@@ -7362,7 +7362,7 @@ paths:
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
