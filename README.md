@@ -1,6 +1,6 @@
 # ActiveHub backend
 
-ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Subscriptions, loyalty, chat, reminders and complete reporting remain planned.
+ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Loyalty, chat, reminders and complete reporting remain planned.
 
 ## Start
 
@@ -62,7 +62,7 @@ GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap ch
 - [OpenAPI](docs/openapi.yaml), [conventions](docs/API_CONVENTIONS.md), [changelog](docs/API_CHANGELOG.md) and [account acceptance](docs/ACCOUNTS_ACCEPTANCE.md)
 - [Architecture](docs/ARCHITECTURE.md), [models](docs/MODELING.md) and [open decisions](docs/ASSUMPTIONS.md)
 
-OpenAPI 0.3.0 marks 62 of 112 operations implemented. Q-03 is approved as an inclusive cutoff; Q-01/Q-02/Q-04/Q-05 remain open. Persisted booking expiry/completion runs in the worker. Subscription/loyalty benefits, reminders and optional recovery remain planned. This delivery stops after stage 07. See [marketplace review](docs/MARKETPLACE_REVIEW.md) for manual checks and test limits.
+OpenAPI 0.4.0 includes the stage 08 subscription operations. Q-03 is approved as an inclusive cutoff; Q-01/Q-02/Q-04/Q-05 remain open. Persisted booking expiry/completion runs in the worker. Subscription/loyalty benefits, reminders and optional recovery remain planned. This delivery stops after stage 07. See [marketplace review](docs/MARKETPLACE_REVIEW.md) for manual checks and test limits.
 
 ## Implemented design patterns
 
@@ -73,3 +73,7 @@ OpenAPI 0.3.0 marks 62 of 112 operations implemented. Q-03 is approved as an inc
 | Adapter | Isolate card simulation behind the payment port | [payment-gateway.ts](src/modules/marketplace/payment-gateway.ts): PaymentGateway, SimulatedCardGateway; search: `rg -n SimulatedCardGateway src` |
 
 Other GoF collaborations in the architecture and UML remain proposed. The profile/session functions are not presented as invented pattern implementations.
+
+## Subscriptions
+
+Organizer Plans and My subscriptions are available. Purchases preserve price, duration, visits and scope; plan edits/archive affect future purchases only. Subscription bookings consume one visit per place and return visits once on reject/cancel/expiry. Subscription purchases are non-refundable. Apply migration 007 with `docker compose up --build --wait`; existing data is retained. Corporate loyalty remains stage 09.

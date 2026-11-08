@@ -1,5 +1,9 @@
 # API change history
 
+## 0.4.0 - Subscriptions
+
+Implemented organizer plans and public purchasable plans; user subscription purchase/read/list; immutable term snapshots and direction display names; CARD/SUBSCRIPTION booking choice. Failed purchase attempts create no subscription. UUID request keys replay purchases; only last4 and an HMAC fingerprint are persisted. Visits are reserved per place under a subscription row lock and returned once through a booking-keyed ledger. Archived plans do not invalidate purchases. Subscription purchases have no refund route. Hourly expiry is persisted; current expiry also gates reads/use. Corporate loyalty and Q-04 remain stage 09. No optional expiry notices.
+
 ## 0.3.0 - 2026-11-08
 
 Implemented stages 05–07: authenticated organizers/events/sessions/photos and recommendations, owned catalog management, booking lists/details/decisions/cancellation and simulated card attempts/receipts/refunds. There are 112 operations: 62 implemented and 50 planned. The two new read operations serve authenticated event photos and organizer logos. Other administrative screens, subscriptions, loyalty, chat and recovery remain planned.
