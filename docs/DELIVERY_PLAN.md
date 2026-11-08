@@ -24,7 +24,7 @@ Stages 00-10 are merged and stage 11 administration is implemented on feature/11
 
 The dependency table is not permission to call unfinished integration complete. Notification event types and outbox hooks must be designed with their originating features; stage 10 completes delivery and rechecks all previous triggers. Cancellation crosses bookings, money, visits, points and quota: stages 06-09 stay provisionally integrated until joint tests pass. Base price/promotion snapshots appear before loyalty; stage 09 completes the required final pricing pipeline. Q-01 affects spent-point reversals most directly when [S] redemption is added, but the rule must be settled before claiming the full ledger safe. Unrelated scaffolding/catalog work can proceed while questions remain open.
 
-Stages 05-11 have implementation and risk-based evidence in PROGRESS.md. Q-01/Q-02/Q-03/Q-04 are approved; Q-05 remains open. The joint financial regression combines the marketplace and loyalty suites; stage 10 rechecks every notification trigger in scripts/verify-communications.mjs.
+Stages 00-13 now have implementation records and bounded evidence in PROGRESS.md and FINAL_ACCEPTANCE.md. Q-01 through Q-05 have recorded owner decisions; the dedicated administrator list is optional. Stage 13 reused the marketplace and loyalty risk suites and targeted changed UI, demo persistence and subscription revenue. The matrix distinguishes checked behavior from implementation not fully reverified in this run. Optional stage 14 remains excluded.
 
 ## API synchronization
 

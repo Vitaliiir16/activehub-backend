@@ -64,3 +64,7 @@ Implemented `GET /api/health` returns a database-aware readiness response with `
 Defined planned cookie sessions, CSRF/origin checks, access scopes, errors, pagination, filters, integer minor-unit money, UTC instants and idempotency. Q-01 through Q-05 remain unresolved. See [API_CONVENTIONS.md](API_CONVENTIONS.md) for boundaries and synchronization.
 
 Review added cross-event organizer session queries and administrator access to an organizer's aggregate statistics. User cancellation accepts an optional reason; organizer/administrator cancellation still requires one. These are planned contract definitions only.
+
+## 0.9.0 - Final acceptance
+
+Implemented POST /api/bookings/quote with USER/session/CSRF checks. It returns current ordered server pricing without reserving seats, visits or free quota; creation still recalculates atomically. Owner-approved organizer monthly revenue includes its subscription sales and booking payments minus booking refunds. Optional recovery, schedule generation and administrator-list operations remain planned. Readiness now checks migrations through 011; demo support is explicit and non-destructive.
