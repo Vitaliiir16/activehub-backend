@@ -2904,12 +2904,11 @@ paths:
       tags:
         - Member
       summary: Attempt simulated payment
-      description: Stage 07 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.

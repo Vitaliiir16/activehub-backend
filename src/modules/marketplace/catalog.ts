@@ -15,7 +15,8 @@ import {
 import type { EventRow, SessionRow } from "./types";
 
 import { cancelSessionBookings, notifyChanged } from "./bookings";
-export const occupancy = "(SELECT coalesce(sum(b.seats),0) FROM bookings b WHERE b.session_id=s.id AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED'))";
+export const occupancy =
+  "(SELECT coalesce(sum(b.seats),0) FROM bookings b WHERE b.session_id=s.id AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED'))";
 export async function eventRow(
   client: PoolClient,
   id: string,
@@ -43,7 +44,16 @@ export async function visibleEvent(
 ) {
   const row = await eventRow(client, id);
   if (current.role === "ADMIN" || current.id === row.organizer_id) return row;
-if(current.role==="USER"&&(await client.query("SELECT b.id FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE b.user_id=$1 AND s.event_id=$2 LIMIT 1",[current.id,id])).rowCount)return row;
+  if (
+    current.role === "USER" &&
+    (
+      await client.query(
+        "SELECT b.id FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE b.user_id=$1 AND s.event_id=$2 LIMIT 1",
+        [current.id, id],
+      )
+    ).rowCount
+  )
+    return row;
   if (
     row.status !== "ACTIVE" ||
     !(
@@ -468,9 +478,28 @@ export async function updateEvent(request: Request, id: string, admin = false) {
           : input.promoPriceMinor,
         input.promoUntil === undefined ? old.promo_until : input.promoUntil,
       );
-      const booked=!!(await client.query("SELECT b.id FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=$1 AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED') LIMIT 1",[id])).rowCount;
-if(booked&&((input.cityId&&input.cityId!==old.city_id)||(input.directionId&&input.directionId!==old.direction_id)))conflict("City and direction cannot change with active bookings");
-if(input.seatsPerSession!==undefined&&(await client.query(`SELECT s.id FROM event_sessions s WHERE s.event_id=$1 AND s.status='SCHEDULED' AND s.starts_at>now() AND ${occupancy}>$2 LIMIT 1`,[id,input.seatsPerSession])).rowCount)conflict("Capacity cannot be below reserved places");
+      const booked = !!(
+        await client.query(
+          "SELECT b.id FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=$1 AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED') LIMIT 1",
+          [id],
+        )
+      ).rowCount;
+      if (
+        booked &&
+        ((input.cityId && input.cityId !== old.city_id) ||
+          (input.directionId && input.directionId !== old.direction_id))
+      )
+        conflict("City and direction cannot change with active bookings");
+      if (
+        input.seatsPerSession !== undefined &&
+        (
+          await client.query(
+            `SELECT s.id FROM event_sessions s WHERE s.event_id=$1 AND s.status='SCHEDULED' AND s.starts_at>now() AND ${occupancy}>$2 LIMIT 1`,
+            [id, input.seatsPerSession],
+          )
+        ).rowCount
+      )
+        conflict("Capacity cannot be below reserved places");
       const columns: Record<string, string> = {
         title: "title",
         description: "description",
@@ -494,7 +523,8 @@ if(input.seatsPerSession!==undefined&&(await client.query(`SELECT s.id FROM even
           [...values, id],
         )
       ).rows[0];
-      if(input.address&&input.address!==old.address)await notifyChanged(client,row);
+      if (input.address && input.address !== old.address)
+        await notifyChanged(client, row);
       if (input.seatsPerSession !== undefined)
         await client.query(
           "UPDATE event_sessions SET seats_total=$1,updated_at=now() WHERE event_id=$2 AND status='SCHEDULED' AND starts_at>now()",
@@ -572,8 +602,20 @@ export async function cancelEvent(
               "UPDATE events SET status=$1,updated_at=now() WHERE id=$2",
               [remove ? "DELETED" : "CANCELLED", id],
             );
-          const sessions=(await client.query<SessionRow>("SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE",[id])).rows;
-for(const s of sessions)await cancelSessionBookings(client,row,s,{id:current.id,role:current.role},input.reason);
+          const sessions = (
+            await client.query<SessionRow>(
+              "SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE",
+              [id],
+            )
+          ).rows;
+          for (const s of sessions)
+            await cancelSessionBookings(
+              client,
+              row,
+              s,
+              { id: current.id, role: current.role },
+              input.reason,
+            );
           await client.query(
             "UPDATE event_sessions SET status='CANCELLED',updated_at=now() WHERE event_id=$1 AND status='SCHEDULED'",
             [id],
@@ -709,7 +751,15 @@ export async function updateSession(request: Request, id: string) {
       ).rows[0];
       if (old.status !== "SCHEDULED")
         conflict("Only scheduled sessions may be edited");
-      if((await client.query(`SELECT s.id FROM event_sessions s WHERE s.id=$1 AND ${occupancy}>$2`,[id,input.seatsTotal])).rowCount)conflict("Capacity cannot be below reserved places");
+      if (
+        (
+          await client.query(
+            `SELECT s.id FROM event_sessions s WHERE s.id=$1 AND ${occupancy}>$2`,
+            [id, input.seatsTotal],
+          )
+        ).rowCount
+      )
+        conflict("Capacity cannot be below reserved places");
       await validateSession(client, e.id, input, id);
       const changed =
         old.starts_at.toISOString() !==
@@ -721,7 +771,7 @@ export async function updateSession(request: Request, id: string) {
           [input.startsAt, input.endsAt, input.seatsTotal, changed ? 1 : 0, id],
         )
       ).rows[0];
-      if(changed)await notifyChanged(client,e,s);
+      if (changed) await notifyChanged(client, e, s);
       return Response.json(await sessionDto(client, s, e.kind));
     },
     ["ORGANIZER"],
@@ -744,9 +794,30 @@ export async function cancelSession(
           current,
           true,
         );
-        const before=(await client.query<SessionRow>("SELECT * FROM event_sessions WHERE id=$1 FOR UPDATE",[id])).rows[0];
-if(remove&&(await client.query(`SELECT s.id FROM event_sessions s WHERE s.id=$1 AND ${occupancy}>0`,[id])).rowCount)conflict("Cancel active bookings before removing a session");
-if(!remove)await cancelSessionBookings(client,e,before,{id:current.id,role:current.role},"reason" in input?input.reason as string:"Session cancelled");
+        const before = (
+          await client.query<SessionRow>(
+            "SELECT * FROM event_sessions WHERE id=$1 FOR UPDATE",
+            [id],
+          )
+        ).rows[0];
+        if (
+          remove &&
+          (
+            await client.query(
+              `SELECT s.id FROM event_sessions s WHERE s.id=$1 AND ${occupancy}>0`,
+              [id],
+            )
+          ).rowCount
+        )
+          conflict("Cancel active bookings before removing a session");
+        if (!remove)
+          await cancelSessionBookings(
+            client,
+            e,
+            before,
+            { id: current.id, role: current.role },
+            "reason" in input ? (input.reason as string) : "Session cancelled",
+          );
         const s = (
           await client.query<SessionRow>(
             `UPDATE event_sessions SET ${remove ? "is_deleted=true" : "status='CANCELLED'"},updated_at=now() WHERE id=$1 RETURNING *`,

@@ -43,6 +43,7 @@ try {
   await import("./check-health");
   await import("./check-health-contract.mjs");
   if (process.env.VERIFY_ACCOUNTS === "true") await import("./verify-accounts");
+  if (process.env.VERIFY_MARKETPLACE === "true") await import("./verify-marketplace.mjs");
   const secretValues = [
     process.env.INITIAL_ADMIN_PASSWORD,
     "ActiveHubTest123",
