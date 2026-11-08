@@ -1,0 +1,34 @@
+export type EventRow = {
+  id: string;
+  organizer_id: string;
+  title: string;
+  description: string;
+  kind: "TRAINING" | "SECTION" | "HALL_RENTAL" | "TEAM_SEARCH" | "EVENT";
+  direction_id: string;
+  city_id: string;
+  address: string;
+  skill: string;
+  age: string;
+  price_minor: number;
+  promo_price_minor: number | null;
+  promo_until: Date | null;
+  seats_per_session: number;
+  confirmation_mode: "AUTO" | "MANUAL";
+  trainer_name: string;
+  status: string;
+  address_version: number;
+  created_at: Date;
+  updated_at: Date;
+};
+export type SessionRow = {
+  id: string;
+  event_id: string;
+  starts_at: Date;
+  ends_at: Date;
+  seats_total: number;
+  status: string;
+  is_deleted: boolean;
+  time_version: number;
+  created_at: Date;
+  updated_at: Date;
+};

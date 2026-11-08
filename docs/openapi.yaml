@@ -840,11 +840,10 @@ paths:
       tags:
         - Member
       summary: Search visible events
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -1020,11 +1019,10 @@ paths:
       tags:
         - Member
       summary: Read an event
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -1073,11 +1071,10 @@ paths:
       tags:
         - Member
       summary: List future event sessions
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -1162,11 +1159,10 @@ paths:
       tags:
         - Member
       summary: Search organizers
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -1260,11 +1256,10 @@ paths:
       tags:
         - Member
       summary: Read organizer profile
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -1389,11 +1384,10 @@ paths:
       tags:
         - Member
       summary: Read personalized recommendations
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Server must enforce role, account status and resource scope before returning data.
@@ -1501,11 +1495,10 @@ paths:
       tags:
         - Organizer
       summary: List own sessions for dashboard and calendar
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -1597,11 +1590,10 @@ paths:
       tags:
         - Organizer
       summary: List own events
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -1785,12 +1777,11 @@ paths:
       tags:
         - Organizer
       summary: Create an event with sessions
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -1845,11 +1836,10 @@ paths:
       tags:
         - Organizer
       summary: get own event
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -1895,12 +1885,11 @@ paths:
       tags:
         - Organizer
       summary: patch own event
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -1954,12 +1943,11 @@ paths:
       tags:
         - Organizer
       summary: delete own event
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2016,12 +2004,11 @@ paths:
       tags:
         - Organizer
       summary: Pause or resume an event
-      description: Stage 05 delivery contract; implementation pending. Organizer may choose ACTIVE or PAUSED only.
-        BLOCKED is an administrator-only command.
+      description: Implemented. Organizer may choose ACTIVE or PAUSED only. BLOCKED is an administrator-only command.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2076,12 +2063,11 @@ paths:
       tags:
         - Organizer
       summary: Cancel event and active bookings
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2142,12 +2128,11 @@ paths:
       tags:
         - Organizer
       summary: Add an event session
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2208,12 +2193,11 @@ paths:
       tags:
         - Organizer
       summary: Change session time or capacity
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2267,12 +2251,11 @@ paths:
       tags:
         - Organizer
       summary: Remove a session without active bookings
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2317,12 +2300,11 @@ paths:
       tags:
         - Organizer
       summary: Cancel a session and active bookings
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2447,12 +2429,11 @@ paths:
       tags:
         - Organizer
       summary: Upload an event photo
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2515,12 +2496,11 @@ paths:
       tags:
         - Organizer
       summary: Set photo order and cover
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -2575,12 +2555,11 @@ paths:
       tags:
         - Organizer
       summary: Delete an event photo
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -5625,11 +5604,10 @@ paths:
       tags:
         - Administration
       summary: Read an event for moderation
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5675,12 +5653,11 @@ paths:
       tags:
         - Administration
       summary: Moderate event fields
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5734,12 +5711,11 @@ paths:
       tags:
         - Administration
       summary: Soft-delete an event and compensate bookings
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5800,12 +5776,11 @@ paths:
       tags:
         - Administration
       summary: Block or unblock an event
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5860,12 +5835,11 @@ paths:
       tags:
         - Administration
       summary: Cancel an event and compensate bookings
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5930,12 +5904,11 @@ paths:
       tags:
         - Administration
       summary: Moderate event photo order
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -5990,12 +5963,11 @@ paths:
       tags:
         - Administration
       summary: Remove an event photo
-      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
-        for authorization and domain constraints.
+      description: Implemented. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -7289,7 +7261,7 @@ paths:
       description: Stage 05 authenticated catalog media. No guest access.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-delivery-stage: "05"
       x-roles:
         - USER
@@ -7326,7 +7298,7 @@ paths:
       description: Stage 05 authenticated catalog media. No guest access.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-delivery-stage: "05"
       x-roles:
         - USER
