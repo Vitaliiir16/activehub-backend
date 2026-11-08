@@ -1,3 +1,4 @@
+import {limits} from "../../infrastructure/limits";
 import { z } from "zod";
 export const kind = z.enum([
   "TRAINING",
@@ -32,7 +33,7 @@ const eventFields = {
 export const eventCreate = z.strictObject({
   ...eventFields,
   kind,
-  sessions: z.array(sessionInput).min(1).max(60),
+  sessions: z.array(sessionInput).min(1).max(limits().sessions),
 });
 export const eventPatch = z
   .strictObject(eventFields)
