@@ -59,10 +59,10 @@ paths:
       tags:
         - Authentication
       summary: Get a session-bound CSRF token
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -105,11 +105,11 @@ paths:
       tags:
         - Authentication
       summary: Sign in
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -139,6 +139,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -158,11 +160,11 @@ paths:
       tags:
         - Authentication
       summary: Register a user
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -192,6 +194,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -211,13 +215,12 @@ paths:
       tags:
         - Authentication
       summary: Register an organizer
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints. Optional logo selection in the registration
-        UI uploads immediately after automatic sign-in; upload failure leaves the created account signed in
-        and offers retry in profile.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints. Optional logo selection in the registration UI uploads immediately after automatic
+        sign-in; upload failure leaves the created account signed in and offers retry in profile.
       security:
         - csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -247,6 +250,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -266,12 +271,12 @@ paths:
       tags:
         - Authentication
       summary: End the current session
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -296,6 +301,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -309,11 +316,11 @@ paths:
       tags:
         - Authentication
       summary: Read current session
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -457,11 +464,10 @@ paths:
       tags:
         - Member
       summary: List active cities
-      description: Stage 04 contract; implementation and verification pending. Guest access supports registration
-        only. Inactive values remain readable on existing authenticated records; they cannot be selected for
-        new records.
+      description: Implemented in stage 04. Guest access supports registration only. Inactive values remain readable
+        on existing authenticated records; they cannot be selected for new records.
       security: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -529,11 +535,10 @@ paths:
       tags:
         - Member
       summary: List active directions
-      description: Stage 04 contract; implementation and verification pending. Guest access supports registration
-        only. Inactive values remain readable on existing authenticated records; they cannot be selected for
-        new records.
+      description: Implemented in stage 04. Guest access supports registration only. Inactive values remain readable
+        on existing authenticated records; they cannot be selected for new records.
       security: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - GUEST
         - USER
@@ -601,11 +606,11 @@ paths:
       tags:
         - Member
       summary: Read own profile
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -646,12 +651,12 @@ paths:
       tags:
         - Member
       summary: Update own profile
-      description: Stage 04 contract; implementation and verification pending. Accept only fields belonging to the
-        caller role. Reject unknown or another role's fields. Admin contact edits never accept passwords.
+      description: Implemented in stage 04. Accept only fields belonging to the caller role. Reject unknown or
+        another role's fields. Admin contact edits never accept passwords.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -680,6 +685,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -699,12 +706,12 @@ paths:
       tags:
         - Member
       summary: Change own password
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -729,6 +736,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -748,12 +757,12 @@ paths:
       tags:
         - Member
       summary: Upload own profile photo or logo
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -781,6 +790,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -4130,12 +4141,11 @@ paths:
       tags:
         - Member
       summary: List own notifications
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints. Stage 04 emits welcome notifications only;
-        other notification triggers remain planned.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints. Stage 04 emits welcome notifications only; other notification triggers remain planned.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -4207,12 +4217,12 @@ paths:
       tags:
         - Member
       summary: Mark own notification read
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -4248,6 +4258,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -4261,12 +4273,12 @@ paths:
       tags:
         - Member
       summary: Mark own current notifications read
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -4295,6 +4307,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -4308,11 +4322,11 @@ paths:
       tags:
         - Member
       summary: Read email preferences
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -4353,12 +4367,11 @@ paths:
       tags:
         - Member
       summary: Set optional email preferences
-      description: Stage 04 contract; implementation and verification pending. In-app and BOOKINGS email cannot be
-        disabled.
+      description: Implemented in stage 04. In-app and BOOKINGS email cannot be disabled.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
         - ORGANIZER
@@ -4387,6 +4400,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -6913,12 +6928,12 @@ paths:
       tags:
         - Administration
       summary: Create an administrator
-      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
-        REQUIREMENTS.md for authorization and domain constraints.
+      description: Implemented in stage 04. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and domain
+        constraints.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -6945,6 +6960,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -7034,14 +7051,13 @@ paths:
       tags:
         - Administration
       summary: Block another administrator
-      description: Stage 04 contract; implementation and verification pending. Reject blocking self or the last
-        active administrator. Enforce transactionally under concurrent requests. No administrator deletion
-        endpoint is implemented. Self-block and last-active-admin checks serialize on a database advisory
-        lock.
+      description: Implemented in stage 04. Reject blocking self or the last active administrator. Enforce
+        transactionally under concurrent requests. No administrator deletion endpoint is implemented.
+        Self-block and last-active-admin checks serialize on a database advisory lock.
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -7075,6 +7091,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -7098,7 +7116,7 @@ paths:
         as WebP."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-delivery-stage: "04"
       x-roles:
         - USER
@@ -9654,8 +9672,10 @@ components:
             - VENUE
             - ORGANIZER
         phone:
-          type: string
-          pattern: ^\+[1-9][0-9]{7,14}$
+          anyOf:
+            - type: string
+              pattern: ^\+[1-9][0-9]{7,14}$
+            - type: "null"
         cityId:
           type: string
           format: uuid
@@ -9793,6 +9813,12 @@ components:
             type: integer
             minimum: 0
             maximum: 2147483647
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Error413:
+      description: Request exceeds the configured body or image size limit.
       content:
         application/json:
           schema:

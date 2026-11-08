@@ -23,10 +23,16 @@ for (const [path, item] of Object.entries(spec.paths)) {
     if (path.includes("conversations")) assert.ok(!operation["x-roles"].includes("ADMIN"));
   }
 }
-assert.deepEqual(implemented, ["GET /api/health"]);
+const actual = [];
 const files = await readdir("src/app/api", { recursive: true });
-assert.deepEqual(files.filter((file) => file.endsWith("route.ts")).map((file) => file.replaceAll("\\", "/")), ["health/route.ts"]);
+for (const file of files.filter((file) => file.endsWith("route.ts"))) {
+  const normalized = file.replaceAll("\\", "/");
+  const source = await readFile(`src/app/api/${normalized}`, "utf8");
+  const path = "/api/" + normalized.replace(/\/route\.ts$/, "").replace(/\[([^\]]+)\]/g, "{$1}");
+  for (const match of source.matchAll(/export\s+(?:const\s+|async\s+function\s+)(GET|POST|PATCH|PUT|DELETE)\b/g)) actual.push(`${match[1]} ${path}`);
+}
+assert.deepEqual(implemented.sort(), actual.sort(), "OpenAPI implemented status must match real route exports");
 for (const id of ["Q-01", "Q-02", "Q-03", "Q-04", "Q-05"]) {
   assert.ok(JSON.stringify(spec.paths).includes(id), `Missing unresolved decision ${id}`);
 }
-console.log(`PASS: ${count} operations; only health is implemented; planned access and CSRF declarations checked`);
+console.log(`PASS: ${count} operations; ${implemented.length} implemented route exports match OpenAPI; access and CSRF declarations checked`);
