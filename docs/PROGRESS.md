@@ -1,5 +1,17 @@
 # Delivery progress
 
+## Stage 08 - current delivery
+
+Stage 08 implements organizer plan create/edit/archive, all three plan types, immutable purchased terms, simulated card purchase without purchase refunds, own subscription pages/selection, transactional per-place visits, once-only returns on rejection/cancellation/expiry, exhaustion and hourly persisted expiry. Corporate loyalty remains stage 09; Q-04 is unchanged. Optional expiry messages are not implemented.
+
+Both PRs #4 were verified merged; clean worktrees advanced main by fast-forward and branched feature/08-subscriptions. Contract 0.4.0 was defined before code; frontend pins the backend implementation revision.
+
+Checks: backend/frontend typecheck and production build passed. Real PostgreSQL/API smoke passed purchase, two-place reservation/debit and cancellation restoration, plus immutable terms/continued usage after plan edits/archive. The targeted last-visit race produced one success and one conflict; zero visits became EXHAUSTED, repeated cancellation restored exactly one visit and ACTIVE. Scope/type combinations, CORPORATE/company paths, unlimited visits, worker expiry/REJECTED compensation and browser forms were not exercised in this reduced run. No full regression/E2E, screenshots or new broad test suite was run locally; existing CI is unchanged.
+
+Migration: `docker compose up --build --wait` from backend applies 007_subscriptions.sql through the existing initializer. Preserve existing volumes. Final PRs/revision pair are recorded in the local subscription handoff and PR descriptions. Stop after stage 08; next is stage 09 loyalty and shared compensation acceptance.
+
+## Historical stage 05-07 evidence
+
 Snapshot: 2026-11-08, Europe/Kyiv. Stages 05-07 are implemented for catalog, card/free bookings and simulated payments. Stop after stage 07. Subscription/loyalty integration remains unfinished for stages 08-09; the full communications matrix remains stage 10. Q-03 is approved; Q-01/Q-02/Q-04/Q-05 remain open.
 
 ## Stages 05-07

@@ -4,6 +4,10 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 08
+
+M-073 through M-076 and subscription subsets of M-027 through M-030/M-058/M-060/M-064/M-070/M-072 are implemented for plans, purchase, per-place visits and once-only restoration. Real API/DB evidence: monthly purchase/reservation/debit/cancellation; edit/archive snapshot continuity; concurrent last one-time visit and repeated cancellation. CORPORATE, unlimited, scope/validity combinations and worker/rejection paths are implemented but not exercised in this reduced run. Loyalty eligibility, points and Q-04 remain stage 09; optional expiry notices remain planned.
+
 ### Stages 05-07 catalog, bookings and payments
 
 | Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
