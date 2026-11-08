@@ -116,15 +116,19 @@ export async function notify(
 ) {
   const category = input.category ?? "BOOKINGS";
   let email = input.email ?? true;
-  if (category === "PROMOTIONS")
-    email =
-      email &&
-      (
-        await client.query(
-          "SELECT promotions_email FROM notification_settings WHERE account_id=$1",
-          [input.accountId],
-        )
-      ).rows[0]?.promotions_email;
+  const preference = {
+    REMINDERS: "reminders_email",
+    PROMOTIONS: "promotions_email",
+    LOYALTY: "loyalty_email",
+    MESSAGES: "messages_email",
+  }[category];
+  if (preference && email)
+    email = !!(
+      await client.query(
+        `SELECT ${preference} AS enabled FROM notification_settings WHERE account_id=$1`,
+        [input.accountId],
+      )
+    ).rows[0]?.enabled;
   const row = (
     await client.query(
       "INSERT INTO notifications(account_id,event_key,type,category,title,body,link,email_status) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(event_key) DO NOTHING RETURNING id",

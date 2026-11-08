@@ -1,10 +1,11 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.4.0
-  description: Accounts are implemented. Stages 05-07 deliver catalog, card bookings and simulated payments;
-    each operation declares its actual implementation status. Q-03 is approved as an inclusive cutoff.
-    Subscription and loyalty integration remain planned.
+  version: 0.5.0
+  description: Accounts, catalog, bookings, simulated payments, subscriptions and loyalty are implemented through
+    stage 09; each operation declares its actual implementation status. Approved decisions are listed in
+    x-decisions (Q-01 clamped reversal, Q-02 session month, Q-03 inclusive cutoff, Q-04 corporate card until
+    expiry). Q-05 remains open.
   license:
     name: Private project; no license granted
 servers:
@@ -2724,8 +2725,10 @@ paths:
         - Member
       summary: Reserve a session
       description: "Stage 06 card/free reservations. Lock event then session, enforce active-user uniqueness and
-        exclusive hall use. Q-03: startsAt - captured serverNow >= configured cutoff. Snapshot effective
-        event/promotion price only; subscription/loyalty effects remain incomplete until stages 08-09."
+        exclusive hall use. Q-03: startsAt - captured serverNow >= configured cutoff. Price snapshot order:
+        effective promotion price, card free access (Q-02: session month in Europe/Kyiv, one visit per
+        place), card discount (half-up to minor units), nonnegative due. Subscription payment skips the
+        card steps. Points are awarded once on CONFIRMED and reversed once on cancellation."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2733,7 +2736,7 @@ paths:
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
-      x-open-questions:
+      x-decisions:
         - Q-02
       parameters:
         - name: Idempotency-Key
@@ -2844,7 +2847,7 @@ paths:
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -3218,7 +3221,7 @@ paths:
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -3427,7 +3430,7 @@ paths:
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
-      x-open-questions:
+      x-decisions:
         - Q-04
       parameters:
         - name: Idempotency-Key
@@ -3771,15 +3774,14 @@ paths:
       tags:
         - Member
       summary: Read own card, points and usage
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Own card with configured benefits, balance, lifetime points, points to Premium, current Europe/Kyiv month free-visit usage, created booking count and completed attendance count. Reading applies automatic card rules (Q-04: Corporate lasts until the last corporate subscription expires) unless an administrator locked the card."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -3818,11 +3820,10 @@ paths:
       tags:
         - Member
       summary: Read own points ledger
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Own points ledger. Every balance change has a reason; REVERSAL records the amount actually deducted (Q-01: never below zero) and its note keeps the original award."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - USER
       x-ownership: Own user resources only; foreign identifiers return 404.
@@ -4847,7 +4848,7 @@ paths:
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -5182,7 +5183,7 @@ paths:
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -5293,16 +5294,15 @@ paths:
       tags:
         - Administration
       summary: Set or unlock a user card
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Set a USER card level with a reason, recorded in assignment history. A locked card is never changed automatically. An unlocked card follows automatic rules immediately, so an unlocked Corporate card requires an unexpired corporate subscription."
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-04
       parameters:
         - name: id
@@ -5352,16 +5352,15 @@ paths:
       tags:
         - Administration
       summary: Adjust points with a reason
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Add or deduct points with a reason as an ADMIN_ADJUST ledger entry. The balance cannot become negative. Adjustments change the spendable balance only, not lifetime points."
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
       parameters:
         - name: id
@@ -5720,7 +5719,7 @@ paths:
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -5844,7 +5843,7 @@ paths:
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -6194,7 +6193,7 @@ paths:
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
-      x-open-questions:
+      x-decisions:
         - Q-01
         - Q-02
         - Q-04
@@ -6841,11 +6840,10 @@ paths:
       tags:
         - Administration
       summary: Read three loyalty levels
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Read the three configured loyalty levels in STANDARD, PREMIUM, CORPORATE order."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -6884,12 +6882,11 @@ paths:
       tags:
         - Administration
       summary: Configure a loyalty level
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Replace one level configuration. Only Premium has a points threshold; free directions require a monthly free-visit quota. Changes apply to later bookings; existing price and award snapshots are unchanged."
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -6944,11 +6941,10 @@ paths:
       tags:
         - Administration
       summary: Read loyalty rules
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Read the single loyalty rules record. Redemption settings are stored for the optional redemption feature, which is not implemented."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -6986,12 +6982,11 @@ paths:
       tags:
         - Administration
       summary: Configure loyalty rules
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Replace loyalty rules. Changes apply to later awards; recorded awards and reversals keep their original amounts."
       security:
         - sessionCookie: []
           csrfToken: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -8374,6 +8369,7 @@ components:
         - paymentMethod
         - subscriptionUsedId
         - pointsRedeemed
+        - pointsAwarded
         - deadlineAt
         - cancelledBy
         - cancelReason
@@ -8457,7 +8453,14 @@ components:
         pointsRedeemed:
           type: integer
           const: 0
-          description: Planned for stage 09.
+          description: Optional points redemption is not implemented; always zero.
+        pointsAwarded:
+          anyOf:
+            - type: integer
+              minimum: 0
+              maximum: 2147483647
+            - type: "null"
+          description: Points awarded when the booking was confirmed; null before confirmation.
         deadlineAt:
           anyOf:
             - type: string
@@ -8957,6 +8960,7 @@ components:
         - bookingId
         - delta
         - reason
+        - note
       properties:
         id:
           type: string
@@ -8985,6 +8989,11 @@ components:
             - REVERSAL
             - REFUND_RESTORE
             - ADMIN_ADJUST
+        note:
+          anyOf:
+            - type: string
+              maxLength: 500
+            - type: "null"
     LoyaltySummary:
       type: object
       additionalProperties: false

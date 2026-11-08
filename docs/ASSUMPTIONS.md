@@ -16,9 +16,10 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 | P-03 | Implemented and verified | Opaque HTTP-only cookie sessions, persisted token digests, session-bound CSRF and exact Origin validation. Details and test boundaries are in API_CONVENTIONS.md and PROGRESS.md. |
 | P-04 | Contract defined; business calculations planned | JSON money uses integer UAH minor units; decimal rates use strings. Persist UTC instants and interpret calendar filters in Europe/Kyiv. Q-02 remains open; the later Q-03 decision below approves the inclusive cutoff. |
 | P-05 | Proposed technical choice | Polling is sufficient for live chat and counters initially, if it meets the no-manual-reload requirement. Choose the interval and test stale/out-of-order responses; SSE remains an option. |
+| D-06 | Owner instruction, 2026-11-08 | Deliver stage 09 loyalty on new branches after PRs #5 were merged. Commit and push are authorized; the owner creates and merges pull requests. Q-01, Q-02 and Q-04 are decided below; Q-05 remains open. |
 | P-06 | Source interpretation | A corporate subscription belongs to the purchasing user and covers multiple places; it is not a new company account or transferable shared login. A wider multi-account company pool would need a new requirement. |
 
-## Q-01: Reversing points that have already been spent
+## Q-01: Reversing points that have already been spent — approved
 
 Source: sections 7.5.2, 7.8.2 and BR-06/BR-23. Confirmation awards points immediately. Cancelling must reverse the original award once, while the spendable balance must never become negative. Clamping a reversal to the remaining balance would lose part of the obligation.
 
@@ -26,15 +27,15 @@ Proposal: keep a nonnegative available balance and a separate nonnegative revers
 
 Example for approval: award 100, redeem 80 elsewhere, then cancel the award's booking. Available 20 becomes 0, liability becomes 80; a later award of 50 reduces liability to 30. Money refunds still happen in full. Existing unrelated bookings are not cancelled. Test cancellation/redemption races, double cancellation, redeemed-point restoration and worker retries.
 
-Decision needed: approve the separate-liability model and how lifetime points and the UI represent it. Blocks reversal behavior involving already-spent points; the issue becomes especially relevant to optional redemption.
+Owner decision, 2026-11-08: clamp the reversal at zero instead of the liability proposal above. A reversal deducts `min(originalAward, availableBalance)`; the unrecoverable remainder is written off and recorded in the REVERSAL note. The ledger delta is the amount actually deducted. Optional redemption, when added, must revisit restored-point accounting under this rule.
 
-## Q-02: Which month owns free-visit quota?
+## Q-02: Which month owns free-visit quota? — approved
 
 Source: sections 7.6.1 and 7.8.1 refer to the current calendar month, without identifying booking time or session time.
 
 Proposal: use the session's calendar month in Europe/Kyiv. Reserve quota at creation with the booking's immutable pricing snapshot; each place consumes one visit. Release the reservation exactly once on REJECTED/CANCELLED/EXPIRED. Serialize reservations for a user and month. If a session moves to a different month, retain the original reservation and price for existing bookings; recalculate only after explicit user rebooking. This follows price snapshot protection but needs approval for the quota treatment. Show the current month's usage and future reservations separately.
 
-Decision needed: approve session-month ownership and cross-month rescheduling behavior. Test month ends, DST, multiple future bookings, partial quota, cancellation and concurrent requests. Blocks free-access quota semantics.
+Owner decision, 2026-11-08: approved as proposed. Free visits belong to the session's calendar month in Europe/Kyiv, are reserved at creation (one per place) and return once on REJECTED/CANCELLED/EXPIRED. A later session move keeps the original reservation and price.
 
 ## Q-03: Booking exactly 30 minutes before the start — approved
 
@@ -42,15 +43,15 @@ Source: section 7.5.1 uses a strict greater-than condition; BR-04 allows a start
 
 Owner decision for stages 05-07: use the inclusive rule `startsAt - serverNow >= bookingCutoff`. Exactly 30 minutes is allowed with the default setting. Capture server time after obtaining reservation locks; never trust the browser clock. Verify below, at and above the boundary. This explicitly resolves the conflict with the strict wording in source section 7.5.1.
 
-Status: approved by the owner on 2026-11-08. Q-01, Q-02, Q-04 and Q-05 remain open.
+Status: approved by the owner on 2026-11-08. Q-01, Q-02 and Q-04 were approved later the same day; Q-05 remains open.
 
-## Q-04: Exhausted corporate subscriptions and card eligibility
+## Q-04: Exhausted corporate subscriptions and card eligibility — approved
 
 Source: section 7.7 gives exhausted subscriptions EXHAUSTED status; section 7.8.1 reverts the card when the last active corporate subscription ends. It is unclear whether exhausting visits counts as ending eligibility before expiry.
 
 Proposal: an unlocked corporate card requires at least one unexpired ACTIVE corporate subscription with usable visits. Exhausting the last such subscription reverts the card to the level derived from lifetime points; another eligible corporate subscription preserves it. If cancellation restores visits before expiry, restore subscription eligibility and recompute the card. An expired subscription stays expired even when visits are returned. Admin-locked cards never change automatically. Existing booking prices and original points awards remain snapshots.
 
-Decision needed: approve exhaustion-based loss and restoration of eligibility, or retain corporate benefits until calendar expiry. Test concurrent last-visit use, restored visits, multiple subscriptions, expiry and admin locks. Blocks automatic corporate-card recalculation.
+Owner decision, 2026-11-08: retain corporate benefits until calendar expiry instead of the exhaustion proposal above. An unlocked card is CORPORATE while any corporate subscription of the user is unexpired, whether ACTIVE or EXHAUSTED. When the last one expires, the card returns to its base level. Admin-locked cards never change automatically.
 
 ## Q-05: Administrator list scope
 
@@ -65,3 +66,16 @@ Accounts reuse salted scrypt, pg transactions and strict DTOs. The worker implem
 Reservations lock event ? session ? booking before payment rows; active capacity is derived from booking state, so terminal transitions release it without a second counter write. A database schedule row persists expiry/completion cadence; retrying does not repeat terminal transitions. The simulator holds the reservation locks across its bounded 1-2 second delay and rechecks the deadline before recording success. Payment response replay lasts 24 hours; only an HMAC fingerprint of canonical input is stored. The database holds a private idempotency key; backups must protect it. No PAN/CVV or holder is persisted.
 
 Time/address revision counters preserve the exceptional cancellation right even if the organizer later changes the value back. Pending/card/free pricing is fixed at reservation time; subscriptions and loyalty remain unsupported until stages 08-09. Recommendation fallback currently counts all bookings per event within the user city; full recommendation/reporting acceptance remains stage 12. The outbox dispatcher now sends originating catalog/booking/payment notices as well as welcome mail. SMTP acceptance before transaction rollback still has the documented external duplicate window. These technical decisions approve none of Q-01/Q-02/Q-04/Q-05.
+
+## Stage 09 implementation decisions
+
+These ordinary assumptions implement the approved rules; none changes Q-05.
+
+- Base level: each profile stores a non-corporate base level (STANDARD/PREMIUM). Accrual that brings lifetime points to the Premium threshold raises it; nothing lowers it automatically. Corporate eligibility, when present, takes precedence for unlocked cards. Lowering the threshold affects users at their next accrual.
+- Lifetime points: a reversal reduces lifetime points by the full original award (the award is cancelled), never below zero, without downgrading the card. Administrator adjustments change only the spendable balance; lifetime points come from booking awards.
+- Award inputs: the paid amount is the sum of successful payments for the booking; the multiplier is the card in effect at confirmation. The award is recorded on the booking and ledger and is never recalculated.
+- Rounding: the card discount rounds half up to whole minor units. Points use exact decimal arithmetic with the floors of the source formula.
+- Card assignment: an administrator can assign any level with a reason, recorded in assignment history. An unlocked assignment must agree with the automatic rules; otherwise it is rejected with a request to lock the card.
+- Free access never applies to zero-price events, so no quota is consumed by them.
+- Notifications: accrual, reversal, adjustment and upgrade notifications use the LOYALTY category and its single email preference (default off). The source distinguishes accrual email (off by default) from upgrade email (preference applies); that needs separate settings in the stage 10 notification matrix.
+- Locking: booking work locks event, session and booking, then the member card, then a subscription. Booking jobs commit per booking to keep card locks short; lock conflicts are retried on the next worker interval.

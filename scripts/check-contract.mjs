@@ -32,7 +32,9 @@ for (const file of files.filter((file) => file.endsWith("route.ts"))) {
   for (const match of source.matchAll(/export\s+(?:const\s+|async\s+function\s+)(GET|POST|PATCH|PUT|DELETE)\b/g)) actual.push(`${match[1]} ${path}`);
 }
 assert.deepEqual(implemented.sort(), actual.sort(), "OpenAPI implemented status must match real route exports");
-for (const id of ["Q-01", "Q-02", "Q-03", "Q-04", "Q-05"]) {
-  assert.ok(JSON.stringify(spec.paths).includes(id), `Missing unresolved decision ${id}`);
-}
+const operations = Object.values(spec.paths).flatMap((item) => Object.values(item));
+const listed = (key) => new Set(operations.flatMap((operation) => operation[key] ?? []));
+for (const id of ["Q-01", "Q-02", "Q-04"]) assert.ok(listed("x-decisions").has(id), `Missing approved decision ${id}`);
+for (const id of listed("x-open-questions")) assert.ok(!listed("x-decisions").has(id), `Decision ${id} is both open and approved`);
+assert.ok(listed("x-open-questions").has("Q-05"), "Missing unresolved decision Q-05");
 console.log(`PASS: ${count} operations; ${implemented.length} implemented route exports match OpenAPI; access and CSRF declarations checked`);

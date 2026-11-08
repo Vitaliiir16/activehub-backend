@@ -1,5 +1,15 @@
 # API change history
 
+## 0.5.0 - Loyalty
+
+Implemented own loyalty summary and points ledger, administrator level/rules configuration, card assignment with lock and points adjustment. There are 112 operations: 79 implemented and 33 planned. Approved owner decisions are now listed per operation in `x-decisions`; Q-05 remains in `x-open-questions`.
+
+Booking creation snapshots the ordered price: effective promotion price, card free access, card percentage discount (half-up to whole minor units), nonnegative due. Free visits count against the session's calendar month in Europe/Kyiv (Q-02), one visit per place, and return once on REJECTED/CANCELLED/EXPIRED. Subscription payment skips the card steps. A booking that becomes CONFIRMED earns `floor((basePointsPerBooking + floor(paidUah * pointsPerUah)) * multiplier)` once, using the card at confirmation; cancellation reverses that recorded award once. A reversal never deducts more than the available balance (Q-01); its note records any unrecovered remainder. Lifetime points decrease by the original award, but cards are never downgraded because points decrease.
+
+Purchasing a corporate subscription sets an unlocked card to CORPORATE. The card stays CORPORATE until the last corporate subscription expires, even after its visits are exhausted (Q-04), then returns to its base STANDARD/PREMIUM level. Administrator-locked cards never change automatically. Administrator adjustments cannot make the balance negative and change only the spendable balance.
+
+Additive response fields: `Booking.pointsAwarded` (null before confirmation) and `PointsTransaction.note`. `pointsRedeemed` stays zero because optional redemption is not implemented. Loyalty notifications use the LOYALTY category and its email preference.
+
 ## 0.4.0 - Subscriptions
 
 Implemented organizer plans and public purchasable plans; user subscription purchase/read/list; immutable term snapshots and direction display names; CARD/SUBSCRIPTION booking choice. Failed purchase attempts create no subscription. UUID request keys replay purchases; only last4 and an HMAC fingerprint are persisted. Visits are reserved per place under a subscription row lock and returned once through a booking-keyed ledger. Archived plans do not invalidate purchases. Subscription purchases have no refund route. Hourly expiry is persisted; current expiry also gates reads/use. Corporate loyalty and Q-04 remain stage 09. No optional expiry notices.

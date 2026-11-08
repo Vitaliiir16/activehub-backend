@@ -19,6 +19,12 @@ import type { EventRow, SessionRow } from "./types";
 
 import { reserveVisits, returnVisits } from "./subscriptions";
 import { paymentDtos, refundBooking } from "./payment-records";
+import {
+  accruePoints,
+  quoteBooking,
+  releaseLoyalty,
+  reserveFreeVisits,
+} from "../loyalty/ledger";
 export type BookingRow = {
   id: string;
   user_id: string;
@@ -32,6 +38,8 @@ export type BookingRow = {
   discounts: unknown[];
   payment_method: string;
   subscription_id: string | null;
+  loyalty_level: string | null;
+  points_awarded: number | null;
   deadline_at: Date | null;
   address_version: number;
   time_version: number;
@@ -132,6 +140,7 @@ export async function bookingDto(
     paymentMethod: b.payment_method,
     subscriptionUsedId: b.subscription_id,
     pointsRedeemed: 0,
+    pointsAwarded: b.points_awarded,
     deadlineAt: b.deadline_at,
     cancelledBy: b.cancelled_by,
     cancelReason: b.cancel_reason,
@@ -178,6 +187,7 @@ export async function transition(
         )
       : null;
   if (["CANCELLED", "REJECTED", "EXPIRED"].includes(to)) {
+    await releaseLoyalty(client, b);
     await returnVisits(client, b.id);
     await refundBooking(client, b.id, b.user_id, why ?? to);
   }
@@ -212,7 +222,11 @@ export async function transition(
       link: `/organizer/bookings/${b.id}`,
       email: to === "CANCELLED" && who.role === "USER",
     });
-  return updated;
+  if (to !== "CONFIRMED") return updated;
+  await accruePoints(client, b, e.title);
+  return (
+    await client.query<BookingRow>("SELECT * FROM bookings WHERE id=$1", [b.id])
+  ).rows[0];
 }
 const createInput = z.strictObject({
   sessionId: z.uuid(),
@@ -274,10 +288,15 @@ export async function createBooking(request: Request) {
           (!policy.exclusive && reserved.seats + input.seats > s.seats_total)
         )
           conflict("There are not enough available places");
-        const price =
-          e.promo_price_minor !== null && e.promo_until && e.promo_until > now
-            ? e.promo_price_minor
-            : e.price_minor;
+        const quote = await quoteBooking(
+          client,
+          current.id,
+          e,
+          s,
+          input.seats,
+          !!input.subscriptionId,
+          now,
+        );
         if (input.subscriptionId)
           await reserveVisits(
             client,
@@ -287,7 +306,7 @@ export async function createBooking(request: Request) {
             s,
             input.seats,
           );
-        const amount = input.subscriptionId ? 0 : price * input.seats;
+        const amount = quote.amountDueMinor;
         const status =
           e.confirmation_mode === "MANUAL"
             ? "PENDING"
@@ -307,9 +326,9 @@ export async function createBooking(request: Request) {
                 ),
               )
             : null;
-        const b = (
+        let b = (
           await client.query<BookingRow>(
-            "INSERT INTO bookings(user_id,session_id,exclusive,seats,comment,status,base_price_minor,amount_due_minor,discounts,payment_method,deadline_at,address_version,time_version,subscription_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *",
+            "INSERT INTO bookings(user_id,session_id,exclusive,seats,comment,status,base_price_minor,amount_due_minor,discounts,payment_method,deadline_at,address_version,time_version,subscription_id,loyalty_level) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *",
             [
               current.id,
               s.id,
@@ -317,19 +336,9 @@ export async function createBooking(request: Request) {
               input.seats,
               input.comment ?? "",
               status,
-              e.price_minor * input.seats,
+              quote.basePriceMinor,
               amount,
-              JSON.stringify(
-                price < e.price_minor
-                  ? [
-                      {
-                        type: "PROMOTION",
-                        amountMinor: (e.price_minor - price) * input.seats,
-                        description: "Event promotion",
-                      },
-                    ]
-                  : [],
-              ),
+              JSON.stringify(quote.discounts),
               input.subscriptionId
                 ? "SUBSCRIPTION"
                 : amount === 0
@@ -339,9 +348,17 @@ export async function createBooking(request: Request) {
               e.address_version,
               s.time_version,
               input.subscriptionId ?? null,
+              quote.level,
             ],
           )
         ).rows[0];
+        await reserveFreeVisits(
+          client,
+          b.id,
+          current.id,
+          quote.month,
+          quote.freePlaces,
+        );
         if (input.subscriptionId)
           await client.query(
             "INSERT INTO subscription_visit_ledger(booking_id,subscription_id,visits) VALUES($1,$2,$3)",
@@ -351,6 +368,15 @@ export async function createBooking(request: Request) {
           "INSERT INTO booking_history(booking_id,to_status,actor_id,actor_role) VALUES($1,$2,$3,'USER')",
           [b.id, status, current.id],
         );
+        if (status === "CONFIRMED") {
+          await accruePoints(client, b, e.title);
+          b = (
+            await client.query<BookingRow>(
+              "SELECT * FROM bookings WHERE id=$1",
+              [b.id],
+            )
+          ).rows[0];
+        }
         await notify(client, {
           accountId: current.id,
           key: `booking:${b.id}:${status}:user`,

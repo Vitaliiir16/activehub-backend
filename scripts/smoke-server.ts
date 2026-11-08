@@ -44,11 +44,13 @@ try {
   await import("./check-health-contract.mjs");
   if (process.env.VERIFY_ACCOUNTS === "true") await import("./verify-accounts");
   if (process.env.VERIFY_MARKETPLACE === "true") await import("./verify-marketplace.mjs");
+  if (process.env.VERIFY_LOYALTY === "true") await import("./verify-loyalty.mjs");
   const secretValues = [
     process.env.INITIAL_ADMIN_PASSWORD,
     "ActiveHubTest123",
     "UpdatedActiveHub123",
     "MarketTestPassword123",
+    "LoyaltyTestPassword123",
     "4242424242424242",
     "4000000000000002",
   ].filter((value): value is string => !!value);
