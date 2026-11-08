@@ -63,7 +63,11 @@ services:
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:?Set INITIAL_ADMIN_EMAIL in .env}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD in .env}
       INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:-Initial Administrator}
-      SEED_DEMO: "false"
+      SEED_DEMO: ${SEED_DEMO:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
+      DEMO_NAMESPACE: ${DEMO_NAMESPACE:-demo}
+    volumes:
+      - uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
