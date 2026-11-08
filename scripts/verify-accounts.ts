@@ -573,6 +573,52 @@ try {
     { status: 404 },
   );
   await user.call(`/api/notifications/${notices[0].id}/read`, "POST");
+  await newAdmin.call("/api/auth/login", "POST", {
+    email: created.email,
+    password,
+  });
+  const activeBefore = Number(
+    (
+      await pool.query(
+        "SELECT count(*) FROM accounts WHERE role='ADMIN' AND status='ACTIVE'",
+      )
+    ).rows[0].count,
+  );
+  try {
+    const race = await Promise.all([
+      admin.call(
+        `/api/admin/administrators/${created.id}/status`,
+        "PATCH",
+        { status: "BLOCKED", reason: "Concurrent access check" },
+        { status: [200, 401] },
+      ),
+      newAdmin.call(
+        `/api/admin/administrators/${adminSession.accountId}/status`,
+        "PATCH",
+        { status: "BLOCKED", reason: "Concurrent access check" },
+        { status: [200, 401] },
+      ),
+    ]);
+    assert.deepEqual(
+      race.map((value) => value.response.status).sort(),
+      [200, 401],
+    );
+    assert.equal(
+      Number(
+        (
+          await pool.query(
+            "SELECT count(*) FROM accounts WHERE role='ADMIN' AND status='ACTIVE'",
+          )
+        ).rows[0].count,
+      ),
+      activeBefore - 1,
+    );
+  } finally {
+    await pool.query(
+      "UPDATE accounts SET status='ACTIVE' WHERE id=ANY($1::uuid[])",
+      [[created.id, adminSession.accountId]],
+    );
+  }
   console.log(
     "PASS: real PostgreSQL/API registration, unique emails, strict roles/ownership, CSRF/origin, sessions, passwords, profiles/images/settings, administrator access and welcome deduplication",
   );
