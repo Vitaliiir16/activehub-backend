@@ -1,6 +1,12 @@
 # Requirements and verification matrix
 
-Every row below is **planned**, not implemented or tested. The English [baseline](REQUIREMENTS.md) preserves the supplied source section references; only the recorded owner overrides apply. Stage numbers refer to [DELIVERY_PLAN.md](DELIVERY_PLAN.md). Verification descriptions are future acceptance work, not successful test results. At implementation, attach actual source paths, commands, revisions and evidence per row. A grouped row requires every listed subcase, not a representative example.
+Rows below define acceptance scope. Product behavior remains **planned** except where the delivery evidence section explicitly records a completed subset. The English [baseline](REQUIREMENTS.md) preserves source references; only recorded owner overrides apply. Stage numbers refer to [DELIVERY_PLAN.md](DELIVERY_PLAN.md). Verification descriptions are future acceptance work unless linked to actual evidence. A grouped row requires every subcase, not a representative example.
+
+## Delivery evidence
+
+| Requirements | Delivered subset | Evidence | Still planned |
+|---|---|---|---|
+| M-001 through M-004, M-100 | Stage 00 domain and whole-system modeling | [MODELING.md](MODELING.md), three PlantUML sources and locally rendered SVGs; PlantUML 1.2026.9 successful compilation; use-case ID inventory reviewed | All business behavior, actual GoF implementation and final source-to-model reconciliation |
 
 ## Mandatory scope
 

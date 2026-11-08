@@ -1,6 +1,13 @@
 # Delivery progress
 
-Snapshot: 2026-11-08, Europe/Kyiv. Scope: repository preparation only.
+Snapshot: 2026-11-08, Europe/Kyiv. Current authorized scope: stages 00-03; stop before business modules. Q-01 through Q-05 remain open.
+
+## Foundation delivery log
+
+- Both setup PRs #1 were still open and unmerged at the start. Both clean feature branches `feature/00-03-foundation` start at their setup heads: backend `f4eaf210bb97780f4d930cbb606d362fc4b8e1ba`, frontend `18756f1eacda3fb83c00a523d410f8438a3a0e8c`. No local main update was necessary or performed. New PRs will explicitly depend on the setup PRs.
+- Stage 00: complete proposed product Use Case and UML class diagrams, plus booking pattern sequence, are in MODELING.md. All three compiled and rendered locally using PlantUML 1.2026.9, image digest `sha256:9b5071ab56a4192aac458ab4b0d42261c22c8109695894ae5be6013c3be6cac1`. A separate source review checked all actors, use-case IDs, relationship multiplicities and conditional confirmation/refund effects. One class-source syntax issue was fixed before successful rendering. Business behavior and GoF implementations remain planned.
+
+The preparation record below is historical. Later foundation log entries supersede its current-state and next-action descriptions.
 
 ## Current state
 

@@ -1,6 +1,6 @@
 # Architecture proposal
 
-Status: proposed; no modules, classes, interfaces, routes or patterns are implemented. This document addresses source sections 1, 6, 13 and 17. Final Use Case and whole-system class diagrams remain planned in stage 00; the layer diagram below does not replace them.
+Status: proposed product architecture. Business modules, classes and GoF patterns are not implemented. Stage 00 now includes rendered [Use Case, whole-system class and pattern collaboration diagrams](MODELING.md), with editable sources. Infrastructure delivery is tracked separately in PROGRESS.md; diagrams do not imply implemented business behavior.
 
 ## Shape of the system
 
