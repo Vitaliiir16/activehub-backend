@@ -1,5 +1,26 @@
 # Delivery progress
 
+## Stage 12 - current delivery
+
+Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #8 (stage 11) were verified merged: backend main c55e9b5, frontend main 7734395. Both repositories branched feature/12-statistics from those heads. No merge, history rewrite or force push was performed.
+
+Implemented: administrator platform statistics for 7, 30 and 90 days and custom Kyiv ranges (totals, exact booking conversion, net payments, day and category breakdowns, top ten activities, registrations and member breakdowns); organizer dashboard (counters, net current-month revenue, unread messages, 30-day chart, own data only) and the administrator view of an organizer; recommendations without preferences rank by live and completed bookings only. OpenAPI 0.8.0 has 112 operations, 108 implemented. No migration. Frontend: statistics screen with URL-backed period filters, accessible SVG column and bar charts with hover values and data tables, organizer dashboard, figures on administrator organizer pages. Not implemented: the organizer's proposal and availability lists (existing screens) and a mobile browser test of the statistics screens.
+
+### Verification observed
+
+- Backend lint, typecheck and production build passed. Unit tests: 22 passed (6 new statistics tests for Kyiv periods, custom range validation, month windows, exact ratios, zero-filled buckets and labels).
+- Isolated stack activehub-stats-check (ignored .env.stats; UI 8880, API 4000, Mailpit 8825, PostgreSQL 127.0.0.1:5610, SMTP 127.0.0.1:1030) applied migrations to 010. Through the CI-style harness db:verify, test:accounts, test:marketplace, test:loyalty, test:communications, test:administration and the new test:statistics passed.
+- scripts/verify-statistics.mjs: platform deltas for seven bookings, net payments of 25 000 kopiykas after one refund, status and day buckets, a top-event count of four, conversion matching an SQL check; exact organizer dashboard counters (3 activities, 2 active, 1 paused, 3 future sessions, 4 active bookings, 1 pending request, 20 000 kopiykas net month revenue, 1 unread message, 6 bookings today); isolation from another organizer; administrator view identical to the organizer's; access denials, ownership 404s and period validation; recommendation order with live versus cancelled bookings.
+- Frontend lint, typecheck, build and api:check passed. Playwright against the same stack: 13 passed, 5 skipped (mobile duplicates of desktop-only workflows). The statistics test checks that the organizer dashboard counts a new activity, the administrator period filter with its data table, and the organizer figures on the administrator detail page.
+- Screenshots of the administrator statistics and the organizer page were reviewed at desktop and phone width. Fixed during review: a duplicate landmark on the organizer page, stretched chart cards, a wrapping money value and the width of the top-ten list. No horizontal page overflow at either width.
+- Logs contained none of the test passwords, card number or hash fields.
+
+Not run locally: a mobile browser pass of the statistics screens, a live mail provider, worker crash injection. The app has no dark theme, so charts use the light palette only; dark mode is not claimed. No independent review is claimed. CI gains a test:statistics step; hosted results belong to the pushed heads.
+
+### Revision boundary
+
+Input revisions: backend c55e9b5, frontend 7734395. Backend commits: c102671 (contract 0.8.0), 4fba079 (runtime), 588405d (suite and CI), then documentation. Frontend pins backend 588405d; frontend commits follow on feature/12-statistics. Pull requests into main are created by the agent and merged by the owner. Stop after stage 12; next is stage 13 acceptance, after a new instruction.
+
 ## Stage 11 - current delivery
 
 Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #7 (stage 10) were verified merged: backend main f4e73b0, frontend main 12eb745. Both repositories branched feature/11-administration from those heads. No merge, history rewrite or force push was performed.

@@ -109,3 +109,17 @@ None of these changes Q-05.
 - Audit: decisions are written in the same transaction as their effect to `admin_audit_log` (append-only by trigger) with the reason. Reading the log is not part of the contract; it is available in the database for investigation.
 - Dictionaries: names are unique ignoring case; the code is derived from the name; a PATCH changes only the sent fields; a per-dictionary lock serializes edits so the last active value cannot be deactivated by two requests together.
 - Concurrency: account deletions lock the account first, then events, sessions and bookings in the same order as booking operations; a payment racing a deletion ends cancelled with the charge refunded. A session holds one CSRF token, so concurrent requests in tests use separate sessions.
+
+## Stage 12 implementation decisions
+
+Ordinary definitions for statistics; none changes an open decision (Q-05 stays open).
+
+- Periods: 7d, 30d (default) and 90d end today in Europe/Kyiv and include today; custom needs both dates, at most one year. All days are Kyiv calendar days.
+- Totals and breakdowns count records created in the period (users, organizers, bookings, activities, registrations). Breakdowns by day include zero days.
+- Net payments: successful and refunded card payments created in the period, minus refunds created in the period. Subscription purchases count as platform payments; they are non-refundable.
+- Booking conversion: bookings ever confirmed (booking history records CONFIRMED) divided by all bookings created in the period, rounded half up to four decimals; zero when no bookings were created.
+- Top ten activities: bookings created in the period, all statuses, ties by title.
+- Organizer dashboard: completed activities are not cancelled and have no scheduled future session; future sessions and bookings count scheduled sessions of activities that are neither deleted nor cancelled; paused activities are included; new requests are PENDING bookings of future sessions; current-month revenue uses the Kyiv month and the organizer's own bookings only.
+- Recommendations without preferences: popularity counts PENDING, AWAITING_PAYMENT, CONFIRMED and COMPLETED bookings, not cancelled, rejected or expired ones; ties go to the sooner session and then to the identifier. Ordering with preferences is unchanged.
+- The administrator view of an organizer uses the same definitions as the organizer dashboard.
+- Not implemented: the organizer's proposal list with occupancy and the session availability list described in 7.3.1 stay on the existing organizer event screens; the dashboard shows counters and the 30-day chart only.

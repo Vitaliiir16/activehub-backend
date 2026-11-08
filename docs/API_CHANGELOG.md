@@ -1,5 +1,11 @@
 # API change history
 
+## 0.8.0 - Statistics
+
+Implemented the administrator platform statistics (`GET /api/admin/statistics`, period 7d, 30d or custom), administrator organizer statistics (`GET /api/admin/organizers/{id}/statistics`) and the organizer dashboard (`GET /api/organizer/dashboard`). There are 112 operations: 108 implemented and 4 planned (optional password recovery, the optional session schedule generator and the optional administrator list).
+
+Totals and breakdowns use Europe/Kyiv calendar days and records created in the period; net revenue is successful card payments minus refunds of the same period; the booking conversion is an exact four-decimal ratio of bookings ever confirmed to all bookings created. Empty days appear as zero in day breakdowns. Recommendations without preferences now rank city events by live or completed bookings only; cancelled, rejected and expired bookings no longer raise popularity.
+
 ## 0.7.0 - Administration
 
 Implemented the administrator operations for users, organizers, events, bookings, subscriptions and dictionaries. There are 112 operations: 105 implemented and 7 planned (platform and organizer statistics, the optional administrator list, and the optional recovery and expiry-notice operations).

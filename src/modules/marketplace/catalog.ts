@@ -287,7 +287,7 @@ export function listEvents(
         (await client.query(`SELECT count(*) ${from}`, values)).rows[0].count,
       );
       const sort = popularityFallback
-        ? "(SELECT count(*) FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=e.id) DESC,next.starts_at ASC"
+        ? "(SELECT count(*) FROM bookings b JOIN event_sessions s ON s.id=b.session_id WHERE s.event_id=e.id AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED','COMPLETED')) DESC,next.starts_at ASC,e.id"
         : query.sort === "priceAsc"
           ? `(${price}) ASC`
           : query.sort === "priceDesc"
