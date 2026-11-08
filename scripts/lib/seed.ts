@@ -40,7 +40,8 @@ export async function seed(client: PoolClient, config: ReturnType<typeof seedCon
 
   const existing = await client.query<{ id: string; role: string }>("SELECT id, role FROM accounts WHERE lower(email) = $1", [config.email]);
   if (existing.rowCount && existing.rows[0].role !== "ADMIN") throw new Error("Configured initial admin email belongs to another role");
-  if (!existing.rowCount) {
+  const bootstrap = await client.query("SELECT id FROM admin_profiles WHERE created_by IS NULL LIMIT 1");
+  if (!existing.rowCount && !bootstrap.rowCount) {
     const hash = await hashPassword(config.password);
     const account = await client.query<{ id: string }>("INSERT INTO accounts (email, password_hash, role) VALUES ($1, $2, 'ADMIN') RETURNING id", [config.email, hash]);
     await client.query("INSERT INTO admin_profiles (account_id, display_name) VALUES ($1, $2)", [account.rows[0].id, config.displayName]);

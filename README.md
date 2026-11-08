@@ -30,7 +30,7 @@ Named volumes preserve PostgreSQL data, uploads and mail. PostgreSQL 18 uses `/v
 | `DATABASE_URL` or standard `PG*` variables | Database connection for commands outside Compose |
 | `API_PROXY_TARGET` | Frontend Vite development proxy target, configured in the frontend |
 
-The initial password requires 8-256 characters, a letter and a digit. It is stored as a salted scrypt hash. Required seeds insert missing dictionaries and loyalty defaults, preserving subsequent edits. Migrations run transactionally under an advisory lock and reject changes to applied SQL; add a new migration instead. Demo seeds are deferred with the business modules; `SEED_DEMO=true` is explicitly rejected.
+The initial password requires 8-256 characters, a letter and a digit. It is stored as a salted scrypt hash. Once a system-created administrator exists, changing bootstrap configuration does not create another administrator or reset credentials. Required seeds insert missing dictionaries and loyalty defaults, preserving subsequent edits. Migrations run transactionally under an advisory lock and reject changes to applied SQL; add a new migration instead. Demo seeds are deferred with the business modules; `SEED_DEMO=true` is explicitly rejected.
 
 ## Development and checks
 

@@ -21,11 +21,16 @@ try {
     await migrate(client);
     await seed(client, config);
     await seed(client, { ...config, password: "ChangedPassword123", displayName: "Changed Name" });
+    await seed(client, { ...config, email: "changed-bootstrap@example.test" });
     assert.deepEqual(await snapshot(), before, "Rerunning seeds must not duplicate or replace rows");
     assert.equal((await client.query("SELECT count(*)::int AS count FROM cities WHERE code = ANY($1)", [cities.map((name) => name.toLowerCase().replaceAll(" ", "-"))])).rows[0].count, 15);
     assert.equal((await client.query("SELECT count(*)::int AS count FROM directions WHERE code = ANY($1)", [directions.map((name) => name.toLowerCase().replaceAll(" ", "-"))])).rows[0].count, 16);
     assert.equal((await client.query("SELECT count(*)::int AS count FROM loyalty_level_config")).rows[0].count, 3);
     assert.equal((await client.query("SELECT count(*)::int AS count FROM loyalty_rules")).rows[0].count, 1);
+    await client.query("SAVEPOINT checksum_probe");
+    await client.query("UPDATE schema_migrations SET checksum = 'changed' WHERE name = '001_bootstrap.sql'");
+    await assert.rejects(migrate(client), /Applied migration changed/);
+    await client.query("ROLLBACK TO SAVEPOINT checksum_probe");
     const admin = (await client.query("SELECT password_hash, role FROM accounts WHERE lower(email) = $1", [config.email])).rows[0];
     assert.equal(admin.role, "ADMIN");
     assert.equal(await verifyPassword(config.password, admin.password_hash), true);
