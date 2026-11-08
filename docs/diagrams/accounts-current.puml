@@ -47,14 +47,14 @@ package "Infrastructure and persistence" {
   notifications / email_outbox
  }
  class "scripts/worker.ts" as Worker <<process>>
- class dispatchWelcome <<function>>
- interface WelcomeMail {
+ class dispatchNextEmail <<function>>
+ interface MailTransport {
   send()
  }
- class MailpitWelcomeMail <<Adapter>> {
+ class SmtpMailTransport <<Adapter>> {
   send()
  }
- class "Mailpit SMTP" as SMTP <<external service>>
+ class "SMTP server (Mailpit by default)" as SMTP <<external service>>
  class "Shared uploads volume" as Files <<storage>>
 }
 Pages --> SessionProvider
@@ -73,11 +73,11 @@ Profiles --> DB
 Images --> Security
 Images --> DB : owner metadata
 Images --> Files : decoded WebP
-Worker --> dispatchWelcome
-dispatchWelcome --> DB : FOR UPDATE SKIP LOCKED / retry
-dispatchWelcome --> WelcomeMail
-MailpitWelcomeMail ..|> WelcomeMail
-MailpitWelcomeMail --> SMTP
+Worker --> dispatchNextEmail
+dispatchNextEmail --> DB : FOR UPDATE SKIP LOCKED / retry
+dispatchNextEmail --> MailTransport
+SmtpMailTransport ..|> MailTransport
+SmtpMailTransport --> SMTP
 note bottom of DB
 Only account state, initial profile metadata and welcome delivery exist.
 No booking, payment, subscription or loyalty behavior is implemented.

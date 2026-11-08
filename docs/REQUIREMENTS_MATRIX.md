@@ -4,6 +4,18 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 10
+
+| Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
+|---|---|---|---|
+| M-082, M-083 | In-app always on; category preferences; BOOKINGS and account email mandatory; per-event/recipient/type uniqueness; rendered text/HTML email with an absolute link | scripts/verify-communications.mjs checks every implemented row of the 7.9 table by recipient, in-app/email channel and category; a user with every optional email off still receives booking email; emails read back from Mailpit with link and footer; repeated dispatch sends nothing | The two [S] rows (subscription near expiry, password recovery); organizer-account blocking notice (stage 11) |
+| M-084, M-085 | Matching event and promotion notices need city and a preferred direction; 24h and 2h reminders once, skipped for late, cancelled or preference-disabled bookings | Matching, mismatched, no-preference and email-off users; reminders after forced clock offsets, repeated job runs without duplicates | Real-time clock passage and DST-edge reminder times |
+| M-086, M-087, M-088 | One conversation per pair, user and booking-based starts, text up to 2000 characters, event card, read state, unread counts, ordering, blocked and admin restrictions, message notifications and rate limit | Duplicate-pair race, 16 concurrent messages from eight sessions gap-free and fully returned by cursor polling, stranger/admin/guest denial, blocked recipient and sender, immutability triggers; browser test with two users and unread badges updating without reload | Attachments (not required); long-history paging in the browser; mobile chat layout |
+| M-096, M-097 (email and reminders) | Persisted reminder schedule and email queue; outage deferral, permanent failure, attempt limit | Stub failures set PENDING/attempts/next retry, then the real mailer sends once; permanent and exhausted failures end FAILED | Worker crash fault injection; SMTP acceptance followed by a crash can duplicate one email |
+| M-098 (bell and chat counts) | Header unread notification and message counts, notification center with unread filter and email status | Playwright desktop chat flow asserts live badges | Screenshot review; visual checks on phone width |
+
+Real mail provider: the SMTP adapter was exercised against a Mailpit instance requiring STARTTLS and authentication, with the correct and a wrong password and an untrusted certificate. A live Gmail account was not available to the run, so Gmail itself is not claimed; the settings above are the documented Gmail configuration.
+
 ### Stage 09
 
 | Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |

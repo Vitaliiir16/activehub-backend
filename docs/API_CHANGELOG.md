@@ -1,5 +1,13 @@
 # API change history
 
+## 0.6.0 - Communications
+
+Implemented the chat operations: list conversations, find or start a conversation, list and send messages, and mark messages read. There are 112 operations: 84 implemented and 28 planned. Administrators are denied every chat operation. A user starts a conversation from an organizer or an event; an organizer only from a booking (or a user) that has or had a booking on its events. A user-organizer pair has one conversation, so starting again returns it with 200 (a new conversation returns 201).
+
+Messages are 1-2000 characters, ordered gap-free per conversation, and may carry an event card. Poll for new messages with `afterId`; `readAt` shows when the other participant read a message. Both participants must be active to send, and sending is limited to 30 messages per minute (429). Additive response fields: `Conversation.counterpartName` and `lastMessageText`, `Message.eventTitle` and `ConversationPage.unreadTotal`. A new message creates a MESSAGES notification for the other participant; reading the conversation marks those notifications read.
+
+Notification behavior now covers the whole delivery table: reminders (REMINDER_24H and REMINDER_2H, once each, skipped when the booking was made after that lead time), administrator edits, cancellations and moderation of an event notify the organizer in-app and by email, and organizers are not notified of their own cancellations. Email follows the category preference: BOOKINGS and account messages always, REMINDERS and PROMOTIONS by default, LOYALTY points and MESSAGES off by default. Card upgrade emails are sent until the user changes the LOYALTY preference once. Emails are rendered from one template with an absolute link and are delivered by the worker through the configured SMTP server (Mailpit by default); the notification `emailStatus` reports QUEUED, SENT or FAILED.
+
 ## 0.5.0 - Loyalty
 
 Implemented own loyalty summary and points ledger, administrator level/rules configuration, card assignment with lock and points adjustment. There are 112 operations: 79 implemented and 33 planned. Approved owner decisions are now listed per operation in `x-decisions`; Q-05 remains in `x-open-questions`.

@@ -195,7 +195,7 @@ Every CONFIRMED booking earns `floor((basePointsPerBooking + floor(amountPaid * 
 
 ## 7.9. Notifications
 
-In-app is always enabled. Each notification links its subject. Email is captured in a development viewer, never delivered to real recipients during development. Users can disable email for REMINDERS/PROMOTIONS/LOYALTY/MESSAGES, but BOOKINGS email is mandatory. Deduplicate by triggering event, recipient and type. LOYALTY accrual and MESSAGES email default off.
+In-app is always enabled. Each notification links its subject. By default email is captured in a development viewer and not delivered to real recipients; real delivery happens only when an SMTP server and credentials are explicitly configured (owner decision D-07). Users can disable email for REMINDERS/PROMOTIONS/LOYALTY/MESSAGES, but BOOKINGS email is mandatory. Deduplicate by triggering event, recipient and type. LOYALTY accrual and MESSAGES email default off.
 
 | Trigger | Recipient | Category | In-app | Email |
 |---|---|---|---|---|

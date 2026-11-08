@@ -210,8 +210,9 @@ export async function transition(
     link: `/bookings/${b.id}`,
   });
   if (
-    ["CONFIRMED", "CANCELLED"].includes(to) ||
-    (to === "EXPIRED" && b.status === "PENDING")
+    who.id !== e.organizer_id &&
+    (["CONFIRMED", "CANCELLED"].includes(to) ||
+      (to === "EXPIRED" && b.status === "PENDING"))
   )
     await notify(client, {
       accountId: e.organizer_id,

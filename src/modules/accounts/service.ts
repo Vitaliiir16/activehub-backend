@@ -338,7 +338,7 @@ export async function updateSettings(request: Request) {
     request,
     async (client, current) => {
       await client.query(
-        "UPDATE notification_settings SET reminders_email=$1,promotions_email=$2,loyalty_email=$3,messages_email=$4 WHERE account_id=$5",
+        "UPDATE notification_settings SET reminders_email=$1,promotions_email=$2,loyalty_email_customized=loyalty_email_customized OR loyalty_email IS DISTINCT FROM $3,loyalty_email=$3,messages_email=$4 WHERE account_id=$5",
         [
           input.remindersEmail,
           input.promotionsEmail,

@@ -112,6 +112,8 @@ export async function notify(
     link: string;
     category?: string;
     email?: boolean;
+    /** Loyalty upgrades email by default until the user explicitly changes the LOYALTY preference. */
+    emailUntilCustomized?: boolean;
   },
 ) {
   const category = input.category ?? "BOOKINGS";
@@ -122,13 +124,19 @@ export async function notify(
     LOYALTY: "loyalty_email",
     MESSAGES: "messages_email",
   }[category];
-  if (preference && email)
-    email = !!(
+  if (preference && email) {
+    const setting = (
       await client.query(
-        `SELECT ${preference} AS enabled FROM notification_settings WHERE account_id=$1`,
+        `SELECT ${preference} AS enabled,loyalty_email_customized AS customized FROM notification_settings WHERE account_id=$1`,
         [input.accountId],
       )
-    ).rows[0]?.enabled;
+    ).rows[0];
+    email =
+      !!setting?.enabled ||
+      (category === "LOYALTY" &&
+        !!input.emailUntilCustomized &&
+        setting?.customized === false);
+  }
   const row = (
     await client.query(
       "INSERT INTO notifications(account_id,event_key,type,category,title,body,link,email_status) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(event_key) DO NOTHING RETURNING id",

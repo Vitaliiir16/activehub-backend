@@ -1,6 +1,29 @@
 # Delivery progress
 
-## Stage 09 - current delivery
+## Stage 10 - current delivery
+
+Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #6 (stage 09) were verified merged: backend main 6055732, frontend main 3baae5c. Both repositories branched feature/10-communications from those heads. No merge, reset of published history or force push was performed. Two unpublished local backend commits were rebuilt before the first push because a staged file deletion had landed in the wrong commit.
+
+Implemented: every notification is stored in the site and, per the delivery table and the user's preferences, also queued for email in the same transaction; a configurable SMTP adapter (Mailpit by default, Gmail or another provider through environment variables with STARTTLS or TLS, authentication and certificate checks); one text and HTML template with an absolute link; an outbox dispatcher with backoff, permanent failure and attempt limits; persisted 24-hour and 2-hour reminders; administrator edit and cancellation notices to organizers; card upgrade emails default on until the loyalty preference is changed; user-organizer chat with ordered messages, event cards, read state, unread counts, polling, blocked and administrator restrictions and a rate limit. OpenAPI 0.6.0 has 112 operations, 84 implemented. Frontend: header unread badges, conversation list and thread with live updates, Message buttons on events, organizers and organizer booking details, a notification center with live refresh, unread filter and email status. Not implemented: the optional subscription near-expiry and password recovery emails, administrator account-blocking notices (stage 11) and push delivery.
+
+### Verification observed
+
+- Backend lint, typecheck and production build passed; 16 Node tests passed (settings, templates, error classification and the earlier pricing tests). OpenAPI lint and route/status check passed (84 implemented operations).
+- Isolated stack activehub-comms-check (ignored .env.comms; UI 8680, API 3800, Mailpit 8625, PostgreSQL 127.0.0.1:5588 and SMTP 127.0.0.1:1028 through a local-only override) applied migrations 001-009 to a new volume. Through the CI-style production-server harness: db:verify, test:accounts (now using the new mail adapter), test:marketplace, test:loyalty and test:communications all passed.
+- scripts/verify-communications.mjs passed: the 7.9 table by recipient, channel and category for registration, requests, approval, rejection reason, payment success and failure, user and organizer cancellation, refunds, expiry (organizer in-app only for PENDING), session full, address change, event cancellation, subscription purchase, loyalty points and upgrade, matching event and promotion, reminders and administrator edit, moderation and cancellation; mandatory booking email with all optional emails off; email read back from Mailpit; outage deferral then single delivery; permanent failure; attempt exhaustion; no duplicates on repeated dispatch; chat starts, denials, read state, cursor polling, 16 concurrent messages from eight sessions gap-free, blocked recipient and sender, rate limit and immutability.
+- Real provider path: a local Mailpit requiring STARTTLS and a login accepted the real worker container's mail with the configured sender; a wrong password gave a credential error with a hint, an untrusted certificate was rejected unless explicitly allowed, and the password never appeared in worker logs. A live Gmail account was not used.
+- Frontend lint, typecheck, build and api:check passed. Playwright against the same stack: 11 passed, 3 skipped (mobile duplicates of the desktop-only workflows). The chat test sends from an activity, sees the organizer's unread badge without reload, replies, and sees the reply, the Read marker and the notification.
+- Captured API and worker logs contained none of the test passwords, card number, app password or hash fields.
+
+Not run locally: mobile chat layout and screenshots, DST-edge reminders in real time, worker crash fault injection, a live Gmail account, long-history chat paging. No independent review is claimed; review was a separate pass in this session. CI gains a test:communications step; hosted results belong to the pushed heads and are not claimed here.
+
+### Revision boundary
+
+Input revisions: backend 6055732, frontend 3baae5c. Backend commits: 9dfe7f2 (contract), 9f760e6 (triggers and reminders), 45c7dc1 (email), ed1c6d5 (chat, pinned by the frontend manifest), ce81771 (suite and CI), then documentation. Frontend commits: 85ae787 (contract pin and client), 96c2219 (chat), 4391c6b (notification center), 75a8925 (browser test), then documentation. The tested pair is backend ce81771 runtime with frontend 75a8925; documentation commits follow and change no runtime.
+
+Startup: `docker compose up --build --wait` from the backend applies migration 009 and keeps volumes. Email setup: README Email section. Pull requests into main are created by the agent and merged by the owner. Stop after stage 10; next is stage 11 administration, after a new instruction.
+
+## Stage 09 (historical)
 
 Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #5 (stage 08) were verified merged: backend main 8429402, frontend main 43fccb5. Both repositories branched feature/09-loyalty from those heads. Earlier branches are retained; no merge, reset, rebase or force push was performed. The owner approved Q-01 (reversal clamped at zero), Q-02 (session month in Europe/Kyiv) and Q-04 (Corporate card until calendar expiry); Q-05 remains open. Details are in ASSUMPTIONS.md.
 

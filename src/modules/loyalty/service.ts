@@ -253,6 +253,7 @@ export async function adminAssignCard(request: Request, id: string) {
           key: `card-assignment:${assignment.id}`,
           type: "CARD_UPGRADED",
           category: "LOYALTY",
+          emailUntilCustomized: true,
           title: "Loyalty card upgraded",
           body: `An administrator set your card to ${config.display_name}.`,
           link: "/loyalty",
