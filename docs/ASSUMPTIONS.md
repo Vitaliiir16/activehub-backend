@@ -36,13 +36,13 @@ Proposal: use the session's calendar month in Europe/Kyiv. Reserve quota at crea
 
 Decision needed: approve session-month ownership and cross-month rescheduling behavior. Test month ends, DST, multiple future bookings, partial quota, cancellation and concurrent requests. Blocks free-access quota semantics.
 
-## Q-03: Booking exactly 30 minutes before the start
+## Q-03: Booking exactly 30 minutes before the start — approved
 
 Source: section 7.5.1 uses a strict greater-than condition; BR-04 allows a start no earlier than the configured boundary, which reads as inclusive.
 
-Proposal: use the inclusive rule `startsAt - serverNow >= bookingCutoff`, so exactly 30 minutes is allowed with the default setting. Use the same captured server time within the transaction and never trust the browser clock. Test one instant below, exactly at and above the boundary. This changes the strict wording in 7.5.1 and requires approval.
+Owner decision for stages 05-07: use the inclusive rule `startsAt - serverNow >= bookingCutoff`. Exactly 30 minutes is allowed with the default setting. Capture server time after obtaining reservation locks; never trust the browser clock. Verify below, at and above the boundary. This explicitly resolves the conflict with the strict wording in source section 7.5.1.
 
-Decision needed: inclusive or strict boundary? Blocks only the final cutoff predicate and its acceptance tests.
+Status: approved by the owner on 2026-11-08. Q-01, Q-02, Q-04 and Q-05 remain open.
 
 ## Q-04: Exhausted corporate subscriptions and card eligibility
 

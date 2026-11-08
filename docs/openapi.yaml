@@ -1,9 +1,10 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.2.0
-  description: ActiveHub REST contract. Operation status distinguishes implemented behavior from planned
-    delivery. Stage 04 adds accounts and access; Q-01 through Q-05 remain open.
+  version: 0.3.0
+  description: Accounts are implemented. Stages 05-07 deliver catalog, card bookings and simulated payments;
+    each operation declares its actual implementation status. Q-03 is approved as an inclusive cutoff.
+    Subscription and loyalty integration remain planned.
   license:
     name: Private project; no license granted
 servers:
@@ -839,8 +840,8 @@ paths:
       tags:
         - Member
       summary: Search visible events
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -979,6 +980,10 @@ paths:
               - priceAsc
               - priceDesc
               - newest
+        - name: trainerName
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Successful response.
@@ -1008,14 +1013,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/events/{id}:
     get:
       operationId: getEvent
       tags:
         - Member
       summary: Read an event
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1060,14 +1066,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/events/{id}/sessions:
     get:
       operationId: listEventSessions
       tags:
         - Member
       summary: List future event sessions
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1148,14 +1155,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizers:
     get:
       operationId: listOrganizers
       tags:
         - Member
       summary: Search organizers
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1245,14 +1253,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizers/{id}:
     get:
       operationId: getOrganizer
       tags:
         - Member
       summary: Read organizer profile
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1297,6 +1306,7 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizers/{id}/plans:
     get:
       operationId: listOrganizerPublicPlans
@@ -1379,8 +1389,8 @@ paths:
       tags:
         - Member
       summary: Read personalized recommendations
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1441,6 +1451,7 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizer/dashboard:
     get:
       operationId: getOrganizerDashboard
@@ -1490,8 +1501,8 @@ paths:
       tags:
         - Organizer
       summary: List own sessions for dashboard and calendar
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1579,14 +1590,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizer/events:
     get:
       operationId: listOwnEvents
       tags:
         - Organizer
       summary: List own events
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1734,6 +1746,10 @@ paths:
               - CANCELLED
               - BLOCKED
               - DELETED
+        - name: trainerName
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Successful response.
@@ -1763,13 +1779,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
     post:
       operationId: createEvent
       tags:
         - Organizer
       summary: Create an event with sessions
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -1807,6 +1824,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -1819,14 +1838,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EventCreate"
+      x-delivery-stage: "05"
   /api/organizer/events/{id}:
     get:
       operationId: getOwnEvent
       tags:
         - Organizer
       summary: get own event
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -1869,13 +1889,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
     patch:
       operationId: patchOwnEvent
       tags:
         - Organizer
       summary: patch own event
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -1913,6 +1934,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -1925,13 +1948,14 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EventPatch"
+      x-delivery-stage: "05"
     delete:
       operationId: deleteOwnEvent
       tags:
         - Organizer
       summary: delete own event
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -1971,6 +1995,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -1983,14 +2009,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "05"
   /api/organizer/events/{id}/status:
     patch:
       operationId: setOwnEventStatus
       tags:
         - Organizer
       summary: Pause or resume an event
-      description: Planned; no handler exists yet. Organizer may choose ACTIVE or PAUSED only. BLOCKED is an
-        administrator-only command.
+      description: Stage 05 delivery contract; implementation pending. Organizer may choose ACTIVE or PAUSED only.
+        BLOCKED is an administrator-only command.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2028,6 +2055,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2040,14 +2069,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EventStatusChange"
+      x-delivery-stage: "05"
   /api/organizer/events/{id}/cancel:
     post:
       operationId: cancelOwnEvent
       tags:
         - Organizer
       summary: Cancel event and active bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2091,6 +2121,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2103,14 +2135,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "05"
   /api/organizer/events/{id}/sessions:
     post:
       operationId: createSession
       tags:
         - Organizer
       summary: Add an event session
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2154,6 +2187,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2166,14 +2201,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SessionWrite"
+      x-delivery-stage: "05"
   /api/organizer/sessions/{id}:
     patch:
       operationId: updateSession
       tags:
         - Organizer
       summary: Change session time or capacity
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2211,6 +2247,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2223,13 +2261,14 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SessionWrite"
+      x-delivery-stage: "05"
     delete:
       operationId: deleteSession
       tags:
         - Organizer
       summary: Remove a session without active bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2263,20 +2302,23 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/organizer/sessions/{id}/cancel:
     post:
       operationId: cancelSession
       tags:
         - Organizer
       summary: Cancel a session and active bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2320,6 +2362,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2332,6 +2376,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "05"
   /api/organizer/events/{id}/generate-sessions:
     post:
       operationId: generateSessions
@@ -2402,8 +2447,8 @@ paths:
       tags:
         - Organizer
       summary: Upload an event photo
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2441,6 +2486,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2461,14 +2508,15 @@ paths:
                   type: string
                   format: binary
                   description: One JPEG, PNG or WebP image, at most 5 MiB; inspect actual decoded content.
+      x-delivery-stage: "05"
   /api/organizer/events/{id}/photos/order:
     put:
       operationId: orderEventPhotos
       tags:
         - Organizer
       summary: Set photo order and cover
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2506,6 +2554,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2518,14 +2568,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PhotoOrder"
+      x-delivery-stage: "05"
   /api/organizer/photos/{id}:
     delete:
       operationId: deleteEventPhoto
       tags:
         - Organizer
       summary: Delete an event photo
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2559,20 +2610,23 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/bookings:
     get:
       operationId: listBookings
       tags:
         - Member
       summary: List own bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -2647,6 +2701,14 @@ paths:
               - startsAtAsc
               - startsAtDesc
               - newest
+        - name: tab
+          in: query
+          schema:
+            type: string
+            enum:
+              - upcoming
+              - past
+              - cancelled
       responses:
         "200":
           description: Successful response.
@@ -2676,13 +2738,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "06"
     post:
       operationId: createBooking
       tags:
         - Member
       summary: Reserve a session
-      description: Planned; no handler exists yet. Atomic reservation and immutable price snapshot. Optional
-        redemption is not enabled by this contract. Cutoff equality and free-quota month remain unresolved.
+      description: "Stage 06 card/free reservations. Lock event then session, enforce active-user uniqueness and
+        exclusive hall use. Q-03: startsAt - captured serverNow >= configured cutoff. Snapshot effective
+        event/promotion price only; subscription/loyalty effects remain incomplete until stages 08-09."
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2692,7 +2756,6 @@ paths:
       x-ownership: Own user resources only; foreign identifiers return 404.
       x-open-questions:
         - Q-02
-        - Q-03
       parameters:
         - name: Idempotency-Key
           in: header
@@ -2723,6 +2786,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2735,14 +2800,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/BookingCreate"
+      x-delivery-stage: "06"
   /api/bookings/{id}:
     get:
       operationId: getBooking
       tags:
         - Member
       summary: Read own booking and timeline
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -2785,14 +2851,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "06"
   /api/bookings/{id}/cancel:
     post:
       operationId: cancelBooking
       tags:
         - Member
       summary: Cancel own booking
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2840,6 +2907,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2852,14 +2921,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UserCancellation"
+      x-delivery-stage: "06"
   /api/bookings/{id}/payments:
     post:
       operationId: payBooking
       tags:
         - Member
       summary: Attempt simulated payment
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 07 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -2903,6 +2973,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -2915,14 +2987,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CardInput"
+      x-delivery-stage: "07"
   /api/organizer/bookings:
     get:
       operationId: listOwnEventBookings
       tags:
         - Organizer
       summary: Search bookings on own events
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3002,6 +3075,14 @@ paths:
           required: false
           schema:
             type: string
+        - name: tab
+          in: query
+          schema:
+            type: string
+            enum:
+              - upcoming
+              - past
+              - cancelled
       responses:
         "200":
           description: Successful response.
@@ -3031,14 +3112,16 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "06"
   /api/organizer/bookings/{id}:
     get:
       operationId: getOwnEventBooking
       tags:
         - Organizer
       summary: Read a booking on own events
-      description: Planned; no handler exists yet. Expose email and phone only for own PENDING, AWAITING_PAYMENT,
-        CONFIRMED or COMPLETED bookings. Redact contacts for REJECTED, CANCELLED and EXPIRED bookings (BR-08).
+      description: Stage 06 delivery contract; implementation pending. Expose email and phone only for own PENDING,
+        AWAITING_PAYMENT, CONFIRMED or COMPLETED bookings. Redact contacts for REJECTED, CANCELLED and EXPIRED
+        bookings (BR-08).
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -3081,14 +3164,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "06"
   /api/organizer/bookings/{id}/decision:
     post:
       operationId: decideBooking
       tags:
         - Organizer
       summary: Approve or reject a pending booking
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3132,6 +3216,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -3144,14 +3230,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/BookingDecision"
+      x-delivery-stage: "06"
   /api/organizer/bookings/{id}/cancel:
     post:
       operationId: cancelOwnEventBooking
       tags:
         - Organizer
       summary: Cancel booking with full compensation
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -3199,6 +3286,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -3211,6 +3300,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "06"
   /api/subscription-plans/{id}:
     get:
       operationId: getPlan
@@ -5496,6 +5586,10 @@ paths:
               - CANCELLED
               - BLOCKED
               - DELETED
+        - name: trainerName
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Successful response.
@@ -5531,8 +5625,8 @@ paths:
       tags:
         - Administration
       summary: Read an event for moderation
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -5575,13 +5669,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
     patch:
       operationId: adminEditEvent
       tags:
         - Administration
       summary: Moderate event fields
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5619,6 +5714,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -5631,13 +5728,14 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EventPatch"
+      x-delivery-stage: "05"
     delete:
       operationId: adminDeleteEvent
       tags:
         - Administration
       summary: Soft-delete an event and compensate bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5681,6 +5779,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -5693,14 +5793,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "05"
   /api/admin/events/{id}/status:
     patch:
       operationId: adminSetEventStatus
       tags:
         - Administration
       summary: Block or unblock an event
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5738,6 +5839,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -5750,14 +5853,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/EventStatusChange"
+      x-delivery-stage: "05"
   /api/admin/events/{id}/cancel:
     post:
       operationId: adminCancelEvent
       tags:
         - Administration
       summary: Cancel an event and compensate bookings
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5805,6 +5909,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -5817,14 +5923,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "05"
   /api/admin/events/{id}/photos/order:
     put:
       operationId: adminOrderPhotos
       tags:
         - Administration
       summary: Moderate event photo order
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5862,6 +5969,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -5874,14 +5983,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PhotoOrder"
+      x-delivery-stage: "05"
   /api/admin/photos/{id}:
     delete:
       operationId: adminDeletePhoto
       tags:
         - Administration
       summary: Remove an event photo
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 05 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -5915,12 +6025,15 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "05"
   /api/admin/bookings:
     get:
       operationId: adminListBookings
@@ -6050,8 +6163,8 @@ paths:
       tags:
         - Administration
       summary: Read a booking
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -6094,14 +6207,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "06"
   /api/admin/bookings/{id}/cancel:
     post:
       operationId: adminCancelBooking
       tags:
         - Administration
       summary: Cancel booking with full compensation
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 06 delivery contract; implementation pending. See API_CONVENTIONS.md and REQUIREMENTS.md
+        for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6149,6 +6263,8 @@ paths:
           $ref: "#/components/responses/Error404"
         "409":
           $ref: "#/components/responses/Error409"
+        "413":
+          $ref: "#/components/responses/Error413"
         "422":
           $ref: "#/components/responses/Error422"
         "429":
@@ -6161,6 +6277,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Reason"
+      x-delivery-stage: "06"
   /api/admin/subscriptions:
     get:
       operationId: adminListSubscriptions
@@ -7163,6 +7280,80 @@ paths:
           $ref: "#/components/responses/Error403"
         "404":
           $ref: "#/components/responses/Error404"
+  /api/event-photos/{id}:
+    get:
+      operationId: getEventPhoto
+      tags:
+        - Member
+      summary: Read an event photo
+      description: Stage 05 authenticated catalog media. No guest access.
+      security:
+        - sessionCookie: []
+      x-implementation-status: planned
+      x-delivery-stage: "05"
+      x-roles:
+        - USER
+        - ORGANIZER
+        - ADMIN
+      x-ownership: Visible catalog records or owning organizer/admin.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful response
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
+  /api/organizers/{id}/logo:
+    get:
+      operationId: getOrganizerLogo
+      tags:
+        - Member
+      summary: Read a visible organizer logo
+      description: Stage 05 authenticated catalog media. No guest access.
+      security:
+        - sessionCookie: []
+      x-implementation-status: planned
+      x-delivery-stage: "05"
+      x-roles:
+        - USER
+        - ORGANIZER
+        - ADMIN
+      x-ownership: Visible catalog records or owning organizer/admin.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful response
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
 components:
   securitySchemes:
     sessionCookie:
@@ -7910,6 +8101,10 @@ components:
           type: boolean
         isCompleted:
           type: boolean
+        trainerName:
+          type: string
+          maxLength: 100
+          description: Optional trainer/section label; organizer identity remains authoritative.
     EventCreate:
       type: object
       additionalProperties: false
@@ -7999,6 +8194,10 @@ components:
             $ref: "#/components/schemas/SessionWrite"
           minItems: 1
           maxItems: 60
+        trainerName:
+          type: string
+          maxLength: 100
+          description: Optional trainer/section label; organizer identity remains authoritative.
     EventPatch:
       type: object
       additionalProperties: false
@@ -8063,6 +8262,10 @@ components:
           enum:
             - AUTO
             - MANUAL
+        trainerName:
+          type: string
+          maxLength: 100
+          description: Optional trainer/section label; organizer identity remains authoritative.
       minProperties: 1
     PhotoOrder:
       type: object
@@ -8149,17 +8352,8 @@ components:
           maxLength: 300
         paymentMethod:
           type: string
-          enum:
-            - CARD
-            - SUBSCRIPTION
-        subscriptionId:
-          type: string
-          format: uuid
-        pointsToRedeem:
-          type: integer
-          minimum: 0
-          maximum: 2147483647
-          x-priority: optional
+          const: CARD
+          description: Only card/free bookings are delivered in stages 06-07. Subscriptions and loyalty are not enabled.
     Discount:
       type: object
       additionalProperties: false
@@ -8209,6 +8403,11 @@ components:
         - cancelReason
         - timeline
         - payments
+        - eventId
+        - address
+        - canCancel
+        - canPay
+        - changeRefundEligible
       properties:
         id:
           type: string
@@ -8275,14 +8474,12 @@ components:
             - SUBSCRIPTION
             - FREE
         subscriptionUsedId:
-          anyOf:
-            - type: string
-              format: uuid
-            - type: "null"
+          type: "null"
+          description: Planned for stage 08.
         pointsRedeemed:
           type: integer
-          minimum: 0
-          maximum: 2147483647
+          const: 0
+          description: Planned for stage 09.
         deadlineAt:
           anyOf:
             - type: string
@@ -8309,6 +8506,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Payment"
+        eventId:
+          type: string
+          format: uuid
+        address:
+          type: string
+        canCancel:
+          type: boolean
+        canPay:
+          type: boolean
+        changeRefundEligible:
+          type: boolean
     BookingTransition:
       type: object
       additionalProperties: false
@@ -8478,6 +8686,11 @@ components:
         cardLast4:
           type: string
           pattern: ^[0-9]{4}$
+        refundedAt:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: "null"
     PlanWrite:
       type: object
       additionalProperties: false

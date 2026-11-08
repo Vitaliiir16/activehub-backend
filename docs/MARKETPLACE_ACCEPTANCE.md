@@ -1,0 +1,7 @@
+# Catalog, bookings and simulated payments
+
+Stages 05-07 deliver authenticated catalogs and owned event/session/photo management, card/free bookings with persisted transitions/deadlines, and simulated payment/refund receipts. Q-03 is inclusive by owner approval. Q-01/Q-02/Q-04/Q-05 remain open. Subscription/loyalty pricing, quota, accrual/reversal and visit compensation remain incomplete until stages 08-09; no such behavior is fabricated here.
+
+Before handoff run lint/typecheck/build in both applications, a login smoke and a real PostgreSQL/API organizer-create/discover/book/pay/cancel/refund flow. Focused acceptance covers MANUAL decisions, free bookings, payment decline/retry/deadline, last-seat/hall/duplicate-user concurrency, repeated payment/cancellation/worker effects, role/owner denial, inclusive cutoff and changed-time/address refund rights. Existing CI stays enabled. Broad field/filter combinations, extra component tests and multi-browser/visual runs are outside this run's verification scope, not removed product requirements.
+
+Mutation lock order is account authentication, event, session, booking, payment. Event modifications and reservation/cancellation share that order. Idempotency records retain only a server-keyed payload fingerprint and response, never card numbers/CVV. Active seats are derived from active bookings; terminal transitions cannot release them twice. Successful-payment/refund uniqueness is protected by PostgreSQL constraints. Jobs persist schedule/booking state and repeat safely after restart.
