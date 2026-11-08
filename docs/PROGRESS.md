@@ -2,13 +2,15 @@
 
 ## Stage 13 - final acceptance
 
-Runtime boundary: backend b009f71a347b14a0bbff66637760e4baf09e8412, frontend 9ef5071647bdecafb9075549b7debcffc6b72e6d. Mandatory implementation is present with bounded evidence in [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md); the [matrix](REQUIREMENTS_MATRIX.md) identifies what was checked versus not fully reverified. Optional stage 14 remains excluded.
+Runtime boundary: backend b009f71a347b14a0bbff66637760e4baf09e8412, frontend c9e6d0fac6f2402f581f2fa0d21fe6a8c911c873. Mandatory implementation is present with bounded evidence in [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md); the [matrix](REQUIREMENTS_MATRIX.md) identifies what was checked versus not fully reverified. Optional stage 14 remains excluded.
 
 Resolved gaps: safe explicit demonstration cohort, full readiness migration set, non-consuming server quote and price-before-confirmation UI, owner future availability, dashboard request/session/activity lists, event overview/bookings/reset and clear validation feedback, bounded operational limits, accurate current diagrams/source pattern index and reproducible README. Q-05 is confirmed optional for the separate administrator list. Owner-approved organizer revenue now includes subscription sales.
 
 Passed: both static/build gates, canonical/generated contract, fresh Compose, required seed/checksum verification, marketplace/loyalty PostgreSQL suites, three-role and subscription/quote/chat/Mailpit/foreign-access smoke, subscription-revenue isolation/replay, one desktop marketplace browser flow, sampled desktop/mobile layouts, focused management/error views and data/upload-preserving restart/reseed. No full local CI replay or independent review was performed; exact limits and earlier corrected harness expectations are in FINAL_ACCEPTANCE.
 
 Final published heads/linked PRs belong in the local handoff and PR bodies; this document cannot contain its own final SHA. Stop after stage 13. Next action is owner review/merge and demonstration, not stage 14 implementation.
+
+Publication follow-up: backend PR #10 / frontend PR #10 are linked and remain open for owner merge. Backend hosted run 42524894253 passed at 58789b3951ceecfc7f380a75acd61dbcec07928a. Initial frontend CI found duplicate inline/summary validation and an outdated price-label assertion; c9e6d0fac6f2402f581f2fa0d21fe6a8c911c873 fixes both. Focused account/loyalty browser cases and event-manager validation passed; final frontend static/build gates passed. The frontend PR records its new hosted run rather than reusing the failed run.
 
 ## Earlier delivery evidence (historical)
 
