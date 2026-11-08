@@ -17,6 +17,10 @@ const origin = (
   "http://localhost:8080"
 ).split(",")[0];
 const pool = createPool();
+if (process.env.ACTIVEHUB_TEST_WRITES !== "true")
+  throw new Error(
+    "Account verification writes fixtures; set ACTIVEHUB_TEST_WRITES=true only for an isolated test database",
+  );
 const run = randomUUID().slice(0, 8),
   password = "ActiveHubTest123",
   newPassword = "UpdatedActiveHub123";
@@ -35,7 +39,7 @@ class Browser {
       csrf?: boolean;
       origin?: string;
       token?: string;
-      status?: number;
+      status?: number | number[];
     } = {},
   ) {
     const headers: Record<string, string> = {
@@ -76,13 +80,16 @@ class Browser {
     );
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.ok(response.headers.get("x-request-id"));
-    const data = text && response.headers.get("content-type")?.includes("json")
-      ? JSON.parse(text)
-      : text;
-    assert.equal(
-      response.status,
-      options.status ?? 200,
-      `${method} ${path}: ${JSON.stringify(data)}`,
+    const data =
+      text && response.headers.get("content-type")?.includes("json")
+        ? JSON.parse(text)
+        : text;
+    const expected = Array.isArray(options.status)
+      ? options.status
+      : [options.status ?? 200];
+    assert.ok(
+      expected.includes(response.status),
+      `${method} ${path}: HTTP ${response.status}, ${JSON.stringify(data)}`,
     );
     return { response, data };
   }
@@ -94,6 +101,9 @@ try {
   const city = (await guest.call("/api/cities?pageSize=100")).data.items[0].id;
   const directions = (await guest.call("/api/directions?pageSize=100")).data
     .items;
+  await guest.call("/api/directions?includeSelected=true", "GET", undefined, {
+    status: 401,
+  });
   await guest.call("/api/cities?ownerId=" + randomUUID(), "GET", undefined, {
     status: 422,
   });
@@ -144,6 +154,16 @@ try {
     { status: 201 },
   );
   const userId = session.data.accountId;
+  const storedSession = (
+    await pool.query(
+      "SELECT token_hash FROM account_sessions WHERE account_id=$1",
+      [userId],
+    )
+  ).rows[0];
+  assert.notEqual(
+    storedSession.token_hash,
+    guest.cookies.get("activehub_session"),
+  );
   assert.equal(session.data.role, "USER");
   const cookies = session.response.headers.getSetCookie().join(";");
   assert.match(cookies, /HttpOnly/);
@@ -156,6 +176,34 @@ try {
   assert.ok(await verifyPassword(password, stored.password_hash));
   const user = guest,
     duplicate = new Browser();
+  const raceEmail = `race-${run}@example.test`;
+  const racers = await Promise.all([
+    new Browser().call(
+      "/api/auth/register/user",
+      "POST",
+      { ...userInput, email: raceEmail },
+      { status: [201, 409] },
+    ),
+    new Browser().call(
+      "/api/auth/register/organizer",
+      "POST",
+      {
+        email: raceEmail.toUpperCase(),
+        password,
+        passwordConfirmation: password,
+        name: "Race Club",
+        type: "CLUB",
+        directionIds: [directions[0].id],
+        cityId: city,
+        phone: "+380501234567",
+      },
+      { status: [201, 409] },
+    ),
+  ]);
+  assert.deepEqual(
+    racers.map((result) => result.response.status).sort(),
+    [201, 409],
+  );
   await duplicate.call(
     "/api/auth/register/organizer",
     "POST",
@@ -268,6 +316,13 @@ try {
     })
   ).data;
   assert.equal(organizer.role, "ORGANIZER");
+  const foreignCsrf = (await other.call("/api/auth/csrf")).data.token;
+  await user.call(
+    "/api/me",
+    "PATCH",
+    { firstName: "Invalid token" },
+    { token: foreignCsrf, status: 403 },
+  );
   await other.call(photo.url, "GET", undefined, { status: 404 });
   await other.call("/api/me", "PATCH", { logoId: photo.id }, { status: 404 });
   await other.call(
@@ -286,6 +341,20 @@ try {
   ]);
   try {
     assert.equal((await user.call("/api/me")).data.city.isActive, false);
+    const selected = (
+      await user.call("/api/directions?includeSelected=true&pageSize=100")
+    ).data.items;
+    assert.ok(
+      selected.some(
+        (direction: { id: string; isActive: boolean }) =>
+          direction.id === directions[0].id && !direction.isActive,
+      ),
+    );
+    assert.ok(
+      !(await user.call("/api/directions?pageSize=100")).data.items.some(
+        (direction: { id: string }) => direction.id === directions[0].id,
+      ),
+    );
     await user.call("/api/me", "PATCH", {
       cityId: city,
       preferredDirectionIds: [directions[0].id],
@@ -445,6 +514,13 @@ try {
     1,
   );
   const mail = new MailpitWelcomeMail();
+  for (let i = 0; i < 30; i++) {
+    const processed = await Promise.all([
+      dispatchWelcome(pool, mail),
+      dispatchWelcome(pool, mail),
+    ]);
+    if (processed.every((value) => !value)) break;
+  }
   for (let i = 0; i < 10; i++) {
     await dispatchWelcome(pool, mail);
     const state = (
@@ -463,6 +539,19 @@ try {
     )
   ).rows[0];
   assert.equal(outbox.state, "SENT");
+  const mailpit = process.env.MAILPIT_BASE_URL ?? "http://mailpit:8025";
+  const messages = await (
+    await fetch(
+      `${mailpit}/api/v1/search?query=${encodeURIComponent("to:" + userInput.email)}`,
+    )
+  ).json();
+  assert.equal(
+    messages.messages.filter(
+      (message: { Subject: string }) =>
+        message.Subject === "Welcome to ActiveHub",
+    ).length,
+    1,
+  );
   await dispatchWelcome(pool, mail);
   assert.equal(
     (

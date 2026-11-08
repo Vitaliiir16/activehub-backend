@@ -21,7 +21,8 @@
     "worker": "node --import tsx scripts/worker.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "contract:check": "redocly lint docs/openapi.yaml && node scripts/check-contract.mjs",
-    "test:contract": "node scripts/check-health-contract.mjs"
+    "test:contract": "node scripts/check-health-contract.mjs",
+    "test:accounts": "node --import tsx scripts/accounts-smoke.ts"
   },
   "dependencies": {
     "next": "16.4.5",
