@@ -55,9 +55,9 @@ Proposal: an unlocked corporate card requires at least one unexpired ACTIVE corp
 
 Owner decision, 2026-11-08: retain corporate benefits until calendar expiry instead of the exhaustion proposal above. An unlocked card is CORPORATE while any corporate subscription of the user is unexpired, whether ACTIVE or EXHAUSTED. When the last one expires, the card returns to its base level. Admin-locked cards never change automatically.
 
-## Q-05: Administrator list scope
+## Q-05: Administrator list scope - approved
 
-Source: section 7.4.7 marks the dedicated administrators list as [S], while section 11 includes Administrators in the screen map. Proposal: administrator creation form/API and protection of active administrators remain mandatory; the separate list tab remains optional, following the explicit [S] marking. Confirm before closing final acceptance.
+Source: section 7.4.7 marks the dedicated administrators list as [S], while section 11 includes Administrators in the screen map. Proposal: administrator creation form/API and protection of active administrators remain mandatory; the separate list tab remains optional, following the explicit [S] marking. Owner decision for stage 13: the dedicated list remains optional; administrator creation and self/last-active protections are mandatory. This resolves Q-05 without adding stage 14 functionality.
 
 ## Stage 04 design decisions (historical)
 
@@ -119,7 +119,11 @@ Ordinary definitions for statistics; none changes an open decision (Q-05 stays o
 - Net payments: successful and refunded card payments created in the period, minus refunds created in the period. Subscription purchases count as platform payments; they are non-refundable.
 - Booking conversion: bookings ever confirmed (booking history records CONFIRMED) divided by all bookings created in the period, rounded half up to four decimals; zero when no bookings were created.
 - Top ten activities: bookings created in the period, all statuses, ties by title.
-- Organizer dashboard: completed activities are not cancelled and have no scheduled future session; future sessions and bookings count scheduled sessions of activities that are neither deleted nor cancelled; paused activities are included; new requests are PENDING bookings of future sessions; current-month revenue uses the Kyiv month and the organizer's own bookings only.
+- Organizer dashboard: completed activities are not cancelled and have no scheduled future session; future sessions and bookings count scheduled sessions of activities that are neither deleted nor cancelled; paused activities are included; new requests are PENDING bookings of future sessions; current-month revenue uses the Kyiv month. Stage 13 owner decision: include the organizer's booking and subscription payments, minus booking refunds; declined attempts never count.
 - Recommendations without preferences: popularity counts PENDING, AWAITING_PAYMENT, CONFIRMED and COMPLETED bookings, not cancelled, rejected or expired ones; ties go to the sooner session and then to the identifier. Ordering with preferences is unchanged.
 - The administrator view of an organizer uses the same definitions as the organizer dashboard.
-- Not implemented: the organizer's proposal list with occupancy and the session availability list described in 7.3.1 stay on the existing organizer event screens; the dashboard shows counters and the 30-day chart only.
+- Stage 13 adds pending request decisions, upcoming availability and own activity cards directly to the organizer dashboard.
+
+## Stage 13 acceptance decisions
+
+Q-05 was explicitly confirmed: the dedicated administrator list remains optional; creation and self/last-active protection remain mandatory. The owner also approved inclusion of own subscription sales in organizer revenue. Required limits remain bounded by the specification: photo/session/upload limits may be lowered through project environment variables; page size is configurable per request. Demo cohorts use an explicit namespace and immutable once-only marker; repeating startup preserves edits/history, while a new namespace creates fresh relative dates without deleting old data.

@@ -9648,6 +9648,8 @@ components:
           maximum: 2147483647
         currentMonthNetRevenueMinor:
           type: integer
+          description: Organizer booking and subscription card payments created in the current Europe/Kyiv month, minus
+            booking refunds created in that month. Stage 13 owner-approved definition.
         unreadMessages:
           type: integer
           minimum: 0

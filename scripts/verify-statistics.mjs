@@ -224,6 +224,19 @@ try {
   assert.ok(found[popularA.id] < found[liveAfter.id], "two live bookings rank above one");
   assert.ok(found[liveAfter.id] < found[ghost.id], "cancelled bookings do not make an event popular");
   console.log("PASS: recommendations without preferences rank by live and completed bookings only");
+  const revenueBefore=(await org.call("/api/organizer/dashboard")).currentMonthNetRevenueMinor;
+  const otherRevenueBefore=(await org2.call("/api/organizer/dashboard")).currentMonthNetRevenueMinor;
+  const plan=await org.call("/api/organizer/subscription-plans","POST",{name:"Revenue subscription",type:"ONE_TIME",description:"Revenue ownership regression",priceMinor:12300,validityDays:30,visitsLimit:1,scope:"ALL_EVENTS",directionIds:[]},201);
+  const failedPurchase=await M1.call("/api/subscriptions","POST",{planId:plan.id,card:declined},201);
+  assert.equal(failedPurchase.subscription,null);
+  assert.equal((await org.call("/api/organizer/dashboard")).currentMonthNetRevenueMinor,revenueBefore);
+  const purchaseKey=randomUUID(),purchaseBody={planId:plan.id,card:good};
+  const purchase=await M1.call("/api/subscriptions","POST",purchaseBody,201,purchaseKey);
+  assert.equal((await M1.call("/api/subscriptions","POST",purchaseBody,201,purchaseKey)).subscription.id,purchase.subscription.id);
+  assert.equal((await org.call("/api/organizer/dashboard")).currentMonthNetRevenueMinor,revenueBefore+12300);
+  assert.equal((await org2.call("/api/organizer/dashboard")).currentMonthNetRevenueMinor,otherRevenueBefore);
+  assert.equal((await admin.call(`/api/admin/organizers/${orgId}/statistics`)).currentMonthNetRevenueMinor,revenueBefore+12300);
+  console.log("PASS: organizer revenue includes own subscription purchases once, excludes declined attempts and isolates other organizers");
 } finally {
   await pool.end();
 }
