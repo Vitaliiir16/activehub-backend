@@ -56,6 +56,7 @@ async function notifyUpgrade(c: PoolClient, userId: string, to: Level, key: stri
     key,
     type: "CARD_UPGRADED",
     category: "LOYALTY",
+    emailUntilCustomized: true,
     title: "Loyalty card upgraded",
     body: `Your card is now ${level.display_name}.`,
     link: "/loyalty",

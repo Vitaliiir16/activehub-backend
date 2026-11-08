@@ -526,6 +526,16 @@ export async function updateEvent(request: Request, id: string, admin = false) {
           [...values, id],
         )
       ).rows[0];
+      if (admin)
+        await notify(client, {
+          accountId: row.organizer_id,
+          key: `event:${row.id}:admin-edit:${row.updated_at.toISOString()}`,
+          type: "EVENT_EDITED_BY_ADMIN",
+          category: "ACCOUNT",
+          title: "An administrator edited your event",
+          body: `${row.title}: ${Object.keys(input).join(", ")} changed.`,
+          link: `/organizer/events/${row.id}`,
+        });
       if (input.address && input.address !== old.address)
         await notifyChanged(client, row);
       if (input.seatsPerSession !== undefined)
@@ -581,6 +591,7 @@ export async function setEventStatus(
           accountId: row.organizer_id,
           key: `event:${row.id}:moderated:${updated.updated_at.toISOString()}`,
           type: "EVENT_MODERATED",
+          category: "ACCOUNT",
           title: "Event publishing status changed",
           body: `${row.title}: ${updated.status.toLowerCase()}${input.reason ? `. ${input.reason}` : ""}`,
           link: `/organizer/events/${row.id}`,
@@ -632,6 +643,18 @@ export async function cancelEvent(
             "UPDATE event_sessions SET status='CANCELLED',updated_at=now() WHERE event_id=$1 AND status='SCHEDULED'",
             [id],
           );
+          if (admin)
+            await notify(client, {
+              accountId: row.organizer_id,
+              key: `event:${row.id}:admin-${remove ? "delete" : "cancel"}`,
+              type: remove ? "EVENT_DELETED_BY_ADMIN" : "EVENT_CANCELLED_BY_ADMIN",
+              category: "ACCOUNT",
+              title: remove
+                ? "An administrator removed your event"
+                : "An administrator cancelled your event",
+              body: `${row.title}. Active bookings were cancelled and paid bookings refunded.${input.reason ? ` Reason: ${input.reason}` : ""}`,
+              link: remove ? "/organizer/events" : `/organizer/events/${row.id}`,
+            });
           return {
             status: remove ? 204 : 200,
             body: remove
