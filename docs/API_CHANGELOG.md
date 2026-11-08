@@ -1,5 +1,13 @@
 # API change history
 
+## 0.2.0 - 2026-11-08
+
+Implemented stage 04 account registration/login/session/logout, own role-specific profiles, password changes, notification preferences, validated owned images, dictionaries, welcome notification reading and ADMIN-only creation/blocking. Twenty-one route operations now match implemented OpenAPI status; 89 remain planned. Added /api/media/{id} for authenticated owner image reads.
+
+Profile patches use strict schemas chosen from the session role. Administrator display-name edits are supported. Organizer registration omits the former planned logoId: the optional logo is uploaded after automatic sign-in, preserving the created account on upload failure. Dictionary includeSelected=true is authenticated and preserves only the caller's inactive selections. Current login passwords accept 1-256 characters for generic credential checking; new passwords retain the required policy. Added documented 413 errors.
+
+Implemented cookie/CSRF/origin enforcement and persisted rate limits. Registration welcome records and mail outbox are transactional; only welcome delivery is enabled in the worker. Booking/payment/subscription/loyalty/chat operations and optional recovery remain planned. Q-01 through Q-05 remain open.
+
 ## 0.1.0 - 2026-11-08
 
 Introduced the OpenAPI foundation for authentication, dictionaries, profiles, discovery, organizer management, bookings, simulated payments, subscriptions, loyalty, messaging, notifications and administration. All business operations are planned; no handler exists for them.

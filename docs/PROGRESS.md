@@ -1,84 +1,74 @@
 # Delivery progress
 
-Snapshot: 2026-11-08, Europe/Kyiv. Stages **00-03 are complete for the authorized foundation scope**. Stop before stage 04. All business modules, authentication enforcement, worker jobs and optional features remain planned. Q-01 through Q-05 remain open.
+Snapshot: 2026-11-08, Europe/Kyiv. **Stages 00-04 are complete for the authorized scope. Stop after stage 04.** Q-01 through Q-05 remain open. Catalogs, bookings, payments, subscriptions, loyalty behavior, other communication triggers and optional recovery remain planned.
 
-## Delivered
+## Stage 04 delivery
 
-| Stage | Result | Evidence |
-|---|---|---|
-| 00 | Complete proposed Use Case and whole-system UML class models, layers/services and GoF collaboration sequence | MODELING.md; all three PlantUML sources compiled and rendered, all 50 source use-case IDs reviewed, SVG layout inspected |
-| 01 | Next.js REST TypeScript backend and separate React/TypeScript Vite frontend with exact lockfiles | Both lint/typecheck/build scripts passed; real production health smoke passed |
-| 02 | PostgreSQL 18, checked SQL migration, required idempotent seeds, initial administrator, Dockerfiles/Compose, worker lifecycle, Mailpit, named volumes and API proxy | Clean isolated startup, initializer exit 0, five healthy long-running services, repeated startup/persistence and real database checks |
-| 03 | OpenAPI, conventions, generated typed health client and CI | 109 operations lint clean; only health implemented, 108 planned; exact contract hash/types verified; real 200/503 schema checks; desktop/mobile browser tests |
+- USER/ORGANIZER two-step registration, strict server validation, globally unique normalized email, automatic sign-in and role landing pages.
+- Existing salted scrypt hashes; opaque HTTP-only cookies with token digests, seven-day configurable sessions, CSRF/context binding and exact Origin/Fetch Metadata checks. Logout, expiry and account blocking/deletion invalidate access. Password changes verify the current password, rotate the current session and revoke other sessions.
+- Own role-specific profiles, unique email edits, city/direction preferences, notification settings and decoded owned profile photos/logos. Existing inactive dictionary selections remain readable/retainable; new selections must be active. Initial card metadata is stored with profiles without implementing loyalty behavior.
+- ADMIN-only creation form/API and block/unblock by account ID, serialized self/last-active protection. No administrator deletion, optional administrator list or general administration module.
+- Transactional welcome in-app notification and durable email outbox; worker claims/retries only welcome messages through the implemented MailpitWelcomeMail Adapter. Notification read-one/all is owner scoped.
+- English responsive forms, loading/validation/error/success states, session restoration, role routes and honest dashboard placeholders. OpenAPI 0.2.0 marks 21 operations implemented and 89 planned; status matches actual route exports.
 
-Required seeds are 15 cities, 16 directions, three loyalty levels, singleton loyalty rules and one initial administrator. The worker performs readiness/heartbeat and graceful shutdown only. No business jobs or email delivery exist. Demo records are deferred until business entities exist; demo mode is explicitly rejected. Bootstrap SQL tables are not the proposed domain services/classes.
+## Evidence actually observed
 
-## Verification actually performed
-
-| Check | Result and boundary |
+| Check | Result and limit |
 |---|---|
-| Backend lint, typecheck, production build | Passed; build exposes only /api/health plus framework not-found handling |
-| Backend Node tests | Two passed: bootstrap configuration validation and salted scrypt correctness/malformed inputs |
-| Real PostgreSQL bootstrap | Passed: dictionary identities, required row counts, correct/incorrect password verification, repeat seeds without row changes, preservation of edited settings/dictionaries, changed bootstrap email does not create another administrator, applied migration checksum changes rejected |
-| Clean Compose start | Passed after confirming no volumes existed for isolated project activehub-foundation-check; migrations completed before API/worker, frontend waited for API, worker waited for Mailpit |
-| Repeated start | Passed: same account IDs, upload marker persisted, no duplicate seeds; test edits rolled back; no existing or unrelated volumes removed |
-| Worker lifecycle | Healthy heartbeat; SIGTERM exit code 0 with database connections closed; repeat startup healthy; unexpected failure restart policy configured |
-| Readiness failure and recovery | Direct API and frontend proxy returned 200; stopping only the test database produced real 503; OpenAPI validation passed for 503; recovery returned 200 |
-| Mailpit | Health/API passed; zero captured messages, matching the absence of business jobs |
-| OpenAPI | Redocly lint passed without warnings; 109 unique operations, status declarations, CSRF/access metadata and only implemented route verified |
-| Frontend static checks | lint, typecheck, build and generated snapshot/type verification passed |
-| Real client | Typed client reached API and PostgreSQL through nginx; no mocked backend |
-| Browser checks | Two Chromium tests passed: desktop and Pixel 7 layout; real health response, English text, no horizontal overflow or page errors; screenshots reviewed |
-| Documentation/models | Source/matrix/model review, English text, relative links, local exclusions, whitespace and staged-content audit; three rendered SVGs inspected |
-| Dependencies | npm audits reported zero vulnerabilities in both lockfiles at verification time; targeted development lint overrides documented |
-| Scope | No authentication, catalog, bookings, payment, subscription, loyalty behavior, messaging or scheduling implementation; no business integration or independent review claimed |
+| Backend lint/typecheck/build | Passed locally and in Docker; Next.js REST routes only. Build tracing warning was corrected by scoping runtime upload paths. |
+| Node tests | Three passed: bootstrap validation, salted password verification and HTTPS cookie/origin rejection. |
+| Actual PostgreSQL/API acceptance | Passed for both registration roles and automatic login; concurrent cross-role duplicate email yields one 201 and one 409; invalid fields/password/name/phone/email, role/owner injection, guest/wrong-role/foreign-image/notification denial. |
+| Session/security behavior | Passed: HttpOnly/SameSite/seven-day attributes, token digests, missing/invalid/foreign CSRF and hostile Origin rejection, reload, expiry, logout, block/delete revocation, generic wrong-credential response, current-password validation and other-session revocation. HTTPS Secure and cross-site/missing-Origin checks have focused Node coverage. |
+| Profiles/reference data | Passed: role-owned edits, duplicate email, preferences/settings, decoded image/size/type checks, foreign ownership denial and inactive selection retention/new-selection rejection. Browser checks also edit email and sign in with the new address. |
+| Administrator access | Seeded/new ADMIN flow passed; USER create denied, self-block denied; competing mutual-block requests serialize to one success and one invalidated session, preserving an active administrator. |
+| Required seeds/migrations | Real db:verify passed after stage 04 upgrade; repeat initialization preserves rows/edits and rejects altered migration checksums. Existing volumes were retained; a separate clean stage 04 stack was created. |
+| Welcome outbox/Mailpit | One logical welcome notification/outbox per registration, concurrent row claims, completed replay without another attempt, actual Mailpit receipt. Real SMTP outage produced persisted failure/retry; recovery sent one email in the checked scenario. |
+| Restart/storage/logs | Session and owned image persisted across API/worker restart. Worker SIGTERM exited 0 and closed connections. Captured API/worker/init logs contained none of the configured/test credentials or stored token/password-hash fields. |
+| Frontend checks | lint/typecheck/build, generated types/hash and typed real health passed. Eight desktop/mobile Chromium cases passed against PostgreSQL/API/Mailpit; screenshots reviewed. Cases cover both signup roles, profile/email/photo/preferences, reload, password change, sign-out/login, welcome reading/email and seeded/new ADMIN. |
+| Contract/models/docs | OpenAPI lint without warnings; 110 unique operations, 21 implemented route exports and security metadata checked. Use Case statuses updated; actual account/module/SQL/worker/Adapter diagram compiled. English text, links, matrix/source integrity and staging audit recorded at handoff. |
+| Dependencies | Exact versions/lockfiles retained; npm installation/audits reported zero vulnerabilities in both repositories. No global machine settings changed. |
 
-Local test stack uses API port 3300, frontend 8180 and Mailpit 8125. Its generated credentials remain in ignored .env.test. Volumes are retained. Default README setup uses 3000/8080/8025 and a separate activehub namespace.
+The SMTP protocol has an unavoidable crash window after a message is accepted but before the database transaction commits. Stable Message-ID and persisted retries support investigation; external exactly-once email delivery is not claimed. No business integration coverage or independent review is claimed. Review passes were performed separately in the same session.
 
-## Revisions and publication
+Review fixes included CSRF validation before rate-counter writes, preserved inactive selections, persisted profile metadata instead of hardcoded values, bounded/decoded uploads, generic credential responses, credential-redacted browser output and serialized administrator access checks. Early browser failures were corrected: an invalid PNG fixture and a test navigation race during logout; later full runs passed.
 
-Both setup PRs remained open and unmerged at the start and at publication checks. Local main branches were not advanced; no merge was performed. Feature branches started from setup heads and new PRs are stacked on them.
+## Revisions and PR dependencies
 
-| Boundary | Backend | Frontend |
+| Boundary | Backend revision | Frontend revision |
 |---|---|---|
-| Setup input | f4eaf210bb97780f4d930cbb606d362fc4b8e1ba | 18756f1eacda3fb83c00a523d410f8438a3a0e8c |
-| Verified runtime/initial hosted CI | 50d815768571baa02a733ad781c9665394a4e901 | d705a79b07056c11fe99474e3da9674b4df6bbf9 |
-| Reviewed final contract snapshot | c40e993b87a8602e4378cd0ebbf06766eeb5421f | bc3b4a0b9e342e4e3f0fff4e52870b7b6fe988dc |
+| Foundation input | c20ff7b36e5715f9e7cbe118c5463b79d6635e5d | bc3b4a0b9e342e4e3f0fff4e52870b7b6fe988dc |
+| First hosted green account pair | 4ae4184b8f86555044af65a438268a11dfaf1766 | 305ac73eed15a61c50d123507bf051ae3116d961 |
+| Reviewed account/runtime acceptance snapshot | 48af143149db81303ac6b67b39cc148f94d8d3ae | 5e3ba3d275c6f926a2eb7343067b90504908f87b |
+| Current backend security-test snapshot | 134693e0d45f876a2252dfccb845bd49118698a8 | Same frontend snapshot above |
 
-The final contract pair adds planned session/statistics queries and optional user cancellation reason; it does not change runtime handlers. Frontend contracts/backend.json pins the complete backend SHA and contract hash. Final published hashes are recorded in PR descriptions and the local handoff, since this document cannot contain its own commit SHA.
+Frontend contracts/backend.json pins backend e63887f3b9f3d06166a5957d4cc385e16a3e80d6 and the exact contract hash. Later backend changes at this boundary add acceptance/security tests and documentation, with the same runtime/contract. The final published pair and final-head CI results belong in PR descriptions and the local handoff; this document cannot contain its own final commit SHA.
 
-- Backend foundation PR: https://github.com/Vitaliiir16/activehub-backend/pull/2
-- Frontend foundation PR: https://github.com/Vitaliiir16/activehub-frontend/pull/2
-- Setup dependencies: https://github.com/Vitaliiir16/activehub-backend/pull/1 and https://github.com/Vitaliiir16/activehub-frontend/pull/1
-- [Backend CI run 42492572615](https://github.com/Vitaliiir16/activehub-backend/actions/runs/42492572615): success at the runtime snapshot above, including real PostgreSQL and production-server/schema smoke.
-- [Frontend CI run 42492575592](https://github.com/Vitaliiir16/activehub-frontend/actions/runs/42492575592): success at the runtime snapshot above, including public cross-repository checkout, byte-exact canonical snapshot, clean Compose and two real browser tests. That run pinned backend contract revision 4cc6e2424fc41e848a42503deffb4746f1b5fb00.
-- Final-head workflow results after the documentation/contract refresh belong in the PR checks and handoff; earlier green runs are not presented as runs of later commits.
+- Backend stage 04 PR: https://github.com/Vitaliiir16/activehub-backend/pull/3
+- Frontend stage 04 PR: https://github.com/Vitaliiir16/activehub-frontend/pull/3
+- Both target feature/00-03-foundation because PR #2 is still open; PR #2 depends on setup PR #1. Both #1 and #2 were open/unmerged on inspection. No merge or PR closure was performed; the owner retains merge control.
+- [Backend CI 42496644158](https://github.com/Vitaliiir16/activehub-backend/actions/runs/42496644158): success at the first hosted snapshot above, using PostgreSQL/Mailpit and a built production server.
+- [Frontend CI 42496646506](https://github.com/Vitaliiir16/activehub-frontend/actions/runs/42496646506): success at the first hosted snapshot, including pinned public backend checkout, canonical-contract comparison, Compose and eight real browser checks.
+- Final-head runs are checked after publication; earlier results are not presented as runs of later commits.
 
-The separate review passes were performed in the same session, not by an independent reviewer. Findings fixed before handoff: UML syntax, incompatible lint dependencies/advisory, organizer contact visibility, bootstrap-email duplication, missing cross-event session/admin statistics queries and unnecessary mandatory user cancellation reason.
+No owner work was overwritten; both worktrees were clean at the start. Feature branches are feature/04-accounts-access. Main was not advanced because previous PRs remain unmerged. Local instructions, original source and private environments remain excluded; the parent is not a Git repository.
 
-## Environment and reproducibility
+## Run and review
 
-Verified Git 2.55.0.windows.2, owner authorship and GitHub push access; Node 24.18.0; npm/npx 11.16.0; Docker Engine 29.9.2 with Linux containers; Compose 5.6.1. No global settings changed. Parent workspace remains outside Git. Initial worktrees were clean, and no owner changes were overwritten.
+Normal startup from activehub-backend:
 
-The immutable local source and archive retain SHA-256 3007989B9382778A793013D37EAF5F34CD8D98EDB077E1780E85C212927770CE. English authored text and display labels follow the owner's language instruction. PlantUML 1.2026.9 rendered diagrams using image digest sha256:9b5071ab56a4192aac458ab4b0d42261c22c8109695894ae5be6013c3be6cac1. Container images and application packages are pinned in Dockerfiles/Compose/lockfiles. The bootstrap password hash uses scrypt N=131072, r=8, p=1 with a fresh 32-byte salt.
-
-From the backend directory, first-time setup and startup:
-
-```powershell
+~~~powershell
 node scripts/create-local-env.mjs
 docker compose up --build --wait
-```
+~~~
 
-For the existing isolated verification stack:
+Generate .env only once. Frontend: http://localhost:8080; Mailpit: http://localhost:8025. Initial administrator credentials are private in .env. [ACCOUNTS_REVIEW.md](ACCOUNTS_REVIEW.md) gives the full manual sequence and isolated acceptance commands. The account suite requires ACTIVEHUB_TEST_WRITES=true and a dedicated test database; it must not be run against real users.
 
-```powershell
-docker compose --env-file .env.test -p activehub-foundation-check up --build --wait
-```
+This session's retained isolated stack is activehub-accounts-check with ignored .env.accounts, frontend 8280, API 3400 and Mailpit 8225. A local-only Compose test override temporarily exposes PostgreSQL on 5544 and SMTP on 1026 for the production-server smoke. These ports are localhost-only; no unrelated data/volumes were removed. Final handoff records its exact current startup command.
 
-Do not regenerate an existing environment file or remove persistent volumes to work around configuration issues. README describes variables and focused check commands.
+## Open questions and next stage
 
-## Open decisions and next action
+Q-01 spent-point reversal/nonnegative balance; Q-02 quota month/rescheduling; Q-03 exact booking cutoff; Q-04 corporate exhaustion/card eligibility; Q-05 optional administrator list scope. Proposals remain unapproved.
 
-Q-01: already-spent points reversal and nonnegative balance. Q-02: free-quota month and rescheduling. Q-03: booking exactly at the 30-minute cutoff. Q-04: exhausted corporate subscription/card eligibility. Q-05: dedicated administrator list scope. Proposals remain in ASSUMPTIONS.md and are not approved by this run.
+Stop after stage 04. The next implementation stage is 05 catalog, on a later authorized run. Review/merge the prior PR chain in order, retarget dependent PRs as appropriate, then inspect both remotes/worktrees and fast-forward main only after actual merges. Re-read the requirements, plan, assumptions and pinned contract before proceeding.
 
-Owner reviews/merges setup PRs first, then retargets foundation PRs to main and reviews them. No merge is performed here. The next development stage is 04 (accounts, sessions, access, registration and profiles), only on a subsequent authorized run. Before resuming, read current documents, inspect both worktrees/remotes/PRs, preserve local edits and fast-forward main only if its PRs have been merged.
+Original source/archive SHA-256 remains 3007989B9382778A793013D37EAF5F34CD8D98EDB077E1780E85C212927770CE. PlantUML 1.2026.9 renders models locally using pinned image digest sha256:9b5071ab56a4192aac458ab4b0d42261c22c8109695894ae5be6013c3be6cac1. No source was sent to a remote diagram renderer.

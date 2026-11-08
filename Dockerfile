@@ -16,7 +16,7 @@ RUN npm ci --omit=dev && mkdir -p /app/uploads && chown node:node /app/uploads
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --chown=node:node scripts ./scripts
-COPY --chown=node:node src/infrastructure ./src/infrastructure
+COPY --chown=node:node src ./src
 COPY --chown=node:node db ./db
 USER node
 EXPOSE 3000

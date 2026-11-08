@@ -21,20 +21,25 @@
     "worker": "node --import tsx scripts/worker.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "contract:check": "redocly lint docs/openapi.yaml && node scripts/check-contract.mjs",
-    "test:contract": "node scripts/check-health-contract.mjs"
+    "test:contract": "node scripts/check-health-contract.mjs",
+    "test:accounts": "node --import tsx scripts/accounts-smoke.ts"
   },
   "dependencies": {
     "next": "16.4.5",
+    "nodemailer": "10.4.0",
     "pg": "8.23.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "tsx": "4.23.15"
+    "sharp": "0.35.5",
+    "tsx": "4.23.15",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@next/eslint-plugin-next": "16.4.5",
     "@redocly/cli": "2.76.0",
     "@types/node": "24.19.2",
+    "@types/nodemailer": "8.0.2",
     "@types/pg": "8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",

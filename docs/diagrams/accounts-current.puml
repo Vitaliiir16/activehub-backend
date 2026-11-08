@@ -1,0 +1,86 @@
+@startuml
+skinparam shadowing false
+title ActiveHub stage 04 - implemented account modules and delivery
+package "React frontend" {
+ class "src/pages/*" as Pages <<React components>>
+ class SessionProvider <<React component>>
+ class "src/api/client.ts" as Client <<module>> {
+  login()
+  registerUser()
+  registerOrganizer()
+  updateProfile()
+ }
+}
+package "REST transport" {
+ class "src/app/api/*/route.ts" as Routes <<route modules>>
+ class "accounts/http.ts" as Http <<module>> {
+  handler()
+  transaction()
+ }
+}
+package "Account application" {
+ class "accounts/service.ts" as Accounts <<module>> {
+  register()
+  login()
+  protectedAction()
+  updateProfile()
+  changePassword()
+  createAdministrator()
+  welcome()
+ }
+ class "accounts/security.ts" as Security <<module>> {
+  actor()
+  csrf()
+  checkOrigin()
+  startSession()
+ }
+ class "accounts/validation.ts" as Validation <<strict DTO schemas>>
+ class "accounts/profiles.ts" as Profiles <<module>>
+ class "accounts/images.ts" as Images <<module>>
+}
+package "Infrastructure and persistence" {
+ class "PostgreSQL" as DB <<tables>> {
+  accounts / role profiles
+  account_sessions / csrf_contexts
+  profile_directions / notification_settings
+  profile_images
+  notifications / email_outbox
+ }
+ class "scripts/worker.ts" as Worker <<process>>
+ class dispatchWelcome <<function>>
+ interface WelcomeMail {
+  send()
+ }
+ class MailpitWelcomeMail <<Adapter>> {
+  send()
+ }
+ class "Mailpit SMTP" as SMTP <<external service>>
+ class "Shared uploads volume" as Files <<storage>>
+}
+Pages --> SessionProvider
+Pages --> Client
+SessionProvider --> Client
+Client --> Routes : REST + cookies + CSRF
+Routes --> Http
+Routes --> Accounts
+Routes --> Images
+Accounts --> Security
+Accounts --> Validation
+Accounts --> Profiles
+Accounts --> DB : transactions and welcome intent
+Security --> DB : token digests / active account
+Profiles --> DB
+Images --> Security
+Images --> DB : owner metadata
+Images --> Files : decoded WebP
+Worker --> dispatchWelcome
+dispatchWelcome --> DB : FOR UPDATE SKIP LOCKED / retry
+dispatchWelcome --> WelcomeMail
+MailpitWelcomeMail ..|> WelcomeMail
+MailpitWelcomeMail --> SMTP
+note bottom of DB
+Only account state, initial profile metadata and welcome delivery exist.
+No booking, payment, subscription or loyalty behavior is implemented.
+Q-01 through Q-05 remain open.
+end note
+@enduml

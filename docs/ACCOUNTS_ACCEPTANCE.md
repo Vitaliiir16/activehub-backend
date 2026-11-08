@@ -1,0 +1,13 @@
+# Accounts and access acceptance
+
+Stage 04 delivers registration, login/session/logout, own profiles, password changes, registration dictionaries, profile images, notification preferences, administrator creation and administrator blocking. Q-01 through Q-05 remain open. The optional administrator list and password recovery remain planned.
+
+The contract is updated before handlers. Verification must use PostgreSQL and actual HTTP requests: both registration roles automatically sign in; cross-role email uniqueness survives concurrent requests; strict DTOs reject role/owner/status injection; credential failures are generic; sessions persist for seven days by default and fail after expiry, logout or account blocking/deletion. Unsafe requests require the session-bound CSRF token and exact configured Origin, including login and registration. Session cookies are HTTP-only, SameSite=Lax and Secure on HTTPS.
+
+Own-profile routes derive account identity from the session. Foreign photo identifiers return 404. Newly selected dictionary values must be active; existing inactive selections remain visible and may be retained while editing unrelated fields. Registration cannot choose ADMIN. Only active ADMIN may create another administrator or block another administrator, with serialized self/last-active checks. No deletion or general administration module is included.
+
+Password changes verify the current password, revoke other sessions and rotate the current session. Profile images accept JPEG, PNG and WebP up to 5 MiB, verify decoded content with a pixel limit, strip metadata and store a resized WebP in the shared uploads volume. The optional registration logo uploads after automatic sign-in; a failed upload keeps the account intact and offers a profile retry.
+
+Registration atomically creates a unique welcome in-app notification and durable email outbox record. The worker claims records using PostgreSQL row locks, sends only welcome email to configured local Mailpit and records success/retry without logging payloads. Reprocessing a completed record must not create another notification or send another email. SMTP has an unavoidable crash window after acceptance but before transaction commit; stable Message-ID supports tracing, and external exactly-once delivery is not claimed.
+
+Frontend acceptance: role choice then registration form, automatic role landing, login, session restoration after reload, profile updates, image upload, preferences, password change and logout; ADMIN sign-in and administrator creation. Dashboard placeholders contain no fabricated counts. Test desktop/mobile layouts and the full registration/profile/reload/logout/login flow against the real stack, including welcome mail and read status.
