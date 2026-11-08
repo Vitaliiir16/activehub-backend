@@ -1,8 +1,8 @@
 # Delivery progress
 
-Snapshot: 2026-11-08, Europe/Kyiv. Stages 05?07 are implemented for catalog, card/free bookings and simulated payments. Stop after stage 07. Subscription/loyalty integration remains unfinished for stages 08?09; the full communications matrix remains stage 10. Q-03 is approved; Q-01/Q-02/Q-04/Q-05 remain open.
+Snapshot: 2026-11-08, Europe/Kyiv. Stages 05-07 are implemented for catalog, card/free bookings and simulated payments. Stop after stage 07. Subscription/loyalty integration remains unfinished for stages 08-09; the full communications matrix remains stage 10. Q-03 is approved; Q-01/Q-02/Q-04/Q-05 remain open.
 
-## Stages 05?07
+## Stages 05-07
 
 - Fetched both remotes; PRs #1/#2/#3 were merged. Local main advanced by fast-forward to backend 6fff9c3 and frontend 7e73b65. All original branches were retained; work started clean on feature/05-07-marketplace. No merge, reset, rebase or force push was performed.
 - Stage 05: authenticated catalog/organizers, URL filters/paging, recommendations foundation, owned event/session management, decoded event photos/order/cover, pause/resume/cancel/soft deletion. Real creation/discovery/idempotence/pause/resume/access smoke passed. Frontend lint/types/build passed.
@@ -17,6 +17,8 @@ Snapshot: 2026-11-08, Europe/Kyiv. Stages 05?07 are implemented for catalog, car
 - Browser: the new desktop marketplace scenario passed through actual forms/API, including reload and refunded receipt. Three existing desktop account scenarios passed, including seeded administrator creation. An early run used the old frontend during rebuild; a subsequent run exposed dropdown accessible-name ambiguity, corrected with explicit names. The successful marketplace run took approximately four seconds.
 - Database responses/payment/idempotency records were checked for full PAN/CVV absence. Decoded event photo upload/order/delete and invalid-content rejection passed. Authenticated recommendations returned real data. Captured API/worker logs contained none of the configured/test secrets or checked PAN/hash fields. The final published pair is recorded in the local handoff and linked PRs.
 - Review uses a separate pass in this session; no independent review is claimed. Broad field/filter combinations, every transition edge, visual/multiple-engine coverage, calendar/DST matrix, load and crash fault-injection were not run. Existing CI checks remain enabled; the new API risk suite is added to backend CI and one desktop workflow to frontend CI.
+
+Hosted backend CI [42503786418](https://github.com/Vitaliiir16/activehub-backend/actions/runs/42503786418) passed at 79e376fc1733974a6e9670ed94fa3b73bff8c9fb, including clean database initialization, accounts and marketplace suites. The first frontend hosted run passed the new marketplace flow but exposed an ambiguous old account health selector; the frontend correction preserves every check. Final-head results belong in the PR and local handoff.
 
 ### Revision boundary
 

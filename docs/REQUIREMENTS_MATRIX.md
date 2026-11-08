@@ -4,13 +4,13 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
-### Stages 05?07 catalog, bookings and payments
+### Stages 05-07 catalog, bookings and payments
 
 | Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
 |---|---|---|---|
-| M-017, M-022?M-027, M-037?M-043; BR-13/14/16 | Authenticated catalog, organizer details, URL filters/paging, owned events/sessions/photos, publishing and recommendations foundation | Real API catalog smoke; marketplace browser creates/discovers an event; capacity/delete guards and immutable kind via strict DTOs | Plans/chat; complete recommendation statistics and broad filter/photo/field combinations |
-| M-028?M-030, M-040/M-042?M-044, M-057?M-067; BR-02?09/15/17/22 | Card/free reservation lifecycle, history, MANUAL decisions, deadlines, list/week-month calendar, cancellation and changed-details rights | scripts/verify-marketplace.mjs: concurrency, ownership, expiry/completion, frozen price, cascade and retry checks; real browser booking/reload/cancellation | Subscription visits, points/quota compensation; all transition/calendar/DST permutations; full communications |
-| M-068?M-071; BR-06/11/15 | Simulated attempts, decline/retry, receipt, full refund, HMAC idempotency, integer price snapshots | Required success/decline cards, repeat payment/cancel, refund uniqueness, DB response/PAN/CVV checks and browser receipt/refund | Loyalty pricing/free quota/card discount; subscription bypass; exhaustive card-format matrix |
+| M-017, M-022-M-027, M-037-M-043; BR-13/14/16 | Authenticated catalog, organizer details, URL filters/paging, owned events/sessions/photos, publishing and recommendations foundation | Real API catalog smoke; marketplace browser creates/discovers an event; capacity/delete guards and immutable kind via strict DTOs | Plans/chat; complete recommendation statistics and broad filter/photo/field combinations |
+| M-028-M-030, M-040/M-042-M-044, M-057-M-067; BR-02-09/15/17/22 | Card/free reservation lifecycle, history, MANUAL decisions, deadlines, list/week-month calendar, cancellation and changed-details rights | scripts/verify-marketplace.mjs: concurrency, ownership, expiry/completion, frozen price, cascade and retry checks; real browser booking/reload/cancellation | Subscription visits, points/quota compensation; all transition/calendar/DST permutations; full communications |
+| M-068-M-071; BR-06/11/15 | Simulated attempts, decline/retry, receipt, full refund, HMAC idempotency, integer price snapshots | Required success/decline cards, repeat payment/cancel, refund uniqueness, DB response/PAN/CVV checks and browser receipt/refund | Loyalty pricing/free quota/card discount; subscription bypass; exhaustive card-format matrix |
 | Originating subset of M-083/M-096/M-097 | Durable lifecycle notifications/outbox plus minute expiry/completion jobs | PostgreSQL schedule/state, duplicate transition checks; existing SMTP dispatcher reused | Complete notification recipient/preference matrix, reminders, subscription/loyalty/chat jobs and crash fault injection |
 
 Q-03 is approved as inclusive (equal to the cutoff is allowed). Q-01/Q-02/Q-04/Q-05 remain open. No grouped requirement spanning later stages is marked fully complete. See [MARKETPLACE_REVIEW.md](MARKETPLACE_REVIEW.md) and current [progress](PROGRESS.md).
