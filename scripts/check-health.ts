@@ -11,4 +11,6 @@ const health = await response.json();
 assert.equal(health.status, "ok");
 assert.equal(health.service, "activehub-api");
 assert.equal(health.version, "0.1.0");
+assert.equal(health.database, "ready");
+assert.match(response.headers.get("x-request-id") ?? "", /^[0-9a-f-]{36}$/);
 console.log("PASS: real backend health response");

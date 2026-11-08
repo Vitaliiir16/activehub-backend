@@ -1,0 +1,15 @@
+**
+!package.json
+!package-lock.json
+!tsconfig.json
+!next.config.ts
+!eslint.config.mjs
+!src/
+!src/**
+!scripts/
+!scripts/**
+!db/
+!db/**
+!tests/
+!tests/**
+!Dockerfile
