@@ -75,6 +75,7 @@ export async function register(request: Request, role: "USER" | "ORGANIZER") {
     role === "USER"
       ? userRegistration.parse(raw)
       : organizerRegistration.parse(raw);
+  await transaction((client) => guest(request, client));
   const limited = await transaction((client) =>
     rateLimit(client, `register:${input.email}`, 10),
   );
@@ -135,6 +136,7 @@ export async function register(request: Request, role: "USER" | "ORGANIZER") {
 const dummyHash = "scrypt$131072$8$1$" + "0".repeat(64) + "$" + "0".repeat(128);
 export async function login(request: Request) {
   const input = loginInput.parse(await jsonBody(request));
+  await transaction((client) => guest(request, client));
   const limited = await transaction((client) =>
     rateLimit(client, `login:${input.email}`),
   );
@@ -164,6 +166,9 @@ export async function login(request: Request) {
         "ACCOUNT_BLOCKED",
         "Your account is blocked. Contact an administrator",
       );
+    await client.query("DELETE FROM auth_rate_limits WHERE key_hash=$1", [
+      digest(`login:${input.email}`),
+    ]);
     return startSession(client, row.id, row.role, request);
   });
 }
