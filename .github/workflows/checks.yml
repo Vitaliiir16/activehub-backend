@@ -65,3 +65,4 @@ jobs:
       - run: npm run build
       - run: npm run test:accounts
       - run: npm run test:marketplace
+      - run: npm run test:loyalty
