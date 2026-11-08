@@ -1,10 +1,10 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.7.0
+  version: 0.8.0
   description: Accounts, catalog, bookings, simulated payments, subscriptions, loyalty, communications (chat,
-    reminders, email) and administration (accounts, events, bookings, subscriptions, dictionaries) are implemented
-    through stage 11; each operation declares its actual implementation status.
+    reminders, email), administration (accounts, events, bookings, subscriptions, dictionaries), statistics and
+    recommendations are implemented through stage 12; each operation declares its actual implementation status.
     Approved decisions are listed in x-decisions (Q-01 clamped reversal, Q-02 session month, Q-03 inclusive cutoff,
     Q-04 corporate card until expiry). Q-05 remains open.
   license:
@@ -1455,11 +1455,10 @@ paths:
       tags:
         - Organizer
       summary: Read own dashboard
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Own dashboard counters: total, active, paused and completed events (completed means not cancelled and without a future session), future scheduled sessions, active future bookings (PENDING, AWAITING_PAYMENT, CONFIRMED), new PENDING requests, net current-month revenue in Europe/Kyiv (successful payments minus refunds of own bookings), unread messages from members and a 30-day daily booking chart. Other organizers data is never included."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ORGANIZER
       x-ownership: Own organizer resources only; foreign identifiers return 404.
@@ -4520,11 +4519,10 @@ paths:
       tags:
         - Administration
       summary: Read platform statistics
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Platform statistics for a period: 7d, 30d (default) and 90d end today in Europe/Kyiv; custom needs dateFrom and dateTo, at most one year. Totals count records created in the period; netRevenueMinor is successful card payments minus refunds in the period; bookingConversion is the exact ratio of bookings that were ever CONFIRMED to all bookings created (four decimals, zero when there are no bookings). Breakdowns are grouped as listed; days without records are included as zero."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
@@ -4586,11 +4584,10 @@ paths:
       tags:
         - Administration
       summary: Read one organizer dashboard statistics
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: "Dashboard of one organizer account, read as an administrator with the same definitions as the organizer dashboard. Only ORGANIZER accounts are found."
       security:
         - sessionCookie: []
-      x-implementation-status: planned
+      x-implementation-status: implemented
       x-roles:
         - ADMIN
       x-ownership: Active ADMIN only. No access to chat contents. Passwords are never accepted by profile-edit endpoints.
