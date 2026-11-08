@@ -465,7 +465,9 @@ paths:
         - Member
       summary: List active cities
       description: Implemented in stage 04. Guest access supports registration only. Inactive values remain readable
-        on existing authenticated records; they cannot be selected for new records.
+        on existing authenticated records; they cannot be selected for new records. includeSelected=true
+        requires authentication and also returns the caller's retained inactive values; it never exposes
+        another account's selections.
       security: []
       x-implementation-status: implemented
       x-roles:
@@ -499,6 +501,14 @@ paths:
             enum:
               - newest
               - oldest
+        - name: includeSelected
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Requires a valid session. Includes only the caller's existing inactive selections alongside
+            active values.
       responses:
         "200":
           description: Successful response.
@@ -536,7 +546,9 @@ paths:
         - Member
       summary: List active directions
       description: Implemented in stage 04. Guest access supports registration only. Inactive values remain readable
-        on existing authenticated records; they cannot be selected for new records.
+        on existing authenticated records; they cannot be selected for new records. includeSelected=true
+        requires authentication and also returns the caller's retained inactive values; it never exposes
+        another account's selections.
       security: []
       x-implementation-status: implemented
       x-roles:
@@ -570,6 +582,14 @@ paths:
             enum:
               - newest
               - oldest
+        - name: includeSelected
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Requires a valid session. Includes only the caller's existing inactive selections alongside
+            active values.
       responses:
         "200":
           description: Successful response.
