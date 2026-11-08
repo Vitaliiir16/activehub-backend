@@ -1,9 +1,9 @@
 openapi: 3.1.1
 info:
   title: ActiveHub REST API
-  version: 0.1.0
-  description: Contract foundation. Only GET /api/health is implemented. All other operations are planned and
-    must not be treated as available. Q-01 through Q-05 remain open. See API_CONVENTIONS.md.
+  version: 0.2.0
+  description: ActiveHub REST contract. Operation status distinguishes implemented behavior from planned
+    delivery. Stage 04 adds accounts and access; Q-01 through Q-05 remain open.
   license:
     name: Private project; no license granted
 servers:
@@ -59,8 +59,8 @@ paths:
       tags:
         - Authentication
       summary: Get a session-bound CSRF token
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security: []
       x-implementation-status: planned
       x-roles:
@@ -98,14 +98,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/auth/login:
     post:
       operationId: login
       tags:
         - Authentication
       summary: Sign in
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - csrfToken: []
       x-implementation-status: planned
@@ -150,14 +151,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Login"
+      x-delivery-stage: "04"
   /api/auth/register/user:
     post:
       operationId: registerUser
       tags:
         - Authentication
       summary: Register a user
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - csrfToken: []
       x-implementation-status: planned
@@ -202,14 +204,17 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/UserRegistration"
+      x-delivery-stage: "04"
   /api/auth/register/organizer:
     post:
       operationId: registerOrganizer
       tags:
         - Authentication
       summary: Register an organizer
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints. Optional logo selection in the registration
+        UI uploads immediately after automatic sign-in; upload failure leaves the created account signed in
+        and offers retry in profile.
       security:
         - csrfToken: []
       x-implementation-status: planned
@@ -254,14 +259,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/OrganizerRegistration"
+      x-delivery-stage: "04"
   /api/auth/logout:
     post:
       operationId: logout
       tags:
         - Authentication
       summary: End the current session
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -296,14 +302,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/auth/session:
     get:
       operationId: getSession
       tags:
         - Authentication
       summary: Read current session
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -341,6 +348,7 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/auth/password-recovery:
     post:
       operationId: recoverPassword
@@ -449,8 +457,9 @@ paths:
       tags:
         - Member
       summary: List active cities
-      description: Planned; no handler exists yet. Guest access supports registration only. Inactive values remain
-        readable on existing authenticated records; they cannot be selected for new records.
+      description: Stage 04 contract; implementation and verification pending. Guest access supports registration
+        only. Inactive values remain readable on existing authenticated records; they cannot be selected for
+        new records.
       security: []
       x-implementation-status: planned
       x-roles:
@@ -513,14 +522,16 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/directions:
     get:
       operationId: listDirections
       tags:
         - Member
       summary: List active directions
-      description: Planned; no handler exists yet. Guest access supports registration only. Inactive values remain
-        readable on existing authenticated records; they cannot be selected for new records.
+      description: Stage 04 contract; implementation and verification pending. Guest access supports registration
+        only. Inactive values remain readable on existing authenticated records; they cannot be selected for
+        new records.
       security: []
       x-implementation-status: planned
       x-roles:
@@ -583,14 +594,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/me:
     get:
       operationId: getProfile
       tags:
         - Member
       summary: Read own profile
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -628,13 +640,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
     patch:
       operationId: updateProfile
       tags:
         - Member
       summary: Update own profile
-      description: Planned; no handler exists yet. Accept only fields belonging to the caller role. Reject unknown
-        or another role's fields. Admin contact edits never accept passwords.
+      description: Stage 04 contract; implementation and verification pending. Accept only fields belonging to the
+        caller role. Reject unknown or another role's fields. Admin contact edits never accept passwords.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -679,14 +692,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/ProfilePatch"
+      x-delivery-stage: "04"
   /api/me/password:
     post:
       operationId: changePassword
       tags:
         - Member
       summary: Change own password
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -727,14 +741,15 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/PasswordChange"
+      x-delivery-stage: "04"
   /api/me/photo:
     post:
       operationId: uploadProfilePhoto
       tags:
         - Member
       summary: Upload own profile photo or logo
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -742,7 +757,6 @@ paths:
       x-roles:
         - USER
         - ORGANIZER
-        - ADMIN
       x-ownership: Server must enforce role, account status and resource scope before returning data.
       responses:
         "200":
@@ -787,6 +801,7 @@ paths:
                   type: string
                   format: binary
                   description: One JPEG, PNG or WebP image, at most 5 MiB; inspect actual decoded content.
+      x-delivery-stage: "04"
   /api/events:
     get:
       operationId: listEvents
@@ -4115,8 +4130,9 @@ paths:
       tags:
         - Member
       summary: List own notifications
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints. Stage 04 emits welcome notifications only;
+        other notification triggers remain planned.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -4184,14 +4200,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/notifications/{id}/read:
     post:
       operationId: readNotification
       tags:
         - Member
       summary: Mark own notification read
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4237,14 +4254,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/notifications/read-all:
     post:
       operationId: readAllNotifications
       tags:
         - Member
       summary: Mark own current notifications read
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4283,14 +4301,15 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
   /api/me/notification-settings:
     get:
       operationId: getNotificationSettings
       tags:
         - Member
       summary: Read email preferences
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
       x-implementation-status: planned
@@ -4328,12 +4347,14 @@ paths:
           $ref: "#/components/responses/Error429"
         "503":
           $ref: "#/components/responses/Error503"
+      x-delivery-stage: "04"
     patch:
       operationId: updateNotificationSettings
       tags:
         - Member
       summary: Set optional email preferences
-      description: Planned; no handler exists yet. In-app and BOOKINGS email cannot be disabled.
+      description: Stage 04 contract; implementation and verification pending. In-app and BOOKINGS email cannot be
+        disabled.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -4378,6 +4399,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/NotificationSettings"
+      x-delivery-stage: "04"
   /api/admin/statistics:
     get:
       operationId: getStatistics
@@ -6891,8 +6913,8 @@ paths:
       tags:
         - Administration
       summary: Create an administrator
-      description: Planned; no handler exists yet. See API_CONVENTIONS.md and REQUIREMENTS.md for authorization and
-        domain constraints.
+      description: Stage 04 contract; implementation and verification pending. See API_CONVENTIONS.md and
+        REQUIREMENTS.md for authorization and domain constraints.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -6935,6 +6957,7 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/AdminCreate"
+      x-delivery-stage: "04"
     get:
       operationId: listAdministrators
       tags:
@@ -7011,8 +7034,10 @@ paths:
       tags:
         - Administration
       summary: Block another administrator
-      description: Planned; no handler exists yet. Reject blocking self or the last active administrator. Enforce
-        transactionally under concurrent requests.
+      description: Stage 04 contract; implementation and verification pending. Reject blocking self or the last
+        active administrator. Enforce transactionally under concurrent requests. No administrator deletion
+        endpoint is implemented. Self-block and last-active-admin checks serialize on a database advisory
+        lock.
       security:
         - sessionCookie: []
           csrfToken: []
@@ -7062,6 +7087,44 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/StatusChange"
+      x-delivery-stage: "04"
+  /api/media/{id}:
+    get:
+      operationId: getProfilePhoto
+      tags:
+        - Member
+      summary: Read an owned profile image
+      description: "Stage 04: authenticated owner only. Images are decoded, resized, stripped of metadata and stored
+        as WebP."
+      security:
+        - sessionCookie: []
+      x-implementation-status: planned
+      x-delivery-stage: "04"
+      x-roles:
+        - USER
+        - ORGANIZER
+      x-ownership: Only the image owner may read it.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Owned image
+          content:
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Error401"
+        "403":
+          $ref: "#/components/responses/Error403"
+        "404":
+          $ref: "#/components/responses/Error404"
 components:
   securitySchemes:
     sessionCookie:
@@ -7216,9 +7279,8 @@ components:
           maxLength: 254
         password:
           type: string
-          minLength: 8
+          minLength: 1
           maxLength: 256
-          pattern: ^(?=.*[A-Za-z])(?=.*[0-9]).+$
           writeOnly: true
     Session:
       type: object
@@ -7346,9 +7408,6 @@ components:
           type: string
           minLength: 0
           maxLength: 5000
-        logoId:
-          type: string
-          format: uuid
     UserProfile:
       type: object
       additionalProperties: false
@@ -7426,6 +7485,7 @@ components:
           type: integer
           minimum: 0
           maximum: 2147483647
+      description: id is the account ID; timestamps describe the account and profile update.
     OrganizerProfile:
       type: object
       additionalProperties: false
@@ -7485,6 +7545,7 @@ components:
           anyOf:
             - type: string
             - type: "null"
+      description: id is the account ID; timestamps describe the account and profile update.
     AdminProfile:
       type: object
       additionalProperties: false
@@ -7514,6 +7575,7 @@ components:
           type: string
         displayName:
           type: string
+      description: id is the account ID; timestamps describe the account and profile update.
     Profile:
       oneOf:
         - $ref: "#/components/schemas/UserProfile"
@@ -7526,71 +7588,12 @@ components:
           ORGANIZER: "#/components/schemas/OrganizerProfile"
           ADMIN: "#/components/schemas/AdminProfile"
     ProfilePatch:
-      type: object
-      additionalProperties: false
-      required: []
-      properties:
-        email:
-          type: string
-          format: email
-          maxLength: 254
-        firstName:
-          type: string
-          minLength: 2
-          maxLength: 50
-        lastName:
-          type: string
-          minLength: 2
-          maxLength: 50
-        phone:
-          type: string
-          pattern: ^\+[1-9][0-9]{7,14}$
-        cityId:
-          type: string
-          format: uuid
-        gender:
-          type: string
-          enum:
-            - MALE
-            - FEMALE
-            - UNDISCLOSED
-        photoId:
-          anyOf:
-            - type: string
-              format: uuid
-            - type: "null"
-        preferredDirectionIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        name:
-          type: string
-          minLength: 2
-          maxLength: 100
-        type:
-          type: string
-          enum:
-            - TRAINER
-            - CLUB
-            - VENUE
-            - ORGANIZER
-        directionIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          minItems: 1
-        description:
-          type: string
-          minLength: 0
-          maxLength: 5000
-        logoId:
-          anyOf:
-            - type: string
-              format: uuid
-            - type: "null"
-      minProperties: 1
+      description: Server chooses the strict schema from the authenticated role. Shared email-only patches are valid
+        for every role.
+      anyOf:
+        - $ref: "#/components/schemas/USERProfilePatch"
+        - $ref: "#/components/schemas/ORGANIZERProfilePatch"
+        - $ref: "#/components/schemas/ADMINProfilePatch"
     PasswordChange:
       type: object
       additionalProperties: false
@@ -7600,6 +7603,8 @@ components:
       properties:
         currentPassword:
           type: string
+          minLength: 1
+          maxLength: 256
           writeOnly: true
         newPassword:
           type: string
@@ -9588,6 +9593,101 @@ components:
         $ref: "#/components/schemas/LoyaltyLevel"
       minItems: 3
       maxItems: 3
+    USERProfilePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+        phone:
+          type: string
+          pattern: ^\+[1-9][0-9]{7,14}$
+        cityId:
+          type: string
+          format: uuid
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - UNDISCLOSED
+        photoId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        preferredDirectionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
+    ORGANIZERProfilePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        type:
+          type: string
+          enum:
+            - TRAINER
+            - CLUB
+            - VENUE
+            - ORGANIZER
+        phone:
+          type: string
+          pattern: ^\+[1-9][0-9]{7,14}$
+        cityId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 0
+          maxLength: 5000
+        logoId:
+          anyOf:
+            - type: string
+              format: uuid
+            - type: "null"
+        directionIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+          uniqueItems: true
+    ADMINProfilePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        displayName:
+          type: string
+          minLength: 2
+          maxLength: 100
   responses:
     Error503:
       description: Database or required migration is unavailable.
