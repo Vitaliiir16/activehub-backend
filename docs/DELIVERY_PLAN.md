@@ -1,6 +1,6 @@
 # Delivery plan
 
-Stages 00-04 have delivered models, scaffolds, infrastructure, contract foundation and accounts/access. Evidence and revision boundaries are recorded in PROGRESS.md. The current run stops after stage 04. Catalogs, bookings, payments, subscriptions and loyalty behavior remain planned. Demo records remain deferred until their entities exist.
+Stages 00-08 are merged and stage 09 loyalty is implemented on feature/09-loyalty. Evidence and revision boundaries are recorded in PROGRESS.md. The current run stops after stage 09. Communications, administration, statistics and acceptance remain planned. Demo records remain deferred until stage 13.
 
 ## Stages and acceptance
 
@@ -24,7 +24,7 @@ Stages 00-04 have delivered models, scaffolds, infrastructure, contract foundati
 
 The dependency table is not permission to call unfinished integration complete. Notification event types and outbox hooks must be designed with their originating features; stage 10 completes delivery and rechecks all previous triggers. Cancellation crosses bookings, money, visits, points and quota: stages 06-09 stay provisionally integrated until joint tests pass. Base price/promotion snapshots appear before loyalty; stage 09 completes the required final pricing pipeline. Q-01 affects spent-point reversals most directly when [S] redemption is added, but the rule must be settled before claiming the full ledger safe. Unrelated scaffolding/catalog work can proceed while questions remain open.
 
-Stages 05-07 now have implementation and risk-based evidence in PROGRESS.md. Q-03 is approved. Their cross-module subscription/loyalty compensation remains provisional until stages 08-09. The current run stops after stage 07.
+Stages 05-09 have implementation and risk-based evidence in PROGRESS.md. Q-01/Q-02/Q-03/Q-04 are approved; Q-05 remains open. The joint financial regression combines the marketplace and loyalty suites; stage 10 rechecks every notification trigger.
 
 ## API synchronization
 

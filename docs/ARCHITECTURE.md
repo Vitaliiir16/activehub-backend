@@ -1,6 +1,6 @@
 # Architecture proposal
 
-Status: accounts/access, catalog, card/free bookings and simulated payments are implemented. Subscriptions, loyalty and remaining product architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
+Status: accounts/access, catalog, card/free bookings, simulated payments, subscriptions and loyalty are implemented. Communications, administration and reporting architecture are proposed. [System models](MODELING.md) distinguish the implemented stage 04 modules from future classes, use cases and pattern collaborations. Evidence is in PROGRESS.md.
 
 ## Shape of the system
 
@@ -97,7 +97,7 @@ Add only brief English comments at actual pattern implementations naming the pat
 
 ## Implemented marketplace modules
 
-Thin REST adapters call catalog.ts/photos.ts/bookings.ts/payments.ts in src/modules/marketplace. core.ts owns transactional access, keyed idempotency and notification insertion. policies.ts implements SeatPolicy Strategy variants for ordinary seats, single participants and exclusive hall units. PaymentGateway is the narrow simulation port; SimulatedCardGateway is its Adapter. These are actual implementations with English pattern comments and README search entries. The lifecycle transition table and SQL terminal-state trigger are ordinary state validation, not a claimed GoF State implementation. A future price Chain of Responsibility and outbox Observer remain proposed.
+Thin REST adapters call catalog.ts/photos.ts/bookings.ts/payments.ts in src/modules/marketplace. core.ts owns transactional access, keyed idempotency and notification insertion. policies.ts implements SeatPolicy Strategy variants for ordinary seats, single participants and exclusive hall units. PaymentGateway is the narrow simulation port; SimulatedCardGateway is its Adapter. These are actual implementations with English pattern comments and README search entries. The lifecycle transition table and SQL terminal-state trigger are ordinary state validation, not a claimed GoF State implementation. The price Chain of Responsibility is implemented in stage 09 (below); the outbox Observer remains proposed.
 
 Locks follow account/session authentication -> event -> event session -> booking -> payment. Account rows use FOR NO KEY UPDATE to retain revocation serialization while permitting foreign-key key-share checks. Capacity is the sum of active booking seats; partial unique indexes prevent duplicate active user/session reservations and exclusive hall bookings. All catalog edits and cancellation cascades take the same event lock. Derived capacity, payment/refund records, history and notifications commit or roll back together. Prices use integer minor units and immutable booking snapshots. Address/time revision counters retain exceptional cancellation eligibility.
 
@@ -125,4 +125,24 @@ flowchart TD
   SMTP --> Outbox
 ```
 
-Future subscriptions/loyalty compensation must join the existing transaction and preserve original award/visit/price snapshots. No fake visits, free quota or points are written by the current delivery.
+## Implemented loyalty module
+
+src/modules/loyalty/pricing.ts holds pure rules: PriceStep handlers PromotionStep, FreeAccessStep and CardDiscountStep form a Chain of Responsibility that applies the source 7.6.1 order and records each modifier; subscription payment links only the promotion handler. pointsAward and the decimal helpers use exact integer arithmetic. ledger.ts persists effects inside the booking transaction: syncCard locks the member card and applies automatic level rules unless an administrator locked it, quoteBooking prices under that lock with the session-month quota, accruePoints and releaseLoyalty write once-only ACCRUAL/REVERSAL ledger rows protected by partial unique indexes, and free_visit_ledger records reserved and returned quota. service.ts provides member and administrator use cases. Booking transition calls releaseLoyalty before returning subscription visits and refunding, and accruePoints after entering CONFIRMED.
+
+Locks follow event -> session -> booking -> member card -> subscription. The hourly subscription-expiry run also returns expired unlocked corporate cards to their base level. Booking jobs commit per booking, so a worker run never holds many member-card locks at once.
+
+```mermaid
+flowchart TD
+  Bookings[bookings.ts] --> Quote[ledger.quoteBooking]
+  Quote --> Chain[PriceStep chain: pricing.ts]
+  Bookings --> Accrue[ledger.accruePoints]
+  Bookings --> Release[ledger.releaseLoyalty]
+  Subscriptions[subscriptions.ts purchase and expiry] --> Sync[ledger.syncCard and revertExpiredCorporateCards]
+  Admin[loyalty/service.ts] --> Sync
+  Quote --> Sync
+  Accrue --> Ledger[(points_transactions)]
+  Release --> Ledger
+  Quote --> Quota[(free_visit_ledger)]
+  Release --> Quota
+  Sync --> Cards[(user_profiles and card_assignments)]
+```

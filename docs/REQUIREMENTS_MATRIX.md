@@ -4,6 +4,17 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 
 ## Delivery evidence
 
+### Stage 09
+
+| Requirements | Delivered subset | Actual evidence | Still planned or not exhaustively verified |
+|---|---|---|---|
+| M-071, M-072, M-079; BR-15 | Ordered price snapshot: promotion, card free access, card discount, nonnegative due; subscription bypass; free access has zero revenue | Node tests for order, caps, rounding and the subscription path; scripts/verify-loyalty.mjs exact breakdowns and FREE bookings on real PostgreSQL | Optional redemption step (S-04); revenue reporting (stage 12) |
+| M-077, M-078 | Configured levels/defaults, Premium by lifetime points, Corporate by purchase until expiry (Q-04), no point-based downgrade, admin lock, upgrade notification | Default seeds read back; threshold upgrade with one notification; purchase upgrade, exhaustion retention, expiry reversion to Premium; locked card unchanged by purchase | Upgrade email default distinction (stage 10); several simultaneous corporate plans |
+| M-080, M-081, M-064 (loyalty subset); BR-06, BR-23 | Once-only award on confirmation for card/free/subscription bookings; once-only reversal clamped at zero (Q-01); quota return; reasoned ledger | Exact 30/750/20-point awards, repeated cancellation, shortfall note after admin deduction, rejection without points, ledger sum equals balance | Redemption restoration (S-04); crash fault injection |
+| M-032, M-048 (loyalty subset), M-054 (loyalty configuration) | Loyalty screen, admin level/rules configuration, card assignment/lock and points adjustment by account ID | Browser flow: earn, view card/history, admin lock and adjustments with overdraw rejection; API denial for USER, 404 unknown user, validation and idempotent replay | Admin user search/details (stage 11); browser DST/month combinations |
+
+Q-02 session-month quota: the ledger month equals the session's Europe/Kyiv month, and a concurrent pair for the last free visit grants it once. Kyiv month boundaries, including the DST month, have Node coverage. Q-05 remains open.
+
 ### Stage 08
 
 M-073 through M-076 and subscription subsets of M-027 through M-030/M-058/M-060/M-064/M-070/M-072 are implemented for plans, purchase, per-place visits and once-only restoration. Real API/DB evidence: monthly purchase/reservation/debit/cancellation; edit/archive snapshot continuity; concurrent last one-time visit and repeated cancellation. CORPORATE, unlimited, scope/validity combinations and worker/rejection paths are implemented but not exercised in this reduced run. Loyalty eligibility, points and Q-04 remain stage 09; optional expiry notices remain planned.
@@ -17,7 +28,7 @@ M-073 through M-076 and subscription subsets of M-027 through M-030/M-058/M-060/
 | M-068-M-071; BR-06/11/15 | Simulated attempts, decline/retry, receipt, full refund, HMAC idempotency, integer price snapshots | Required success/decline cards, repeat payment/cancel, refund uniqueness, DB response/PAN/CVV checks and browser receipt/refund | Loyalty pricing/free quota/card discount; subscription bypass; exhaustive card-format matrix |
 | Originating subset of M-083/M-096/M-097 | Durable lifecycle notifications/outbox plus minute expiry/completion jobs | PostgreSQL schedule/state, duplicate transition checks; existing SMTP dispatcher reused | Complete notification recipient/preference matrix, reminders, subscription/loyalty/chat jobs and crash fault injection |
 
-Q-03 is approved as inclusive (equal to the cutoff is allowed). Q-01/Q-02/Q-04/Q-05 remain open. No grouped requirement spanning later stages is marked fully complete. See [MARKETPLACE_REVIEW.md](MARKETPLACE_REVIEW.md) and current [progress](PROGRESS.md).
+Q-03 is approved as inclusive (equal to the cutoff is allowed). Stage 09 records the later Q-01/Q-02/Q-04 approvals; Q-05 remains open. No grouped requirement spanning later stages is marked fully complete. See [MARKETPLACE_REVIEW.md](MARKETPLACE_REVIEW.md) and current [progress](PROGRESS.md).
 
 ### Stage 04 accounts and access (historical)
 

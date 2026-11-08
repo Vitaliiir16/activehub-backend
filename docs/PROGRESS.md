@@ -1,6 +1,31 @@
 # Delivery progress
 
-## Stage 08 - current delivery
+## Stage 09 - current delivery
+
+Snapshot: 2026-11-08, Europe/Kyiv. Both PRs #5 (stage 08) were verified merged: backend main 8429402, frontend main 43fccb5. Both repositories branched feature/09-loyalty from those heads. Earlier branches are retained; no merge, reset, rebase or force push was performed. The owner approved Q-01 (reversal clamped at zero), Q-02 (session month in Europe/Kyiv) and Q-04 (Corporate card until calendar expiry); Q-05 remains open. Details are in ASSUMPTIONS.md.
+
+Implemented: migration 008 (points ledger with once-only accrual/reversal indexes, free-visit ledger, booking card/award snapshot, card assignment history, base level); ordered PriceStep Chain of Responsibility pricing; session-month free quota reserved per place and returned once; awards on CONFIRMED for card, free and subscription bookings; once-only clamped reversal on cancellation; Premium upgrade by lifetime points; Corporate on purchase until the last corporate subscription expires, with hourly reversion; administrator-locked cards; administrator level/rules configuration, card assignment and points adjustment; member loyalty summary and paginated ledger. OpenAPI 0.5.0 has 112 operations, 79 implemented. Booking jobs now commit per booking. Optional redemption remains planned (S-04).
+
+Frontend: pinned contract 0.5.0 at backend 3f38561554d6b4c45048375d845f8f02f64bcc1f, loyalty page, administrator Loyalty settings, awarded points on booking details and a server-pricing note on the booking form.
+
+### Verification observed
+
+- Backend lint, typecheck and production build passed. Node tests: 9 passed, including six new pricing/award/Kyiv-month tests. OpenAPI lint and route/status check passed (79 implemented operations match route exports; approved and open decisions checked).
+- Isolated Compose stack activehub-loyalty-check (ignored .env.loyalty; UI 8580, API 3700, Mailpit 8525; a local-only override exposes PostgreSQL on 127.0.0.1:5577) applied migration 008 to a new volume. db:verify passed with probe changes rolled back.
+- scripts/verify-loyalty.mjs passed twice against that stack: exact awards and repeated-cancellation reversal; Q-01 clamped reversal after an administrator deduction and overdraw rejection; Premium upgrade with one notification; session-month quota with ordered free/card breakdowns, return on cancellation and rejection without points; concurrent requests for the last free visit granted once; corporate purchase upgrade, subscription award, exhaustion retention and expiry reversion; administrator lock, assignment history, idempotent adjustment and denial cases; ledger sums equal balances. It restores the default settings afterwards.
+- scripts/verify-marketplace.mjs passed twice on the same stack after the change, including worker expiry/completion without duplicate transitions.
+- Frontend lint, typecheck, build and api:check passed. Playwright against the same stack: 10 passed, 2 skipped (the mobile duplicates of the desktop-only marketplace and loyalty workflows). The new loyalty workflow books and pays through forms, checks awarded points and the loyalty page, then assigns a locked Premium card, rejects an overdraw and records an adjustment.
+- Captured API/worker logs contained none of the test passwords, the configured administrator password, the test card number or hash fields.
+
+Not run locally: the accounts suite (it needs a host-exposed SMTP port; CI runs it), mobile loyalty browser flow, screenshot review, DST browser combinations, load and crash fault injection. No independent review is claimed; review was a separate pass in this session. CI gains a test:loyalty step; hosted results belong to the pushed heads and are not claimed here.
+
+### Revision boundary
+
+Input revisions: backend 8429402, frontend 43fccb5. Implementation commits: backend 1bfbebc (contract), 3f38561 (loyalty runtime), 215b930 (risk suite and CI); frontend c9014e1 (contract pin and client), ab5f5cb (screens), 9434c78 (browser test). The tested pair is backend 215b930 runtime with frontend 9434c78; this documentation commit follows it and changes no runtime. The final published pair belongs in the local handoff.
+
+Startup: `docker compose up --build --wait` from the backend applies migration 008 and keeps existing volumes. Pull requests into main are created and merged by the owner. Stop after stage 09; next is stage 10 communications, after a new instruction.
+
+## Stage 08 (historical)
 
 Stage 08 implements organizer plan create/edit/archive, all three plan types, immutable purchased terms, simulated card purchase without purchase refunds, own subscription pages/selection, transactional per-place visits, once-only returns on rejection/cancellation/expiry, exhaustion and hourly persisted expiry. Corporate loyalty remains stage 09; Q-04 is unchanged. Optional expiry messages are not implemented.
 

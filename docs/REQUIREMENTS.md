@@ -1,6 +1,6 @@
 # ActiveHub product requirements
 
-English delivery baseline, prepared 2026-11-08 from the supplied specification. Section numbers preserve source traceability. The source archive is retained locally as `docs/project.md`, unchanged. The owner's later instruction replaces Ukrainian UI, validation and new written material with English; currency remains UAH and displayed time remains Europe/Kyiv. Other business-rule proposals are pending in [ASSUMPTIONS.md](ASSUMPTIONS.md).
+English delivery baseline, prepared 2026-11-08 from the supplied specification. Section numbers preserve source traceability. The source archive is retained locally as `docs/project.md`, unchanged. The owner's later instruction replaces Ukrainian UI, validation and new written material with English; currency remains UAH and displayed time remains Europe/Kyiv. Owner-approved interpretations and the remaining open question are recorded in [ASSUMPTIONS.md](ASSUMPTIONS.md).
 
 Every unmarked requirement is mandatory. [S] means optional, after all mandatory scope is accepted. Default values are configurable, not constants embedded in business logic. This document specifies intended behavior, not implemented features. The [matrix](REQUIREMENTS_MATRIX.md) assigns delivery stages and verification.
 
@@ -147,7 +147,7 @@ Blocking an organizer hides its events and prevents new bookings; existing booki
 
 ## 7.5. Booking rules
 
-Creation requires active USER, ACTIVE event/organizer, SCHEDULED session, `startsAt - captured serverNow >= bookingCutoff` (inclusive, owner-approved Q-03; exactly 30 minutes is permitted by default), permitted seats and sufficient capacity, no other active booking by that user for that session, and no other active booking for HALL_RENTAL. Atomically reserve capacity, price snapshot, applicable subscription visits and [S] redeemed points; free quota also needs atomic accounting after Q-02. Subscription/loyalty effects remain stage 08-09 dependencies rather than being simulated in stages 06-07.
+Creation requires active USER, ACTIVE event/organizer, SCHEDULED session, `startsAt - captured serverNow >= bookingCutoff` (inclusive, owner-approved Q-03; exactly 30 minutes is permitted by default), permitted seats and sufficient capacity, no other active booking by that user for that session, and no other active booking for HALL_RENTAL. Atomically reserve capacity, price snapshot, applicable subscription visits and [S] redeemed points; free quota is reserved atomically against the session's calendar month in Europe/Kyiv (owner-approved Q-02).
 
 MANUAL starts PENDING. AUTO starts AWAITING_PAYMENT if positive card amount is due, otherwise CONFIRMED (zero price/subscription). Active states occupy places: PENDING, AWAITING_PAYMENT, CONFIRMED. Terminal states are irreversible: REJECTED, CANCELLED, EXPIRED, COMPLETED.
 
@@ -189,9 +189,9 @@ Exactly one card per user; administrators configure each level.
 | PREMIUM | lifetimePoints >= 500 or admin assignment | x1.5 points, 5% discount, Swimming: four free visits/month |
 | CORPORATE | Corporate subscription purchase or admin assignment | x2 points, 10% discount |
 
-Automatic upgrade follows point accrual; no automatic downgrade due to point decreases. Corporate returns to points-based level when last active corporate subscription ends (exhaustion interpretation pending Q-04). Admin-assigned card with cardLockedByAdmin is not changed automatically. Notify upgrades. Platform-funded free access produces zero revenue; organizer settlement is outside scope.
+Automatic upgrade follows point accrual; no automatic downgrade due to point decreases. Corporate returns to points-based level when last active corporate subscription ends (owner-approved Q-04: exhausted visits do not end eligibility; the card reverts when the last corporate subscription expires). Admin-assigned card with cardLockedByAdmin is not changed automatically. Notify upgrades. Platform-funded free access produces zero revenue; organizer settlement is outside scope.
 
-Every CONFIRMED booking earns `floor((basePointsPerBooking + floor(amountPaid * pointsPerUah)) * cardMultiplier)`, including free/subscription bookings. Defaults are 10 base points plus one per 10 UAH. Cancelling after accrual reverses the original award and restores redeemed points, exactly once. Every balance change gets a PointsTransaction with reason and each accrual notifies. Spendable points cannot become negative; already-spent reversal conflict is pending Q-01. [S] Redemption uses redeemRate and maxRedeemPercent and cannot exceed available balance.
+Every CONFIRMED booking earns `floor((basePointsPerBooking + floor(amountPaid * pointsPerUah)) * cardMultiplier)`, including free/subscription bookings. Defaults are 10 base points plus one per 10 UAH. Cancelling after accrual reverses the original award and restores redeemed points, exactly once. Every balance change gets a PointsTransaction with reason and each accrual notifies. Spendable points cannot become negative; owner-approved Q-01: a reversal deducts at most the available balance and records any unrecoverable remainder. [S] Redemption uses redeemRate and maxRedeemPercent and cannot exceed available balance.
 
 ## 7.9. Notifications
 
@@ -242,7 +242,7 @@ Jobs run without user actions, persist state in PostgreSQL, survive restarts and
 
 ## 9. Invariants
 
-The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01 remains an unresolved wording conflict; Q-03 has the approved inclusive interpretation in section 7.5.
+The matrix preserves BR-01 through BR-23 individually. They are part of the mandatory scope, including capacity and deduplication under concurrency, ownership and contact privacy, irreversible terminal states, full once-only compensation, soft history, last-admin protection, money/time rules, immutable event kind/price snapshots, session cancellation rules, chat role limits, blocked-session revocation, dictionary references and nonnegative points. Q-01 has the owner-approved clamped reversal in section 7.8.2; Q-03 has the approved inclusive interpretation in section 7.5.
 
 ## 10. Validation
 
