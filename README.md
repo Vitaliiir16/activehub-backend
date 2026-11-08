@@ -1,6 +1,6 @@
 # ActiveHub backend
 
-ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Subscriptions, loyalty cards, points, free visits and administrator loyalty settings are available. Every notification appears in the site and is also emailed according to the user's preferences; reminders and user-organizer chat are available. Administration screens and complete reporting remain planned.
+ActiveHub is a sports and active-leisure marketplace. Accounts and access are available: USER/ORGANIZER registration, sign-in, persistent sessions, own profiles and images, preferences, password changes, welcome notifications and ADMIN-only administrator creation/access. Authenticated catalogs, owned event/session/photo management, card/free bookings and simulated payments/refunds are available. Subscriptions, loyalty cards, points, free visits and administrator loyalty settings are available. Every notification appears in the site and is also emailed according to the user's preferences; reminders and user-organizer chat are available. Administrators manage users, organizers, events, bookings, subscriptions and dictionaries. Platform statistics and reporting remain planned.
 
 ## Start
 
@@ -56,7 +56,7 @@ npm.cmd run contract:check
 npm.cmd run build
 ~~~
 
-PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:marketplace runs the catalog/booking/payment risk suite on an isolated database with ACTIVEHUB_TEST_WRITES=true. It checks concurrency and once-only refunds. test:loyalty runs the awards/quota/card risk suite the same way. It temporarily changes loyalty settings and restores them, and needs the administrator variables and a superuser database role to simulate subscription expiry. test:communications runs the notification table, reminder, email delivery and chat suite against the real API, database and Mailpit (set MAILPIT_BASE_URL and SMTP_HOST/SMTP_PORT). mail:check verifies the configured mail server and can send one test email. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
+PowerShell uses npm.cmd/npx.cmd; other shells use npm/npx. The health and contract scripts call a running API. test:smoke starts the built server on port 3100 and needs real PostgreSQL variables. test:marketplace runs the catalog/booking/payment risk suite on an isolated database with ACTIVEHUB_TEST_WRITES=true. It checks concurrency and once-only refunds. test:loyalty runs the awards/quota/card risk suite the same way. It temporarily changes loyalty settings and restores them, and needs the administrator variables and a superuser database role to simulate subscription expiry. test:communications runs the notification table, reminder, email delivery and chat suite against the real API, database and Mailpit (set MAILPIT_BASE_URL and SMTP_HOST/SMTP_PORT). test:administration runs the administrator search, cascade, race and dictionary suite the same way; like test:communications it dispatches mail itself, so stop the worker first. mail:check verifies the configured mail server and can send one test email. test:accounts additionally needs an isolated initialized database, local SMTP/Mailpit and ACTIVEHUB_TEST_WRITES=true. It writes identifiable fixtures and temporarily changes test dictionary flags; use it only on an isolated test stack. [ACCOUNTS_REVIEW.md](docs/ACCOUNTS_REVIEW.md) gives reproducible commands and manual checks. db:verify rolls back its probe mutations and verifies idempotent seeds and migration checksums.
 
 GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap checks and the real production-server account suite. Frontend CI checks out its pinned backend revision and runs the full Compose/browser flows without mocks. Dependency versions and image digests are pinned; npm audits reported zero vulnerabilities at verification time.
 
@@ -66,7 +66,7 @@ GitHub Actions runs PostgreSQL and Mailpit services, static checks, bootstrap ch
 - [OpenAPI](docs/openapi.yaml), [conventions](docs/API_CONVENTIONS.md), [changelog](docs/API_CHANGELOG.md) and [account acceptance](docs/ACCOUNTS_ACCEPTANCE.md)
 - [Architecture](docs/ARCHITECTURE.md), [models](docs/MODELING.md) and [open decisions](docs/ASSUMPTIONS.md)
 
-OpenAPI 0.6.0 includes the stage 10 chat operations. Q-01/Q-02/Q-03/Q-04 are approved (see open decisions); Q-05 remains open. Booking expiry/completion, hourly subscription expiry, reminders and email delivery run in the worker. Administration screens, reporting and optional recovery remain planned. This delivery stops after stage 10. See [marketplace review](docs/MARKETPLACE_REVIEW.md) and [communications review](docs/COMMUNICATIONS_REVIEW.md) for manual checks and test limits.
+OpenAPI 0.7.0 includes the stage 11 administration operations. Q-01/Q-02/Q-03/Q-04 are approved (see open decisions); Q-05 remains open. Booking expiry/completion, hourly subscription expiry, reminders and email delivery run in the worker. Statistics, reporting and optional recovery remain planned. This delivery stops after stage 11. See the [marketplace](docs/MARKETPLACE_REVIEW.md), [communications](docs/COMMUNICATIONS_REVIEW.md) and [administration](docs/ADMINISTRATION_REVIEW.md) reviews for manual checks and test limits.
 
 ## Implemented design patterns
 
@@ -115,3 +115,16 @@ Without Docker, run `node --env-file=.env --import tsx scripts/check-mail.ts you
 ## Chat
 
 A user starts a conversation from an organizer or activity page; an organizer starts one from a booking of that member. Each user-organizer pair has one conversation. Messages are text (up to 2000 characters), may carry an activity card and show sent/read state. The header shows unread messages and notifications and the pages update by polling every few seconds, with no manual reload. Administrators cannot read or send messages, blocked accounts cannot send, and sending is limited to 30 messages per minute.
+
+## Administration
+
+Sign in as the administrator from `.env` (the first administrator is created from the environment). The Administration area has Users, Organizers, Events, Bookings, Subscriptions, Dictionaries, Loyalty settings and Administrator access. Every list is paginated, sortable and filtered through the address, so a search can be shared. Deleted accounts stay searchable.
+
+- **Block** ends every session and prevents sign-in; existing bookings are kept. Blocking an organizer also hides its events, page and plans and stops new bookings, while existing bookings continue.
+- **Delete** is soft. Deleting a user cancels, refunds and compensates every active booking (places, visits, points) and notifies organizers. Deleting an organizer cancels and refunds events that have a future session or an active booking, archives its plans and notifies members. Payments, bookings, points and chats remain as history, and repeating a request changes nothing.
+- **Edit contacts** never changes passwords. Organizers are told by notification and email about edits, blocks and deletion.
+- **Events** can be searched in every status, edited (text), moderated (photos removed), blocked, cancelled or deleted; **bookings** can be cancelled with a refund.
+- **Dictionaries**: add, rename and deactivate cities and directions. Existing references keep working, new selections need an active value, and one value always stays active.
+- Every administrator decision is stored with its reason in an append-only audit log in the database.
+
+Platform statistics and the optional dedicated administrator list (Q-05) are not part of this stage.

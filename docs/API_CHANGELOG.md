@@ -1,5 +1,16 @@
 # API change history
 
+## 0.7.0 - Administration
+
+Implemented the administrator operations for users, organizers, events, bookings, subscriptions and dictionaries. There are 112 operations: 105 implemented and 7 planned (platform and organizer statistics, the optional administrator list, and the optional recovery and expiry-notice operations).
+
+- **Users and organizers.** Search (users by exact ID, name/email/phone fragment, city, status and Europe/Kyiv registration dates; organizers by ID, name, type, city, direction and status), details with the full profile, contact edits (never passwords, photos or preferences), block/unblock with a required reason, and soft delete. Blocking ends every session and prevents sign-in; existing bookings are kept. Organizer blocking also hides its events, page and plans and stops new bookings; existing bookings continue. Deleting a user cancels, refunds and compensates every active booking (visits, points, quota) and notifies organizers. Deleting an organizer cancels and refunds events that have a future session or an active booking, archives its plans and notifies members; finished history is not rewritten. Deletion is repeatable without further effect, administrators are not reachable through these endpoints, and deleted accounts can no longer be edited or blocked. Organizers are notified in-app and by email of administrator edits, blocks, restorations and deletion.
+- **Events, bookings, subscriptions.** The administrator event search returns every status and events without upcoming sessions and accepts the public filters plus status; the booking search adds ID, user, organizer, event ID and event-name filters. Subscription and plan searches filter by user, organizer and status; an administrator can archive any plan.
+- **Dictionaries.** List, add, rename and activate/deactivate cities and directions. Names are unique ignoring case; existing references stay valid, new selections require an active value, and the last active value cannot be deactivated. Send only the fields to change.
+- **Audit.** Every administrator decision is recorded with its reason in an append-only log (also for event moderation and booking cancellation).
+
+The public session list no longer exposes sessions of paused, blocked or unpublished events or inactive organizers.
+
 ## 0.6.0 - Communications
 
 Implemented the chat operations: list conversations, find or start a conversation, list and send messages, and mark messages read. There are 112 operations: 84 implemented and 28 planned. Administrators are denied every chat operation. A user starts a conversation from an organizer or an event; an organizer only from a booking (or a user) that has or had a booking on its events. A user-organizer pair has one conversation, so starting again returns it with 200 (a new conversation returns 201).

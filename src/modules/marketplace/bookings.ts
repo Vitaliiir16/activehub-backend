@@ -18,6 +18,7 @@ import { pagination, reason } from "./validation";
 import type { EventRow, SessionRow } from "./types";
 
 import { reserveVisits, returnVisits } from "./subscriptions";
+import { audit } from "../administration/audit";
 import { paymentDtos, refundBooking } from "./payment-records";
 import {
   accruePoints,
@@ -504,6 +505,8 @@ export async function cancelBooking(
           if (b.status !== "CANCELLED") {
             if (scope === "user" && !userCanCancel(b, e, s))
               conflict("The cancellation deadline has passed");
+            if (scope === "admin")
+              await audit(client, current.id, "BOOKING_CANCEL", "BOOKING", b.id, input.reason ?? null);
             await transition(
               client,
               b,
@@ -602,10 +605,17 @@ const listInput = z.strictObject({
     .enum(["newest", "oldest", "startsAtAsc", "startsAtDesc"])
     .default("startsAtAsc"),
 });
-export function listBookings(request: Request, owned = false) {
-  const input = listInput.parse(
+const adminListInput = listInput
+  .omit({ tab: true, title: true, userName: true })
+  .extend({
+    id: z.uuid().optional(),
+    userId: z.uuid().optional(),
+    eventName: z.string().max(120).optional(),
+  });
+export function listBookings(request: Request, owned = false, admin = false) {
+  const input = (admin ? adminListInput : listInput).parse(
     Object.fromEntries(new URL(request.url).searchParams),
-  );
+  ) as z.infer<typeof listInput> & { id?: string; userId?: string; eventName?: string };
   return access(
     request,
     async (client, current) => {
@@ -614,7 +624,11 @@ export function listBookings(request: Request, owned = false) {
         values.push(v);
         return `$${values.length}`;
       };
-      const where = [owned ? "e.organizer_id=$1" : "b.user_id=$1"];
+      const where = [admin ? "$1::uuid IS NOT NULL" : owned ? "e.organizer_id=$1" : "b.user_id=$1"];
+      if (input.id) where.push(`b.id=${bind(input.id)}`);
+      if (input.userId) where.push(`b.user_id=${bind(input.userId)}`);
+      if (input.eventName)
+        where.push(`strpos(lower(e.title),lower(${bind(input.eventName)}))>0`);
       if (input.status) where.push(`b.status=${bind(input.status)}`);
       if (input.organizerId)
         where.push(`e.organizer_id=${bind(input.organizerId)}`);
@@ -663,13 +677,13 @@ export function listBookings(request: Request, owned = false) {
       const items = [];
       for (const b of rows)
         items.push(
-          owned
+          owned && !admin
             ? await organizerBookingDto(client, b)
             : await bookingDto(client, b),
         );
       return Response.json(page(items, total, input.page, input.pageSize));
     },
-    owned ? ["ORGANIZER"] : ["USER"],
+    admin ? ["ADMIN"] : owned ? ["ORGANIZER"] : ["USER"],
   );
 }
 export async function cancelSessionBookings(

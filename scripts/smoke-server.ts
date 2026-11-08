@@ -46,6 +46,7 @@ try {
   if (process.env.VERIFY_MARKETPLACE === "true") await import("./verify-marketplace.mjs");
   if (process.env.VERIFY_LOYALTY === "true") await import("./verify-loyalty.mjs");
   if (process.env.VERIFY_COMMUNICATIONS === "true") await import("./verify-communications.mjs");
+  if (process.env.VERIFY_ADMINISTRATION === "true") await import("./verify-administration.mjs");
   const secretValues = [
     process.env.INITIAL_ADMIN_PASSWORD,
     "ActiveHubTest123",
@@ -53,6 +54,7 @@ try {
     "MarketTestPassword123",
     "LoyaltyTestPassword123",
     "CommsTestPassword123",
+    "AdminTestPassword123",
     "4242424242424242",
     "4000000000000002",
   ].filter((value): value is string => !!value);

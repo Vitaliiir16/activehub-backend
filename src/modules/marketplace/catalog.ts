@@ -15,6 +15,7 @@ import {
 import type { EventRow, SessionRow } from "./types";
 
 import { cancelSessionBookings, notifyChanged } from "./bookings";
+import { audit } from "../administration/audit";
 export const occupancy =
   "(SELECT coalesce(sum(b.seats),0) FROM bookings b WHERE b.session_id=s.id AND b.status IN ('PENDING','AWAITING_PAYMENT','CONFIRMED'))";
 export async function eventRow(
@@ -192,6 +193,7 @@ export function listEvents(
   request: Request,
   owned = false,
   recommended = false,
+  admin = false,
 ) {
   const query = eventQuery.parse(
     Object.fromEntries(new URL(request.url).searchParams),
@@ -205,13 +207,15 @@ export function listEvents(
         return `$${values.length}`;
       };
       const clauses: string[] = [];
+      // Owners and administrators see every status and every session; other members see published events only.
+      const wide = owned || admin;
       if (owned) clauses.push(`e.organizer_id=${bind(current.id)}`);
-      else clauses.push("e.status='ACTIVE'", "a.status='ACTIVE'");
+      else if (!admin) clauses.push("e.status='ACTIVE'", "a.status='ACTIVE'");
       if (query.id) clauses.push(`e.id=${bind(query.id)}`);
       if (query.organizerId)
         clauses.push(`e.organizer_id=${bind(query.organizerId)}`);
       let city = query.cityId;
-      if (!city && current.role === "USER" && !owned)
+      if (!city && current.role === "USER" && !wide)
         city = (
           await client.query(
             "SELECT city_id FROM user_profiles WHERE account_id=$1",
@@ -244,7 +248,7 @@ export function listEvents(
         "s.event_id=e.id",
         "NOT s.is_deleted",
         "s.status='SCHEDULED'",
-        ...(!owned ? ["s.starts_at>now()"] : []),
+        ...(!wide ? ["s.starts_at>now()"] : []),
       ];
       if (query.dateFrom)
         sessions.push(
@@ -260,7 +264,7 @@ export function listEvents(
         );
       const lateral = `LEFT JOIN LATERAL(SELECT s.id,s.starts_at FROM event_sessions s WHERE ${sessions.join(" AND ")} ORDER BY CASE WHEN ${occupancy}<CASE WHEN e.kind='HALL_RENTAL' THEN 1 ELSE s.seats_total END THEN 0 ELSE 1 END,s.starts_at,s.id LIMIT 1) next ON true`;
       if (
-        !owned ||
+        !wide ||
         query.dateFrom ||
         query.dateTo ||
         query.availableOnly === "true"
@@ -302,7 +306,7 @@ export function listEvents(
         items.push(await eventDto(client, row, row.next_id ?? undefined));
       return Response.json(page(items, total, query.page, query.pageSize));
     },
-    owned ? ["ORGANIZER"] : recommended ? ["USER"] : undefined,
+    admin ? ["ADMIN"] : owned ? ["ORGANIZER"] : recommended ? ["USER"] : undefined,
   );
 }
 export function getEvent(
@@ -526,7 +530,10 @@ export async function updateEvent(request: Request, id: string, admin = false) {
           [...values, id],
         )
       ).rows[0];
-      if (admin)
+      if (admin) {
+        await audit(client, current.id, "EVENT_EDIT", "EVENT", row.id, null, {
+          fields: Object.keys(input),
+        });
         await notify(client, {
           accountId: row.organizer_id,
           key: `event:${row.id}:admin-edit:${row.updated_at.toISOString()}`,
@@ -536,6 +543,7 @@ export async function updateEvent(request: Request, id: string, admin = false) {
           body: `${row.title}: ${Object.keys(input).join(", ")} changed.`,
           link: `/organizer/events/${row.id}`,
         });
+      }
       if (input.address && input.address !== old.address)
         await notifyChanged(client, row);
       if (input.seatsPerSession !== undefined)
@@ -586,7 +594,8 @@ export async function setEventStatus(
           [input.status, id],
         )
       ).rows[0];
-      if (admin && row.status !== updated.status)
+      if (admin && row.status !== updated.status) {
+        await audit(client, current.id, `EVENT_${updated.status}`, "EVENT", row.id, input.reason ?? null);
         await notify(client, {
           accountId: row.organizer_id,
           key: `event:${row.id}:moderated:${updated.updated_at.toISOString()}`,
@@ -596,10 +605,30 @@ export async function setEventStatus(
           body: `${row.title}: ${updated.status.toLowerCase()}${input.reason ? `. ${input.reason}` : ""}`,
           link: `/organizer/events/${row.id}`,
         });
+      }
       return Response.json(await eventDto(client, updated));
     },
     admin ? ["ADMIN"] : ["ORGANIZER"],
     true,
+  );
+}
+/** Cancels or removes an event: every active booking is cancelled, refunded and notified once. Caller holds the event lock. */
+export async function cancelEventCascade(
+  client: PoolClient,
+  row: EventRow,
+  who: { id?: string; role: string },
+  why: string,
+  finalStatus: "CANCELLED" | "DELETED",
+) {
+  if (row.status !== "DELETED")
+    await client.query("UPDATE events SET status=$1,updated_at=now() WHERE id=$2", [finalStatus, row.id]);
+  const sessions = (
+    await client.query<SessionRow>("SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE", [row.id])
+  ).rows;
+  for (const s of sessions) await cancelSessionBookings(client, row, s, who, why);
+  await client.query(
+    "UPDATE event_sessions SET status='CANCELLED',updated_at=now() WHERE event_id=$1 AND status='SCHEDULED'",
+    [row.id],
   );
 }
 export async function cancelEvent(
@@ -620,30 +649,15 @@ export async function cancelEvent(
         input,
         async () => {
           const row = await eventRow(client, id, current, true);
-          if (row.status !== "DELETED")
-            await client.query(
-              "UPDATE events SET status=$1,updated_at=now() WHERE id=$2",
-              [remove ? "DELETED" : "CANCELLED", id],
-            );
-          const sessions = (
-            await client.query<SessionRow>(
-              "SELECT * FROM event_sessions WHERE event_id=$1 ORDER BY id FOR UPDATE",
-              [id],
-            )
-          ).rows;
-          for (const s of sessions)
-            await cancelSessionBookings(
-              client,
-              row,
-              s,
-              { id: current.id, role: current.role },
-              input.reason,
-            );
-          await client.query(
-            "UPDATE event_sessions SET status='CANCELLED',updated_at=now() WHERE event_id=$1 AND status='SCHEDULED'",
-            [id],
+          await cancelEventCascade(
+            client,
+            row,
+            { id: current.id, role: current.role },
+            input.reason,
+            remove ? "DELETED" : "CANCELLED",
           );
-          if (admin)
+          if (admin) {
+            await audit(client, current.id, remove ? "EVENT_DELETE" : "EVENT_CANCEL", "EVENT", row.id, input.reason);
             await notify(client, {
               accountId: row.organizer_id,
               key: `event:${row.id}:admin-${remove ? "delete" : "cancel"}`,
@@ -655,6 +669,7 @@ export async function cancelEvent(
               body: `${row.title}. Active bookings were cancelled and paid bookings refunded.${input.reason ? ` Reason: ${input.reason}` : ""}`,
               link: remove ? "/organizer/events" : `/organizer/events/${row.id}`,
             });
+          }
           return {
             status: remove ? 204 : 200,
             body: remove
@@ -688,6 +703,13 @@ export function listSessions(request: Request, id?: string, owned = false) {
       if (id) where.push(`s.event_id=${bind(id)}`);
       if (query.eventId) where.push(`s.event_id=${bind(query.eventId)}`);
       if (owned) where.push(`e.organizer_id=${bind(current.id)}`);
+      else if (current.role !== "ADMIN")
+        where.push(
+          "s.status='SCHEDULED'",
+          "s.starts_at>now()",
+          "e.status='ACTIVE'",
+          "EXISTS(SELECT 1 FROM accounts oa WHERE oa.id=e.organizer_id AND oa.status='ACTIVE')",
+        );
       else where.push("s.status='SCHEDULED'", "s.starts_at>now()");
       if (query.status) where.push(`s.status=${bind(query.status)}`);
       if (query.dateFrom)
