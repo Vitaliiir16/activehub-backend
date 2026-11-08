@@ -1,0 +1,20 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { parse } from "yaml";
+import Ajv2020 from "ajv/dist/2020.js";
+import addFormats from "ajv-formats";
+
+const spec = parse(await readFile("docs/openapi.yaml", "utf8"));
+const expectedStatus = Number(process.env.EXPECTED_HEALTH_STATUS || 200);
+assert.ok([200, 503].includes(expectedStatus));
+const response = await fetch(`${process.env.API_BASE_URL || "http://127.0.0.1:3000"}/api/health`, { signal: AbortSignal.timeout(5000) });
+assert.equal(response.status, expectedStatus);
+const ajv = new Ajv2020({ strict: true, allErrors: true });
+addFormats(ajv);
+const validate = ajv.compile(spec.components.schemas[expectedStatus === 200 ? "Health" : "Error"]);
+const body = await response.json();
+assert.ok(validate(body), ajv.errorsText(validate.errors));
+assert.equal(response.headers.get("cache-control"), "no-store");
+assert.ok(ajv.validate({ type: "string", format: "uuid" }, response.headers.get("x-request-id")));
+if (expectedStatus === 503) assert.equal(body.error.requestId, response.headers.get("x-request-id"));
+console.log(`PASS: real ${expectedStatus} health response conforms to OpenAPI`);

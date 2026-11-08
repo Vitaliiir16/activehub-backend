@@ -33,3 +33,4 @@ secrets/
 uploads/
 storage/
 pgdata/
+next-env.d.ts

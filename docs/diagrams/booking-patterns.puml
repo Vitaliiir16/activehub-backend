@@ -1,0 +1,32 @@
+@startuml
+title Planned booking collaboration - no business behavior implemented
+actor User
+participant "REST adapter" as Route
+participant "BookingService" as Service
+participant "EventKindPolicy\nStrategy" as Policy
+participant "PriceHandler chain\nChain of Responsibility" as Price
+participant "BookingState\nState" as State
+database PostgreSQL
+participant "WorkerDispatcher" as Worker
+participant "NotificationSubscriber\nObserver" as Observer
+participant "MailTransport\nAdapter" as Mail
+User -> Route : create booking + idempotency key
+Route -> Service : validated DTO and authenticated actor
+Service -> PostgreSQL : begin; authorize; lock resources
+Service -> Policy : validate seat semantics
+Service -> Price : compute immutable breakdown
+note over Price : Quota and reversal decisions remain open.\nSubscription payment uses its separate path.
+Service -> State : choose permitted initial state
+Service -> PostgreSQL : reserve capacity/visits; persist snapshots
+opt CONFIRMED
+ Service -> PostgreSQL : award original points once
+end
+Service -> PostgreSQL : persist outbox and idempotency result; commit
+Service --> Route : booking DTO
+Route --> User : response
+Worker -> PostgreSQL : claim committed outbox record
+Worker -> Observer : dispatch event idempotently
+Observer -> PostgreSQL : create notification once
+Observer -> Mail : send eligible captured email
+note over Worker,Mail : Persist retry/send state; never claim universal exactly-once external email delivery.
+@enduml

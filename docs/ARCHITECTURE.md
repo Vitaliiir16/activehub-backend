@@ -1,8 +1,10 @@
 # Architecture proposal
 
-Status: proposed; no modules, classes, interfaces, routes or patterns are implemented. This document addresses source sections 1, 6, 13 and 17. Final Use Case and whole-system class diagrams remain planned in stage 00; the layer diagram below does not replace them.
+Status: proposed product architecture. Business modules, classes and GoF patterns are not implemented. Stage 00 now includes rendered [Use Case, whole-system class and pattern collaboration diagrams](MODELING.md), with editable sources. Infrastructure delivery is tracked separately in PROGRESS.md; diagrams do not imply implemented business behavior.
 
 ## Shape of the system
+
+Implemented foundation: `src/app/api/health/route.ts` checks readiness through `src/infrastructure/database.ts`; `scripts/init-db.ts` coordinates checked SQL migrations and required seeds under a PostgreSQL advisory lock. `scripts/worker.ts` only manages lifecycle and database heartbeat. `compose.yaml` wires PostgreSQL, initialization, API, worker, Mailpit and the sibling frontend. The frontend uses `src/api/client.ts` and generated types. Application/domain services, job/outbox execution and every GoF collaboration below remain proposed.
 
 Use a modular monolith for the Next.js REST backend and a separate React TypeScript frontend. PostgreSQL is the transactional authority. Shared file storage holds uploads. A separate worker process uses the same backend build and persisted database state. This keeps cross-feature booking compensation within a database transaction without introducing distributed-service overhead.
 
@@ -28,7 +30,7 @@ Arrows through adapters describe proposed wiring, not a deployed topology. Domai
 | Domain | State transitions, eligibility, pricing and invariants | `src/modules/<module>/domain/` |
 | Infrastructure | PostgreSQL repositories/migrations, uploads, email and simulator adapters | `src/modules/<module>/infrastructure/` |
 | Composition/worker | Wire dependencies; claim and execute persisted jobs | `src/composition/`, `src/worker/` |
-| Frontend | Role routes, forms, query state, typed API integration and presentation | Separate frontend `src/` structure to be chosen in stage 01 |
+| Frontend | Role routes, forms, query state, typed API integration and presentation | Separate frontend `src/`; `src/api` and welcome screen exist, role modules remain planned |
 
 ## Modules and ownership
 

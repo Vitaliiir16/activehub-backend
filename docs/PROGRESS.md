@@ -1,62 +1,84 @@
 # Delivery progress
 
-Snapshot: 2026-11-08, Europe/Kyiv. Scope: repository preparation only.
+Snapshot: 2026-11-08, Europe/Kyiv. Stages **00-03 are complete for the authorized foundation scope**. Stop before stage 04. All business modules, authentication enforcement, worker jobs and optional features remain planned. Q-01 through Q-05 remain open.
 
-## Current state
+## Delivered
 
-Both repositories were empty locally and remotely at the initial inspection, with unborn local `master` branches and GitHub's intended default branch `main`. There was no existing application work to preserve. The parent workspace is not a Git repository.
+| Stage | Result | Evidence |
+|---|---|---|
+| 00 | Complete proposed Use Case and whole-system UML class models, layers/services and GoF collaboration sequence | MODELING.md; all three PlantUML sources compiled and rendered, all 50 source use-case IDs reviewed, SVG layout inspected |
+| 01 | Next.js REST TypeScript backend and separate React/TypeScript Vite frontend with exact lockfiles | Both lint/typecheck/build scripts passed; real production health smoke passed |
+| 02 | PostgreSQL 18, checked SQL migration, required idempotent seeds, initial administrator, Dockerfiles/Compose, worker lifecycle, Mailpit, named volumes and API proxy | Clean isolated startup, initializer exit 0, five healthy long-running services, repeated startup/persistence and real database checks |
+| 03 | OpenAPI, conventions, generated typed health client and CI | 109 operations lint clean; only health implemented, 108 planned; exact contract hash/types verified; real 200/503 schema checks; desktop/mobile browser tests |
 
-The documentation baseline includes English product requirements, a mandatory/optional verification matrix, staged delivery and contract synchronization, a proposed architecture, open decisions, current-status READMEs and ignore rules. The original local source was copied unchanged to `docs/project.md`; it remains local while English product documents are published. SHA-256 of both source and archive: `3007989B9382778A793013D37EAF5F34CD8D98EDB077E1780E85C212927770CE`.
+Required seeds are 15 cities, 16 directions, three loyalty levels, singleton loyalty rules and one initial administrator. The worker performs readiness/heartbeat and graceful shutdown only. No business jobs or email delivery exist. Demo records are deferred until business entities exist; demo mode is explicitly rejected. Bootstrap SQL tables are not the proposed domain services/classes.
 
-No product modules, framework scaffolds, package files, migrations, Compose configuration, OpenAPI schemas, API clients or CI workflows have been created. Stage 00 planning is prepared, but the Use Case and whole-system class diagrams remain planned. Application compatibility has not been established.
+## Verification actually performed
 
-## Environment checks actually performed
-
-| Check | Observed result |
+| Check | Result and boundary |
 |---|---|
-| Workspace | `C:/Users/Vitalii/Desktop/ActiveHub`; both independent repository directories exist; parent `.git` absent |
-| Initial Git status/branches/history | Both clean and unborn on master; no commit history or remote refs |
-| Backend origin | `https://github.com/Vitaliiir16/activehub-backend.git` |
-| Frontend origin | `https://github.com/Vitaliiir16/activehub-frontend.git` |
-| Git | 2.55.0.windows.2 |
-| Authorship | Existing owner name/email resolve in both repositories; no identity or global settings changed |
-| GitHub CLI | 2.103.3, found at `C:/Program Files/GitHub CLI/gh.exe`; absent from sandbox PATH |
-| GitHub authorization | Owner account authenticated through Windows keyring; no token printed |
-| Remote access | Both `git ls-remote --symref origin` calls succeeded with no refs; repository API reports push permission for both, public visibility and default branch main |
-| Node.js | v24.18.0 |
-| npm.cmd / npx.cmd | Both 11.16.0 |
-| Docker CLI | 29.9.2, per-user path `C:/Users/Vitalii/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe` |
-| Docker Compose | v5.6.1 |
-| Docker Engine | Running Linux engine 29.9.2, amd64, Docker Desktop 4.96.3; zero existing containers during inspection |
-| Tool access caveat | Sandbox user caused Git ownership errors and omitted per-user Docker PATH. Owner-context checks succeeded; no global safe-directory exception or machine change was made. |
+| Backend lint, typecheck, production build | Passed; build exposes only /api/health plus framework not-found handling |
+| Backend Node tests | Two passed: bootstrap configuration validation and salted scrypt correctness/malformed inputs |
+| Real PostgreSQL bootstrap | Passed: dictionary identities, required row counts, correct/incorrect password verification, repeat seeds without row changes, preservation of edited settings/dictionaries, changed bootstrap email does not create another administrator, applied migration checksum changes rejected |
+| Clean Compose start | Passed after confirming no volumes existed for isolated project activehub-foundation-check; migrations completed before API/worker, frontend waited for API, worker waited for Mailpit |
+| Repeated start | Passed: same account IDs, upload marker persisted, no duplicate seeds; test edits rolled back; no existing or unrelated volumes removed |
+| Worker lifecycle | Healthy heartbeat; SIGTERM exit code 0 with database connections closed; repeat startup healthy; unexpected failure restart policy configured |
+| Readiness failure and recovery | Direct API and frontend proxy returned 200; stopping only the test database produced real 503; OpenAPI validation passed for 503; recovery returned 200 |
+| Mailpit | Health/API passed; zero captured messages, matching the absence of business jobs |
+| OpenAPI | Redocly lint passed without warnings; 109 unique operations, status declarations, CSRF/access metadata and only implemented route verified |
+| Frontend static checks | lint, typecheck, build and generated snapshot/type verification passed |
+| Real client | Typed client reached API and PostgreSQL through nginx; no mocked backend |
+| Browser checks | Two Chromium tests passed: desktop and Pixel 7 layout; real health response, English text, no horizontal overflow or page errors; screenshots reviewed |
+| Documentation/models | Source/matrix/model review, English text, relative links, local exclusions, whitespace and staged-content audit; three rendered SVGs inspected |
+| Dependencies | npm audits reported zero vulnerabilities in both lockfiles at verification time; targeted development lint overrides documented |
+| Scope | No authentication, catalog, bookings, payment, subscription, loyalty behavior, messaging or scheduling implementation; no business integration or independent review claimed |
 
-No packages were installed and no containers were created. Installed versions were observed, not certified against a nonexistent application.
+Local test stack uses API port 3300, frontend 8180 and Mailpit 8125. Its generated credentials remain in ignored .env.test. Volumes are retained. Default README setup uses 3000/8080/8025 and a separate activehub namespace.
 
-## Documentation verification
+## Revisions and publication
 
-The full original specification was read. All seven distinct optional [S] capabilities were inventoried against the source. Mandatory business invariants are mapped individually BR-01 through BR-23, field validation V-01 through V-14 and notification cases N-01 through N-20. Grouped mandatory requirements retain all listed subcases.
+Both setup PRs remained open and unmerged at the start and at publication checks. Local main branches were not advanced; no merge was performed. Feature branches started from setup heads and new PRs are stacked on them.
 
-Archive SHA-256 equality was verified. Automated checks passed across all 12 publishable files: English authored text, no local-only terminology, no token/private-key signatures, no trailing whitespace and all relative Markdown targets present. Matrix inventories passed: 105 mandatory scope rows, 23 business invariants, 20 mandatory notification cases, 14 validation rules and seven optional capabilities, with unique IDs. Both staged diffs passed `git diff --cached --check`. Ignore probes confirmed environment files, dependencies, builds, coverage and local secrets are excluded while `.env.example` is allowed. The source archive and local instructions are excluded through repository-local rules and absent from the staged filenames.
+| Boundary | Backend | Frontend |
+|---|---|---|
+| Setup input | f4eaf210bb97780f4d930cbb606d362fc4b8e1ba | 18756f1eacda3fb83c00a523d410f8438a3a0e8c |
+| Verified runtime/initial hosted CI | 50d815768571baa02a733ad781c9665394a4e901 | d705a79b07056c11fe99474e3da9674b4df6bbf9 |
+| Reviewed final contract snapshot | c40e993b87a8602e4378cd0ebbf06766eeb5421f | bc3b4a0b9e342e4e3f0fff4e52870b7b6fe988dc |
 
-A separate same-session full staged-diff review compared the requirements, matrix, architecture, decisions and READMEs to the source. It corrected the U13/U14 profile/preferences versus notification-settings labels and removed an unnecessary age-label interpretation. This was not an independent review. Initial publication succeeded; remote main hashes matched local hashes in both repositories and both worktrees were clean after push.
+The final contract pair adds planned session/statistics queries and optional user cancellation reason; it does not change runtime handlers. Frontend contracts/backend.json pins the complete backend SHA and contract hash. Final published hashes are recorded in PR descriptions and the local handoff, since this document cannot contain its own commit SHA.
 
-Application lint, typecheck, build, domain tests, PostgreSQL integration and E2E: **not run** because applications, scripts and infrastructure do not yet exist. No independent review session or CI run has occurred.
+- Backend foundation PR: https://github.com/Vitaliiir16/activehub-backend/pull/2
+- Frontend foundation PR: https://github.com/Vitaliiir16/activehub-frontend/pull/2
+- Setup dependencies: https://github.com/Vitaliiir16/activehub-backend/pull/1 and https://github.com/Vitaliiir16/activehub-frontend/pull/1
+- [Backend CI run 42492572615](https://github.com/Vitaliiir16/activehub-backend/actions/runs/42492572615): success at the runtime snapshot above, including real PostgreSQL and production-server/schema smoke.
+- [Frontend CI run 42492575592](https://github.com/Vitaliiir16/activehub-frontend/actions/runs/42492575592): success at the runtime snapshot above, including public cross-repository checkout, byte-exact canonical snapshot, clean Compose and two real browser tests. That run pinned backend contract revision 4cc6e2424fc41e848a42503deffb4746f1b5fb00.
+- Final-head workflow results after the documentation/contract refresh belong in the PR checks and handoff; earlier green runs are not presented as runs of later commits.
 
-## Revision and publication record
+The separate review passes were performed in the same session, not by an independent reviewer. Findings fixed before handoff: UML syntax, incompatible lint dependencies/advisory, organizer contact visibility, bootstrap-email duplication, missing cross-event session/admin statistics queries and unnecessary mandatory user cancellation reason.
 
-| Snapshot boundary | Backend revision | Frontend revision | Meaning |
-|---|---|---|---|
-| Initial inspection | None (unborn branch) | None (unborn branch) | Empty local and remote repositories |
-| Published main baseline | `492eff2f77f974b97573591251054b6df5f209de` | `89201bc3855288a19aeaf8f03b5f51a8a26c7f96` | Documentation-only pair; both push operations succeeded and remote refs matched |
+## Environment and reproducibility
 
-Initial meaningful documentation commits were published on `main` without an artificial empty base. Backend baseline: [492eff2](https://github.com/Vitaliiir16/activehub-backend/commit/492eff2f77f974b97573591251054b6df5f209de). Frontend baseline: [89201bc](https://github.com/Vitaliiir16/activehub-frontend/commit/89201bc3855288a19aeaf8f03b5f51a8a26c7f96). Both repositories now have a `setup/documentation-handoff` branch for this verification record and pinned frontend references. The exact pair above describes the published main baselines, not this file's eventual commit. Final setup hashes and PR links belong in the handoff or a subsequent snapshot; no tested application pair exists. No merge is authorized.
+Verified Git 2.55.0.windows.2, owner authorship and GitHub push access; Node 24.18.0; npm/npx 11.16.0; Docker Engine 29.9.2 with Linux containers; Compose 5.6.1. No global settings changed. Parent workspace remains outside Git. Initial worktrees were clean, and no owner changes were overwritten.
 
-## Blockers and owner decisions
+The immutable local source and archive retain SHA-256 3007989B9382778A793013D37EAF5F34CD8D98EDB077E1780E85C212927770CE. English authored text and display labels follow the owner's language instruction. PlantUML 1.2026.9 rendered diagrams using image digest sha256:9b5071ab56a4192aac458ab4b0d42261c22c8109695894ae5be6013c3be6cac1. Container images and application packages are pinned in Dockerfiles/Compose/lockfiles. The bootstrap password hash uses scrypt N=131072, r=8, p=1 with a fresh 32-byte salt.
 
-No environment or repository-preparation blocker remains. Business-rule questions are scoped in ASSUMPTIONS.md: Q-01 already-spent points reversal versus nonnegative balance; Q-02 free-quota month and rescheduling; Q-03 exact booking cutoff; Q-04 corporate exhaustion/card eligibility. Q-05 records the dedicated-admin-list scope inconsistency. None blocks this preparation; the affected behavior needs a decision before acceptance.
+From the backend directory, first-time setup and startup:
 
-## Next actions
+```powershell
+node scripts/create-local-env.mjs
+docker compose up --build --wait
+```
 
-1. Owner review and merge of the setup publication-record PRs; the initial documentation is already available on main. Q-01 through Q-05 remain open and are not implied approved by publication.
-2. Stop after preparation. On the next authorized implementation run, finish stage 00 Use Case/class modeling, then stage 01 scaffolds and stage 02 infrastructure with real check scripts and environment examples. Keep the fixed stack and all mandatory scope.
-3. Before further changes inspect the final setup branch heads/PR status in both repositories and the delivery handoff, then reconcile this snapshot with any subsequent owner work.
+For the existing isolated verification stack:
+
+```powershell
+docker compose --env-file .env.test -p activehub-foundation-check up --build --wait
+```
+
+Do not regenerate an existing environment file or remove persistent volumes to work around configuration issues. README describes variables and focused check commands.
+
+## Open decisions and next action
+
+Q-01: already-spent points reversal and nonnegative balance. Q-02: free-quota month and rescheduling. Q-03: booking exactly at the 30-minute cutoff. Q-04: exhausted corporate subscription/card eligibility. Q-05: dedicated administrator list scope. Proposals remain in ASSUMPTIONS.md and are not approved by this run.
+
+Owner reviews/merges setup PRs first, then retargets foundation PRs to main and reviews them. No merge is performed here. The next development stage is 04 (accounts, sessions, access, registration and profiles), only on a subsequent authorized run. Before resuming, read current documents, inspect both worktrees/remotes/PRs, preserve local edits and fast-forward main only if its PRs have been merged.

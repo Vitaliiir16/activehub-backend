@@ -1,0 +1,400 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+hide empty members
+title ActiveHub whole-system class model - proposed design, not implemented classes
+package "Presentation" {
+ class ReactApplication {
+  +roleRoutes
+  +formsAndViews
+ }
+ class ApiClient {
+  +request()
+ }
+ class NextRouteAdapters {
+  +validateTransport()
+  +mapResponse()
+ }
+}
+package "Application services (planned)" {
+ class IdentityService {
+  +register()
+  +signIn()
+  +revokeSessions()
+ }
+ class CatalogService {
+  +createEvent()
+  +changeSession()
+ }
+ class BookingService {
+  +create()
+  +transition()
+  +cancel()
+ }
+ class PaymentService {
+  +pay()
+  +refundOnce()
+ }
+ class SubscriptionService {
+  +purchase()
+  +reserveVisits()
+  +restoreVisits()
+ }
+ class LoyaltyService {
+  +awardOnce()
+  +reverseOnce()
+  +recalculateCard()
+ }
+ class ConversationService {
+  +send()
+  +markRead()
+ }
+ class NotificationService {
+  +createIntentOnce()
+ }
+ class AdministrationService {
+  +blockAccount()
+  +softDelete()
+ }
+ class ReportingService {
+  +aggregate()
+  +recommend()
+ }
+ class AccessPolicy {
+  +requireRoleAndOwner()
+ }
+ interface UnitOfWork {
+  +transaction()
+ }
+ class WorkerDispatcher {
+  +claimDueJob()
+  +dispatch()
+ }
+}
+package "Domain entities (planned logical model)" {
+ abstract class Record {
+  +id: UUID
+  +createdAt: Instant
+  +updatedAt: Instant
+ }
+ class Account {
+  +email: unique
+  +passwordHash
+  +role: USER|ORGANIZER|ADMIN
+  +status: ACTIVE|BLOCKED|DELETED
+  +lastLoginAt
+ }
+ class UserProfile {
+  +firstName
+  +lastName
+  +phone
+  +gender
+  +photo
+  +notificationSettings
+  +loyaltyLevel
+  +cardLockedByAdmin
+  +pointsBalance
+  +lifetimePoints
+ }
+ class OrganizerProfile {
+  +organizationName
+  +type
+  +description
+  +contactPhone
+  +logo
+ }
+ class AdminProfile {
+  +displayName
+  +createdBy
+ }
+ class City {
+  +name
+  +isActive
+ }
+ class Direction {
+  +name
+  +isActive
+ }
+ class Event {
+  +title
+  +description
+  +kind: immutable
+  +address
+  +level
+  +ageCategory
+  +price: Money
+  +promoPrice: Money?
+  +promoUntil
+  +seatsPerSession
+  +confirmationMode
+  +status
+ }
+ class Photo {
+  +storageKey
+  +position
+  +mediaType
+ }
+ class EventSession {
+  +startsAt: Instant
+  +endsAt: Instant
+  +status
+  +seatsTotal
+  +/seatsTaken
+ }
+ class Booking {
+  +seats
+  +status
+  +comment
+  +basePrice: Money
+  +discountBreakdown
+  +amountDue: Money
+  +paymentMethod
+  +pointsRedeemed
+  +deadlineAt
+  +cancelledBy
+  +cancelReason
+ }
+ class BookingTransition {
+  +fromState
+  +toState
+  +actor
+  +reason
+ }
+ class Payment {
+  +amount: Money
+  +status
+  +cardLast4
+ }
+ class SubscriptionPlan {
+  +name
+  +type
+  +description
+  +price: Money
+  +validityDays
+  +visitsLimit: Integer?
+  +scope
+  +status
+ }
+ class UserSubscription {
+  +status
+  +startsAt
+  +expiresAt
+  +visitsLeft: Integer?
+  +companyName?
+ }
+ class LoyaltyLevelConfig {
+  +level
+  +displayName
+  +pointsThreshold
+  +pointsMultiplier
+  +discountPercent
+  +freeVisitsPerMonth
+ }
+ class LoyaltyRules {
+  +basePointsPerBooking
+  +pointsPerUah
+  +redeemRate
+  +maxRedeemPercent
+ }
+ class PointsTransaction {
+  +delta
+  +reason
+  +originalAwardSnapshot
+ }
+ class Conversation {
+  +lastMessageAt
+  +unique(user, organizer)
+ }
+ class Message {
+  +text
+  +readAt
+ }
+ class Notification {
+  +type
+  +category
+  +title
+  +body
+  +link
+  +readAt
+  +emailStatus
+ }
+ class Money <<value object>> {
+  +minorUnits: Integer
+  +currency: UAH
+ }
+}
+package "Behavior variation (proposed GoF)" {
+ interface EventKindPolicy <<Strategy>> {
+  +validateSeats()
+  +defaultConfirmation()
+ }
+ class SharedSeatPolicy
+ class ExclusiveHallPolicy
+ class TeamPolicy
+ interface SubscriptionPolicy <<Strategy>> {
+  +isEligible()
+ }
+ interface LoyaltyBenefits <<Strategy>> {
+  +benefits()
+ }
+ interface BookingState <<State>> {
+  +transition()
+ }
+ class PendingState
+ class ConfirmedState
+ class TerminalState
+ abstract class PriceHandler <<Chain of Responsibility>> {
+  +next: PriceHandler
+  +apply(context)
+ }
+ class EffectivePriceHandler
+ class FreeVisitHandler
+ class CardDiscountHandler
+ class RedemptionHandler <<optional>>
+ interface DomainSubscriber <<Observer>> {
+  +handle(event)
+ }
+ class NotificationSubscriber
+}
+package "Infrastructure ports and adapters (proposed)" {
+ interface PaymentGateway {
+  +charge()
+  +refund()
+ }
+ class SimulatedCardGateway <<Adapter>>
+ interface MailTransport {
+  +send()
+ }
+ class MailpitTransport <<Adapter>>
+ interface FileStorage {
+  +put()
+  +read()
+ }
+ class VolumeFileStorage <<Adapter>>
+ class PostgresRepositories
+ class OutboxRecord {
+  +eventKey
+  +recipient
+  +type
+  +payload
+  +deliveryState
+ }
+ class ScheduledJob {
+  +deduplicationKey
+  +runAt
+  +leaseUntil
+  +attempts
+ }
+ class LoginSession {
+  +tokenHash
+  +csrfTokenHash
+  +expiresAt
+  +revokedAt
+ }
+ class IdempotencyRecord {
+  +actorId
+  +operation
+  +key
+  +requestHash
+  +response
+  +expiresAt
+ }
+}
+ReactApplication --> ApiClient
+ApiClient --> NextRouteAdapters : REST / DTOs
+NextRouteAdapters --> AccessPolicy
+NextRouteAdapters --> IdentityService
+NextRouteAdapters --> CatalogService
+NextRouteAdapters --> BookingService
+NextRouteAdapters --> AdministrationService
+NextRouteAdapters --> ConversationService
+NextRouteAdapters --> ReportingService
+Account --|> Record
+Account "1" *-- "0..1" UserProfile
+Account "1" *-- "0..1" OrganizerProfile
+Account "1" *-- "0..1" AdminProfile
+note right of Account : Exactly one role profile; all entities inherit Record fields.\nSoft deletion preserves referenced history.
+UserProfile "*" --> "1" City
+UserProfile "*" -- "*" Direction : preferences
+OrganizerProfile "*" --> "1" City
+OrganizerProfile "*" -- "1..*" Direction
+OrganizerProfile "1" -- "*" Event
+Event "*" --> "1" City
+Event "*" --> "1" Direction
+Event "1" *-- "0..8" Photo
+Event "1" *-- "1..60" EventSession
+EventSession "1" -- "*" Booking
+UserProfile "1" -- "*" Booking
+Booking "1" *-- "*" BookingTransition
+Booking "0..1" -- "*" Payment
+UserSubscription "0..1" -- "*" Payment : purchase
+note right of Payment : Exactly one payment subject:\nbooking OR subscription purchase.
+OrganizerProfile "1" -- "*" SubscriptionPlan
+SubscriptionPlan "1" -- "*" UserSubscription
+UserProfile "1" -- "*" UserSubscription
+Booking "*" --> "0..1" UserSubscription
+UserProfile "*" --> "1" LoyaltyLevelConfig
+LoyaltyLevelConfig "*" -- "*" Direction : free directions
+LoyaltyRules "1" -- "3" LoyaltyLevelConfig : system configuration
+UserProfile "1" -- "*" PointsTransaction
+Booking "0..1" -- "*" PointsTransaction
+UserProfile "1" -- "*" Conversation
+OrganizerProfile "1" -- "*" Conversation
+Conversation "1" *-- "*" Message
+Message "*" --> "1" Account : sender
+Message "*" --> "0..1" Event
+Account "1" -- "*" Notification : recipient
+Account "1" -- "*" LoginSession
+IdentityService --> Account
+IdentityService --> LoginSession
+CatalogService --> Event
+CatalogService --> FileStorage
+BookingService --> Booking
+BookingService --> EventKindPolicy
+BookingService --> BookingState
+BookingService --> PriceHandler
+BookingService --> UnitOfWork
+BookingService --> SubscriptionService
+BookingService --> PaymentService
+BookingService --> LoyaltyService
+BookingService --> OutboxRecord
+PaymentService --> PaymentGateway
+SubscriptionService --> SubscriptionPolicy
+SubscriptionService --> UserSubscription
+LoyaltyService --> LoyaltyBenefits
+LoyaltyService --> PointsTransaction
+ConversationService --> Conversation
+NotificationService --> Notification
+AdministrationService --> BookingService : reuse cancellation
+AdministrationService --> IdentityService
+ReportingService --> PostgresRepositories : scoped reads
+PostgresRepositories ..|> UnitOfWork
+SimulatedCardGateway ..|> PaymentGateway
+MailpitTransport ..|> MailTransport
+VolumeFileStorage ..|> FileStorage
+SharedSeatPolicy ..|> EventKindPolicy
+ExclusiveHallPolicy ..|> EventKindPolicy
+TeamPolicy ..|> EventKindPolicy
+PendingState ..|> BookingState
+ConfirmedState ..|> BookingState
+TerminalState ..|> BookingState
+EffectivePriceHandler --|> PriceHandler
+FreeVisitHandler --|> PriceHandler
+CardDiscountHandler --|> PriceHandler
+RedemptionHandler --|> PriceHandler
+PriceHandler --> LoyaltyBenefits
+PriceHandler --> PriceHandler : next
+NotificationSubscriber ..|> DomainSubscriber
+NotificationSubscriber --> NotificationService
+NotificationService --> MailTransport
+WorkerDispatcher --> ScheduledJob
+WorkerDispatcher --> OutboxRecord
+WorkerDispatcher --> DomainSubscriber
+WorkerDispatcher --> BookingService
+PaymentService --> IdempotencyRecord
+note bottom of BookingService
+Transaction coordinates capacity and compensation; patterns do not commit separately.
+Q-01 through Q-05 remain unresolved. No liability/quota-resolution model is approved.
+Physical bootstrap tables are a small subset of this planned logical model.
+end note
+@enduml
