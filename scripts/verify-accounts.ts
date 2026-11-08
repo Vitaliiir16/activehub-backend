@@ -530,7 +530,8 @@ try {
     1,
   );
   const mail = new SmtpMailTransport();
-  for (let i = 0; i < 30; i++) {
+  // Other suites may have left queued messages on a shared database, so drain the whole queue.
+  for (let i = 0; i < 2000; i++) {
     const processed = await Promise.all([
       dispatchNextEmail(pool, mail),
       dispatchNextEmail(pool, mail),
