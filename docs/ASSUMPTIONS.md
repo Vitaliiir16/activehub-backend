@@ -8,10 +8,10 @@ Prepared on 2026-11-08. Proposals below are not implemented or approved business
 |---|---|---|
 | D-01 | Owner instruction | Use English in new documentation, code, UI, messages and seed display labels. This explicitly overrides the Ukrainian interface and validation text in source sections 3 and 10. Keep UAH and Europe/Kyiv. |
 | D-02 | Owner instruction | Publish product engineering files only. Keep the original source archive local. The published English baseline is REQUIREMENTS.md and its source section references; the local `project.md` archive is byte-identical to the supplied source. |
-| D-03 | Owner instruction | This delivery is preparation only. No functional modules, framework scaffold or placeholder API. |
+| D-03 | Owner instruction, updated 2026-11-08 | Continue through stages 00-03: diagrams, scaffolds, infrastructure and API contract. Stop before authentication, catalog, bookings or other business modules. Q-01 through Q-05 remain open. |
 | D-04 | Owner instruction | Commits, push and pull requests are authorized in both repositories; merge remains manual with the owner. No force push or history rewriting. Empty repositories start with a meaningful documentation commit on main. |
 | D-05 | Fixed source constraint | Next.js REST API + TypeScript, separate React + TypeScript frontend, PostgreSQL and Docker Compose. No framework substitution. |
-| P-01 | Proposed technical choice | Vite for the separate frontend. Select exact package and runtime versions during scaffolding and record the lockfiles and runtime policy. Installed Node is not a compatibility certification. |
+| P-01 | Selected and locally verified | Node 24, Next.js 16.4.5, React 19.3.1, Vite 8.3.6, TypeScript 5.9.3, ESLint 10.14.0. Exact dependencies and transitive versions are locked separately. TypeScript stays within the declared TypeScript ESLint support range. |
 | P-02 | Proposed technical choice | Backend-owned Compose, sibling frontend context, PostgreSQL-backed worker and outbox, local Mailpit, named database/uploads volumes. No Redis required initially. |
 | P-03 | Proposed technical choice | Persist login sessions, preferably opaque tokens in secure HTTP-only cookies. Agree CSRF, cookie, origin and proxy behavior in the contract before implementing auth. |
 | P-04 | Proposed technical choice | Store money in integer minor units or exact database decimal types, never binary floating-point. Persist UTC instants and interpret calendar boundaries in Europe/Kyiv. Final JSON representation belongs in OpenAPI. |

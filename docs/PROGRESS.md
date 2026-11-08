@@ -9,6 +9,9 @@ Snapshot: 2026-11-08, Europe/Kyiv. Current authorized scope: stages 00-03; stop 
 
 The preparation record below is historical. Later foundation log entries supersede its current-state and next-action descriptions.
 
+- Stage 01: Next.js API-only scaffold and separate React/Vite scaffold created with exact dependencies and lockfiles. Both lint/typecheck/build commands passed. `npm.cmd run test:smoke` starts the real production Next server, checks GET `/api/health` and stops the child process. The response returned HTTP 200, JSON service/version/status and `Cache-Control: no-store`. This health check initially establishes process liveness; database readiness is added in stage 02. No business route exists.
+- Dependency review: ESLint 10 is used with the Next plugin directly to avoid incompatible legacy React lint peers from the aggregate preset. Scoped minimatch 11.0.5 overrides address the reported development-tool advisory; final lockfile and checks are revalidated after resolution. TypeScript 7 is not selected because TypeScript ESLint currently declares support below 6.1.
+
 ## Current state
 
 Both repositories were empty locally and remotely at the initial inspection, with unborn local `master` branches and GitHub's intended default branch `main`. There was no existing application work to preserve. The parent workspace is not a Git repository.

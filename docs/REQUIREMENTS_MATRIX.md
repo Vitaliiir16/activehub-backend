@@ -7,6 +7,7 @@ Rows below define acceptance scope. Product behavior remains **planned** except 
 | Requirements | Delivered subset | Evidence | Still planned |
 |---|---|---|---|
 | M-001 through M-004, M-100 | Stage 00 domain and whole-system modeling | [MODELING.md](MODELING.md), three PlantUML sources and locally rendered SVGs; PlantUML 1.2026.9 successful compilation; use-case ID inventory reviewed | All business behavior, actual GoF implementation and final source-to-model reconciliation |
+| M-005, M-006 | Stage 01 Next.js REST and separate React/TypeScript scaffolds | Both `lint`, `typecheck`, `build` scripts passed; production server health smoke passed; exact package lockfiles | All functional product modules and role screens |
 
 ## Mandatory scope
 

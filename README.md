@@ -2,7 +2,7 @@
 
 ActiveHub is a marketplace for sports and active leisure. People find sessions and book places; organizers manage events and subscriptions; administrators manage the platform.
 
-This repository is at the documentation stage. There is no application, database schema, API implementation or runnable Compose configuration yet.
+The Next.js REST scaffold is available with a working `GET /api/health` endpoint. Product features are planned. PostgreSQL and Compose setup are the next infrastructure step.
 
 ## Stack
 
@@ -20,7 +20,7 @@ docker compose up --build
 
 That command is a target, not a working setup today. Compose will start PostgreSQL, migrations and seeds, the API, a worker, the frontend and a local email viewer. Database and uploaded files will use persistent volumes. Required seeds will run automatically; sample data will be optional.
 
-Environment variables, ports, npm scripts and demo credentials will be documented when they exist. No credentials or `.env` files belong in Git. PowerShell development commands must use `npm.cmd` and `npx.cmd`.
+For the current scaffold, use Node 24 and run `npm.cmd ci`, `npm.cmd run lint`, `npm.cmd run typecheck`, `npm.cmd run build` and `npm.cmd run test:smoke`. `npm.cmd run dev` serves the API on port 3000. No credentials or `.env` files belong in Git. PowerShell commands use `npm.cmd` and `npx.cmd`.
 
 ## Documentation
 
@@ -38,4 +38,4 @@ No design patterns have been implemented yet. The architecture document explains
 
 ## Checks
 
-Current checks cover documentation and repository hygiene only. Application type checks, lint, builds, database integration tests and end-to-end tests are planned. They cannot run until the application and scripts exist.
+Lint, type checking, production build and a real production-server health smoke check are available. Database and full-stack integration checks follow with infrastructure; business behavior remains unimplemented.
