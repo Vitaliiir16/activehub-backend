@@ -6,7 +6,7 @@ import { verifyPassword } from "./lib/password";
 
 const config = seedConfiguration();
 const pool = createPool();
-const tables = ["accounts", "admin_profiles", "cities", "directions", "loyalty_level_config", "loyalty_free_directions", "loyalty_rules", "schema_migrations"];
+const tables = ["accounts", "admin_profiles", "cities", "directions", "loyalty_level_config", "loyalty_free_directions", "loyalty_rules", "schema_migrations", "notification_settings"];
 try {
   const client = await pool.connect();
   try {

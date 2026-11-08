@@ -46,4 +46,5 @@ export async function seed(client: PoolClient, config: ReturnType<typeof seedCon
     const account = await client.query<{ id: string }>("INSERT INTO accounts (email, password_hash, role) VALUES ($1, $2, 'ADMIN') RETURNING id", [config.email, hash]);
     await client.query("INSERT INTO admin_profiles (account_id, display_name) VALUES ($1, $2)", [account.rows[0].id, config.displayName]);
   }
+  await client.query("INSERT INTO notification_settings (account_id) SELECT id FROM accounts ON CONFLICT DO NOTHING");
 }
