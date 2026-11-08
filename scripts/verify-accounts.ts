@@ -117,6 +117,24 @@ try {
     cityId: city,
     gender: "UNDISCLOSED",
   };
+  const invalidCases = [
+    { email: "invalid" },
+    { password: "Short1", passwordConfirmation: "Short1" },
+    { password: "OnlyLetters", passwordConfirmation: "OnlyLetters" },
+    { password: "12345678", passwordConfirmation: "12345678" },
+    { firstName: "A" },
+    { lastName: "A".repeat(51) },
+    { phone: "0501234567" },
+    { gender: "OTHER" },
+    { cityId: "unknown" },
+  ];
+  for (const invalid of invalidCases)
+    await guest.call(
+      "/api/auth/register/user",
+      "POST",
+      { ...userInput, ...invalid },
+      { status: 422 },
+    );
   await guest.call("/api/auth/register/user", "POST", userInput, {
     csrf: false,
     status: 403,
