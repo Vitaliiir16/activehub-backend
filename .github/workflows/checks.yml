@@ -66,3 +66,4 @@ jobs:
       - run: npm run test:accounts
       - run: npm run test:marketplace
       - run: npm run test:loyalty
+      - run: npm run test:communications
